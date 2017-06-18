@@ -20,6 +20,7 @@ def load_data(alone, n):
 	newsdates = os.listdir(newsrootdir)
 	news_data = []
 	faulty_news = []
+	sentences = []
 
 	for i in newsdates:
 		if not i.startswith('.'):
@@ -38,11 +39,20 @@ def load_data(alone, n):
 						date = np.datetime64(pd.to_datetime(str(date[3:])) )
 						[url, text] = text.split('\n',1)
 						url = url[3:]
+						
+						try:
+							[dummy, text] = text.split(') -',1)
+						except ValueError:
+							dummy = "no info"
+
 						text = text.replace("\n", "")
-						#text = text.replace("\'","'")
 						text = ' '.join(text.split())
 						news_data.append([np.datetime64(i),j,title, author, \
-							date, url, text])
+							date, url, dummy, text])
+
+						#sentences to list
+
+
 					except ValueError:
 						faulty_news.append([i,j])
 
@@ -50,8 +60,8 @@ def load_data(alone, n):
 	sigma = np.array([])
 	#weekly mean variance scaled..
 	for i in range(len(lreturns)-n):
-		mu.append(np.mean(lreturns[i:(i+n),:],axis=0))
-		sigma.append(np.var(lreturns[i:(i+n),:],axis=0))
+		np.append(mu, np.mean(lreturns[i:(i+n),:],axis=0))
+		np.append(sigma, np.var(lreturns[i:(i+n),:],axis=0))
 
 	if alone:
 		f = open('./Data/processed_data', 'wb')

@@ -4,7 +4,7 @@ from data_loading import load_data
 n = 5 #week, but might be adjusted, calibrate it maybe
 
 #load and preprocess data
-[prices, dates, names, lreturns, news_data, faulty_news, mu, sigma] = load_data(True, 5)
+[prices, dates, names, lreturns, news_data, faulty_news, mu, sigma] = load_data(True, n)
 
 #learn news effect
 
