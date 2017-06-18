@@ -1,12 +1,12 @@
 
 
-def load_data(alone):
+def load_data(alone, n):
 
 	import numpy as np
 	import pandas as pd
 	import os as os
 	import pickle
-	
+
 	#load SP500 Data
 	raw_data = pd.read_csv('./Data/SP.csv', sep=',',header=None)
 	temp = raw_data.values[1:,1:]
@@ -38,16 +38,25 @@ def load_data(alone):
 						date = np.datetime64(pd.to_datetime(str(date[3:])) )
 						[url, text] = text.split('\n',1)
 						url = url[3:]
+						text = text.replace("\n", "")
+						#text = text.replace("\'","'")
+						text = ' '.join(text.split())
 						news_data.append([np.datetime64(i),j,title, author, \
 							date, url, text])
 					except ValueError:
 						faulty_news.append([i,j])
 
-	#weekly mean variance using 
+	mu = np.array([])
+	sigma = np.array([])
+	#weekly mean variance scaled..
+	for i in range(len(lreturns)-n):
+		mu.append(np.mean(lreturns[i:(i+n),:],axis=0))
+		sigma.append(np.var(lreturns[i:(i+n),:],axis=0))
 
 	if alone:
 		f = open('./Data/processed_data', 'wb')
-		pickle.dump([prices, dates, names, lreturns, news_data, faulty_news], f)
+		pickle.dump([prices, dates, names, lreturns, news_data, faulty_news, 
+			mu, sigma], f)
 		f.close()
 
-	return [prices, dates, names, lreturns, news_data, faulty_news]
+	return [prices, dates, names, lreturns, news_data, faulty_news,mu, sigma]
