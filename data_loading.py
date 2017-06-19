@@ -6,6 +6,8 @@ def load_data(alone, n):
 	import pandas as pd
 	import os as os
 	import pickle
+	import nltk.data
+	from nltk.tokenize import RegexpTokenizer
 
 	#load SP500 Data
 	raw_data = pd.read_csv('./Data/SP.csv', sep=',',header=None)
@@ -47,11 +49,30 @@ def load_data(alone, n):
 
 						text = text.replace("\n", "")
 						text = ' '.join(text.split())
-						news_data.append([np.datetime64(i),j,title, author, \
-							date, url, dummy, text])
+						
 
 						#sentences to list
+						try:
+							tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
+						except:
+							nltk.download()
+							tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
+						temp = tokenizer.tokenize(text)
+						news_sub = []
+						for j in temp:
+							tokenizer = RegexpTokenizer(r'\w+')
+							temp1 = tokenizer.tokenize(j)
+							temp3 = []
+							for k in temp1:
+								if not k.isdigit():
+									temp3.append(k)
 
+							news_sub.append(temp3)
+
+						#tokenization problemens U.S. -> 'U' 'S', company's -> 'company' 's'
+
+						news_data.append([np.datetime64(i),j,title, author, \
+							date, url, dummy, text, news_sub])
 
 					except ValueError:
 						faulty_news.append([i,j])
