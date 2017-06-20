@@ -10,7 +10,7 @@ def load_news_data(alone):
 	from nltk.tokenize import RegexpTokenizer
 
 	#load text data
-	newsrootdir = "./Data_small/ReutersNews106521"
+	newsrootdir = "./Data/ReutersNews106521"
 	newsdates = os.listdir(newsrootdir)
 	news_data = []
 	faulty_news = []
@@ -88,7 +88,7 @@ def load_SP_data(alone):
 	import datetime
 
 	#load SP500 Data
-	raw_data = pd.read_csv('./Data_small/SP.csv', sep=',',header=None)
+	raw_data = pd.read_csv('./Data/SP.csv', sep=',',header=None)
 	temp = raw_data.values[1:,1:]
 	prices = temp.astype(float)
 	dates = np.array(raw_data.values[1:-1,0],dtype='datetime64')

@@ -12,7 +12,11 @@ model = build_word2vec_model(True)
 
 [x_train,y_train] = gen_xy(aggregated_news,mu,dates_news,dates_SP_weekly)
 
-model1 = rnn_model(x_train,y_train)
+modelsRNN = list()
+for i in range(np.shape(y_train)[1]):
+	modelsRNN.append(rnn_model(x_train,y_train[:,1]))
+
+
 
 #learn news effect
 
@@ -20,11 +24,8 @@ model1 = rnn_model(x_train,y_train)
 
 #test
 
-
 #minimum variance portfolio projected CG
 
-
 #sparsity minimum variance
-
 
 #performance testing
