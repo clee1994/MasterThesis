@@ -77,6 +77,8 @@ def load_data(alone, n):
 					except ValueError:
 						faulty_news.append([i,j])
 
+	news_data = sorted(news_data, key=lambda news: news[4] )
+	
 	mu = np.array([])
 	sigma = np.array([])
 	#weekly mean variance scaled..
