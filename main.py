@@ -1,9 +1,5 @@
 from data_loading import load_news_data, load_SP_data 
 from learning import build_word2vec_model, get_news_vector, gen_xy, nearest, rnn_model
-import logging, time
-
-LOG_FILENAME = "./Output" + time.strftime("%Y%m%d_%H%M%S")
-logging.getLogger().addHandler(logging.StreamHandler())
 
 #load and preprocess data
 print('Start reading in news:')
