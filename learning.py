@@ -4,15 +4,15 @@
 
 
 
-def build_word2vec_model(alone):
+def build_word2vec_model(alone, news_data=[], faulty_news=[]):
 	import numpy as np
 	import gensim, logging
 	import pickle
 
-	#if alone:
-	f = open('./Data/processed_news_data', 'rb')
-	[news_data, faulty_news] = pickle.load(f)
-	f.close()
+	if alone:
+		f = open('./Data/processed_news_data', 'rb')
+		[news_data, faulty_news] = pickle.load(f)
+		f.close()
 
 
 	#remove stopwords - maybe keep them
@@ -33,13 +33,14 @@ def build_word2vec_model(alone):
 
 
 
-def get_news_vector(alone,model): 	
+def get_news_vector(alone,model, news_data=[], faulty_news=[]): 	
 	import pickle
 	import numpy as np
 
-	f = open('./Data/processed_news_data', 'rb')
-	[news_data, faulty_news] = pickle.load(f)
-	f.close()
+	if alone:
+		f = open('./Data/processed_news_data', 'rb')
+		[news_data, faulty_news] = pickle.load(f)
+		f.close()
 
 
 	vec_news = np.zeros([len(news_data),len(model.wv['and'])])
@@ -103,7 +104,7 @@ def gen_xy(aggregated_news,mu,dates_news,dates_SP_weekly):
 	return [x_train, y_train]
 
 
-def rnn_model(x_train,y_train):
+def rnn_model(x_train,y_train,x_test,y_test):
 	from keras.models import Sequential
 
 	model = Sequential()
@@ -122,7 +123,7 @@ def rnn_model(x_train,y_train):
 
 
 	model.fit(x_train, y_train, epochs=5, batch_size=32)
-	#loss_and_metrics = model.evaluate(x_test, y_test, batch_size=128)
+	loss_and_metrics = model.evaluate(x_test, y_test, batch_size=128)
 	#classes = model.predict(x_test, batch_size=128)
 
 	return model
