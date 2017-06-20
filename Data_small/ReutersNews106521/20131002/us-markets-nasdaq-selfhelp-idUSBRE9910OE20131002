@@ -1,0 +1,9 @@
+-- Nasdaq routs orders away from CBOE after brief glitch
+-- By  Chuck Mikolajczak
+-- Wed Oct 2, 2013 12:29pm EDT
+-- http://www.reuters.com/article/2013/10/02/us-markets-nasdaq-selfhelp-idUSBRE9910OE20131002
+
+ 
+
+ NEW YORK  (Reuters) - Nasdaq OMX Group Inc ( NDAQ.O ) said on Wednesday that several of its operated exchanges briefly declared "self-help" against the Chicago Board Options Exchange. 
+ Self-help, which occurs when an exchange is dealing with internal problems processing trades and need to send orders through alternate venues, was declared by Nasdaq OMX PHLX, Nasdaq OMX BX Options and Nasdaq Options market systems at about 9:42 a.m. Each of the Nasdaq operated exchanges later revoked the self-help declaration by 9:55 a.m. A notification on the CBOE's website said there was a market data issue that lasted about 12 minutes which resulted in quotes and last sales not being disseminated to the Options Price Reporting Authority. The notice further said the issue did not interrupt trading on the CBOE and all systems are operating normally. (Reporting by Chuck Mikolajczak; Editing by  Bernadette Baum  and Meredith Mazzilli)

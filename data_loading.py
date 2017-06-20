@@ -1,6 +1,6 @@
 
 
-def load_data(alone, n):
+def load_news_data(alone):
 
 	import numpy as np
 	import pandas as pd
@@ -9,16 +9,8 @@ def load_data(alone, n):
 	import nltk.data
 	from nltk.tokenize import RegexpTokenizer
 
-	#load SP500 Data
-	raw_data = pd.read_csv('./Data/SP.csv', sep=',',header=None)
-	temp = raw_data.values[1:,1:]
-	prices = temp.astype(float)
-	dates = np.array(raw_data.values[1:-1,0],dtype='datetime64')
-	names = raw_data.values[0,1:-1]
-	lreturns = np.diff(np.log(prices),n=1, axis=0)
-
 	#load text data
-	newsrootdir = "./Data/ReutersNews106521"
+	newsrootdir = "./Data_small/ReutersNews106521"
 	newsdates = os.listdir(newsrootdir)
 	news_data = []
 	faulty_news = []
@@ -78,18 +70,66 @@ def load_data(alone, n):
 						faulty_news.append([i,j])
 
 	news_data = sorted(news_data, key=lambda news: news[4] )
-	
-	mu = np.array([])
-	sigma = np.array([])
-	#weekly mean variance scaled..
-	for i in range(len(lreturns)-n):
-		np.append(mu, np.mean(lreturns[i:(i+n),:],axis=0))
-		np.append(sigma, np.var(lreturns[i:(i+n),:],axis=0))
 
 	if alone:
-		f = open('./Data/processed_data', 'wb')
-		pickle.dump([prices, dates, names, lreturns, news_data, faulty_news, 
-			mu, sigma], f)
+		f = open('./Data/processed_news_data', 'wb')
+		pickle.dump([news_data, faulty_news], f)
 		f.close()
 
-	return [prices, dates, names, lreturns, news_data, faulty_news,mu, sigma]
+	return [news_data, faulty_news]
+
+
+
+def load_SP_data(alone):
+
+	import numpy as np
+	import pandas as pd
+	import pickle
+	import datetime
+
+	#load SP500 Data
+	raw_data = pd.read_csv('./Data_small/SP.csv', sep=',',header=None)
+	temp = raw_data.values[1:,1:]
+	prices = temp.astype(float)
+	dates = np.array(raw_data.values[1:-1,0],dtype='datetime64')
+	names = raw_data.values[0,1:-1]
+	lreturns = np.diff(np.log(prices),n=1, axis=0)
+
+
+	#weekly mean variance scaled..
+
+	temp = dates[0].tolist()
+	prev_date = temp.isocalendar()[1]
+	temp_mean = np.array([lreturns[0,:]])
+	cur_pos = 0
+	mu_vec = np.zeros((1,505))
+	sigma_vec = np.zeros((1,505))
+	dates_SP_weekly = []
+	dates_SP_weekly.append(dates[0])
+
+	for i in range(1,np.shape(lreturns)[0]):
+		temp = dates[i].tolist()
+		cur_date = temp.isocalendar()[1]
+		if cur_date == prev_date:
+			temp_mean = np.vstack((temp_mean, lreturns[i,:]))
+			prev_date = cur_date
+		else:
+			dates_SP_weekly.append(dates[i])
+			temp2 = np.mean(temp_mean, axis=0)
+			temp2 = np.reshape(temp2, (1,505))
+			temp3 = np.var(temp_mean, axis=0)
+			temp3 = np.reshape(temp2, (1,505))
+			mu_vec = np.vstack((mu_vec,temp2))
+			sigma_vec = np.vstack((sigma_vec,temp3))
+			cur_pos += 1
+			i += 1
+			temp_mean = np.array([lreturns[0,:]])
+			prev_date = cur_date
+
+	if alone:
+		f = open('./Data/processed_SP_data', 'wb')
+		pickle.dump([prices, dates, names, lreturns, mu_vec, sigma_vec, dates_SP_weekly], f)
+		f.close()
+
+
+	return [prices, dates, names, lreturns, mu_vec, sigma_vec, dates_SP_weekly]
