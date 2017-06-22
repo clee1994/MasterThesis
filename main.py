@@ -22,6 +22,8 @@ print('Successfully aggregated data')
 print('--------------------------------------')
 
 
+print('test')
+
 #mean
 print('Start generating mu train and test data:')
 [x,y] = gen_xy(aggregated_news,mu,dates_news,dates_SP_weekly)
