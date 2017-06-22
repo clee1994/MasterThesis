@@ -41,8 +41,9 @@ print('--------------------------------------')
 
 #generat x and y data/train/test
 print('Start generating mu train and test data:')
-[x_train,y_train,x_test,y_test,used_stocks] = gen_xy(
-	aggregated_news,lreturns[:,1:10],
+[x_train,y_train,x_test,y_test,used_stocks,x_dates_train, x_dates_test] = gen_xy(
+	aggregated_news,
+	lreturns[:,1:10],
 	dates,
 	dates_news,
 	n_forward,
@@ -64,7 +65,7 @@ modelsRNNmu = list()
 modelsRNNsigma = list()
 loss_mu = list()
 loss_sigma = list()
-for i in range(1):
+for i in range(0,3):
 	print('Start building prediction model:')
 	modelsRNNmu.append(rnn_model(x_train,y_train[:,i],validation_split,batch_size,epoches))
 	temp1 = modelsRNNmu[i].evaluate(x_test, y_test[:,i])
@@ -78,11 +79,40 @@ for i in range(1):
 	print('--------------------------------------')
 
 
+no_t = 1
+predict_y = modelsRNNmu[0].predict(x_test, batch_size=128)
+true_y_com = np.zeros(len(predict_y))
+pred_y_com = np.zeros(len(predict_y))
+
+temp = x_dates_test[1].tolist()
+prev_d = np.datetime64(datetime.date(temp.year, temp.month, temp.day))
+j = 0
+k = 0
+true_y_com[0] = y_test[0,0]
+
+for i in range(len(predict_y)):
+	temp = x_dates_test[i].tolist()
+	cur_d = np.datetime64(datetime.date(temp.year, temp.month, temp.day))
+	
+	if prev_d == cur_d:
+		prev_d = cur_d
+		#true_y_com[j,k] += y_test[i,0]
+		pred_y_com[j] += predict_y[i]
+		k += 1
+	else:
+		j += 1
+		true_y_com[j] = y_test[i,0]
+		pred_y_com[j] += predict_y[i]
+		k = 0
+		prev_d = cur_d
+
 
 import matplotlib.pyplot as plt
 
 plt.figure(1)
 
+plt.plot(true_y_com[0:j+1], 'r', pred_y_com[0:j+1], 'bs')
+plt.show()
 
 
 #plt.subplot(212)

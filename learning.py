@@ -143,13 +143,15 @@ def gen_xy(aggregated_news,lreturns,dates,dates_news,n_forward,n_past,mu_var,nam
 
 	y = np.delete(y,bad_stocks,1)
 
-	x_train = x[0:np.floor(np.shape(x)[0]*(1-test_split)),:]
-	y_train = y[0:np.floor(np.shape(y)[0]*(1-test_split)),:]
-	x_test = x[0:np.ceil(np.shape(x)[0]*test_split),:]
+	split_point = np.floor(np.shape(x)[0]*(1-test_split))
+	x_train = x[0:split_point,:]
+	y_train = y[0:split_point,:]
+	x_test = x[(split_point+1):,:]
 	x_test = np.reshape(x_test, x_test.shape + (1,))
-	y_test = y[0:np.ceil(np.shape(y)[0]*test_split),:]
-	x_dates_train = x_dates[0:np.floor(np.shape(x)[0]*(1-test_split))]
-	x_dates_test = x_dates[0:np.ceil(np.shape(x)[0]*test_split)]
+	y_test = y[(split_point+1):,:]
+	x_dates = np.array(x_dates)
+	x_dates_train = x_dates[0:split_point]
+	x_dates_test = x_dates[(split_point+1):]
 
 	return [x_train, y_train, x_test, y_test, used_stocks, x_dates_train, x_dates_test]
 
