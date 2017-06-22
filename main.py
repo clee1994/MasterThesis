@@ -1,81 +1,101 @@
 from data_loading import load_news_data, load_SP_data 
-from learning import build_word2vec_model, get_news_vector, gen_xy, nearest, rnn_model
+from learning import build_word2vec_model, get_news_vector
+from learning import  gen_xy, nearest, rnn_model
 import numpy as np
+
+#modifiable variables
+path_to_news_files = "./Data_small/ReutersNews106521"
+n_forward=5
+n_past = 30
+test_split = 0.1
+validation_split = 0.1
+batch_size = 32
+epoches = 5
+word_min_count = 10
+feature_number = 300
+
 
 #load and preprocess data
 print('Start reading in news:')
-[news_data, faulty_news] = load_news_data(False)
+[news_data, faulty_news] = load_news_data(False,path_to_news_files)
 print('Successfully read all news')
 print('--------------------------------------')
 print('Start reading in SP500 data:')
 [prices, dates, names, lreturns, mu, sigma,dates_SP_weekly] = load_SP_data(False)
 print('Successfully read all data')
+
+
+#train word2vec model
 print('--------------------------------------')
 print('Start building word2vec model:')
-model = build_word2vec_model(False, news_data, faulty_news) 
+model = build_word2vec_model(False,feature_number,word_min_count, news_data, faulty_news) 
 print('Successfully build model')
 print('--------------------------------------')
 
+#transform news to vectors
 print('Start aggregating news data:')
 [aggregated_news, dates_news] = get_news_vector(False,model, news_data, faulty_news)
 print('Successfully aggregated data')
 print('--------------------------------------')
 
 
-print('test')
-
-#mean
+#generat x and y data/train/test
 print('Start generating mu train and test data:')
-[x,y] = gen_xy(aggregated_news,mu,dates_news,dates_SP_weekly)
-mu_x_train = x[0:np.floor(np.shape(x)[0]*0.8),:]
-mu_y_train = y[0:np.floor(np.shape(y)[0]*0.8),:]
-mu_x_test = x[0:np.ceil(np.shape(x)[0]*0.2),:]
-mu_x_test = np.reshape(mu_x_test, mu_x_test.shape + (1,))
-mu_y_test = y[0:np.ceil(np.shape(y)[0]*0.2),:]
+[x_train,y_train,x_test,y_test,used_stocks] = gen_xy(
+	aggregated_news,lreturns[:,1:10],
+	dates,
+	dates_news,
+	n_forward,
+	n_past,
+	True,
+	names,
+	test_split)
+
 print('Successfully generated mu train and test data')
 print('--------------------------------------')
 
 
-#variance
-print('Start generating sigma train and test data:')
-[x,y] = gen_xy(aggregated_news,sigma,dates_news,dates_SP_weekly)
-sigma_x_train = x[0:np.floor(np.shape(x)[0]*0.9),:]
-sigma_y_train = y[0:np.floor(np.shape(y)[0]*0.9),:]
-sigma_x_test = x[0:np.ceil(np.shape(x)[0]*0.1),:]
-sigma_x_test = np.reshape(sigma_x_test, sigma_x_test.shape + (1,))
-sigma_y_test = y[0:np.ceil(np.shape(y)[0]*0.1),:]
-print('Successfully generated sigma train and test data')
-print('--------------------------------------')
 
-used_stocks = list()
-bad_stocks = list()
 
-#drop stocks with insufficient data
-for i in range(np.shape(mu_y_train)[1]):
-	if (np.sum(np.isnan(mu_y_train[:,i]))/len(mu_y_train[:,i])) > 0.1:
-		bad_stocks.append(i)
-	else:
-		used_stocks.append(names[i])
 
-mu_y_train = np.delete(mu_y_train,bad_stocks,1)
-sigma_y_train = np.delete(sigma_y_train,bad_stocks,1)
+
 
 modelsRNNmu = list()
 modelsRNNsigma = list()
 loss_mu = list()
 loss_sigma = list()
-for i in range(5):
+for i in range(1):
 	print('Start building prediction model:')
-	modelsRNNmu.append(rnn_model(mu_x_train,mu_y_train[:,i]))
-	temp1 = modelsRNNmu[i].evaluate(mu_x_test, mu_y_test[:,i])
+	modelsRNNmu.append(rnn_model(x_train,y_train[:,i],validation_split,batch_size,epoches))
+	temp1 = modelsRNNmu[i].evaluate(x_test, y_test[:,i])
 	loss_mu.append(temp1)
 	print(temp1)
-	modelsRNNsigma.append(rnn_model(sigma_x_train,sigma_y_train[:,i]))
-	temp1 = modelsRNNsigma[i].evaluate(sigma_x_test, sigma_y_test[:,i])
-	loss_sigma.append(temp1)
-	print(temp1)
+	# modelsRNNsigma.append(rnn_model(sigma_x_train,sigma_y_train[:,i]))
+	# temp1 = modelsRNNsigma[i].evaluate(sigma_x_test, sigma_y_test[:,i])
+	# loss_sigma.append(temp1)
+	# print(temp1)
 	print('Successfully generated model')
 	print('--------------------------------------')
+
+
+
+import matplotlib.pyplot as plt
+
+plt.figure(1)
+
+
+
+#plt.subplot(212)
+#plt.plot(lreturns[:,0])
+
+predict_y = modelsRNNmu[0].predict(x_test, batch_size=128)
+
+plt.subplot(211)
+plt.plot(predict_y[:,0])
+
+plt.subplot(212)
+plt.plot(y_test[:,0])
+plt.show()
 
 
 

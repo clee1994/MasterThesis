@@ -1,6 +1,6 @@
 
 
-def load_news_data(alone):
+def load_news_data(alone, path):
 
 	import numpy as np
 	import pandas as pd
@@ -8,21 +8,27 @@ def load_news_data(alone):
 	import pickle
 	import nltk.data
 	from nltk.tokenize import RegexpTokenizer
+	from progressbar import printProgressBar
 
 	#load text data
-	newsrootdir = "./Data/ReutersNews106521"
-	newsdates = os.listdir(newsrootdir)
+	newsdates = os.listdir(path)
 	news_data = []
 	faulty_news = []
 	sentences = []
 
+	prog_st = 0
+	l = len(newsdates) 
+	printProgressBar(prog_st, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
+
 	for i in newsdates:
+		prog_st += 1
+		printProgressBar(prog_st, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
 		if not i.startswith('.'):
-			newstitles = os.listdir(newsrootdir + "/" + i)
+			newstitles = os.listdir(path + "/" + i)
 			for j in newstitles:
 				if not j.startswith('.'):
 					try:
-						file = open(newsrootdir + "/" + i + "/" + j , "r") 
+						file = open(path + "/" + i + "/" + j , "r") 
 						text = file.read()
 						file.close()
 						[title, text] = text.split('\n',1)
@@ -91,7 +97,7 @@ def load_SP_data(alone):
 	raw_data = pd.read_csv('./Data/SP.csv', sep=',',header=None)
 	temp = raw_data.values[1:,1:]
 	prices = temp.astype(float)
-	dates = np.array(raw_data.values[1:-1,0],dtype='datetime64')
+	dates = np.array(raw_data.values[2:,0],dtype='datetime64')
 	names = raw_data.values[0,1:-1]
 	lreturns = np.diff(np.log(prices),n=1, axis=0)
 
@@ -107,24 +113,24 @@ def load_SP_data(alone):
 	dates_SP_weekly = []
 	dates_SP_weekly.append(dates[0])
 
-	for i in range(1,np.shape(lreturns)[0]):
-		temp = dates[i].tolist()
-		cur_date = temp.isocalendar()[1]
-		if cur_date == prev_date:
-			temp_mean = np.vstack((temp_mean, lreturns[i,:]))
-			prev_date = cur_date
-		else:
-			dates_SP_weekly.append(dates[i])
-			temp2 = np.mean(temp_mean, axis=0)
-			temp2 = np.reshape(temp2, (1,505))
-			temp3 = np.var(temp_mean, axis=0)
-			temp3 = np.reshape(temp2, (1,505))
-			mu_vec = np.vstack((mu_vec,temp2))
-			sigma_vec = np.vstack((sigma_vec,temp3))
-			cur_pos += 1
-			i += 1
-			temp_mean = np.array([lreturns[0,:]])
-			prev_date = cur_date
+	# for i in range(1,np.shape(lreturns)[0]):
+	# 	temp = dates[i].tolist()
+	# 	cur_date = temp.isocalendar()[1]
+	# 	if cur_date == prev_date:
+	# 		temp_mean = np.vstack((temp_mean, lreturns[i,:]))
+	# 		prev_date = cur_date
+	# 	else:
+	# 		dates_SP_weekly.append(dates[i])
+	# 		temp2 = np.mean(temp_mean, axis=0)
+	# 		temp2 = np.reshape(temp2, (1,505))
+	# 		temp3 = np.var(temp_mean, axis=0)
+	# 		temp3 = np.reshape(temp2, (1,505))
+	# 		mu_vec = np.vstack((mu_vec,temp2))
+	# 		sigma_vec = np.vstack((sigma_vec,temp3))
+	# 		cur_pos += 1
+	# 		i += 1
+	# 		temp_mean = np.array([lreturns[0,:]])
+	# 		prev_date = cur_date
 
 	if alone:
 		f = open('./Data/processed_SP_data', 'wb')
