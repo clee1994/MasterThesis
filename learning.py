@@ -104,26 +104,25 @@ def gen_xy(aggregated_news,mu,dates_news,dates_SP_weekly):
 	return [x_train, y_train]
 
 
-def rnn_model(x_train,y_train,x_test,y_test):
+def rnn_model(x_train,y_train):
 	from keras.models import Sequential
+	from keras.layers import LSTM
+	import numpy as np
 
 	model = Sequential()
 
-	from keras.layers import SimpleRNN
-
 	x_train = np.reshape(x_train, x_train.shape + (1,))
 
-	model.add(SimpleRNN(64, input_shape=x_train.shape[1:], return_sequences=True))
-	model.add(SimpleRNN(32, return_sequences=True))
-	model.add(SimpleRNN(1))
+	model.add(LSTM(64, input_shape=x_train.shape[1:], return_sequences=True))
+	model.add(LSTM(32, return_sequences=True))
+	model.add(LSTM(1))
 
 	model.compile(loss='mean_squared_error',
-	              optimizer='sgd',
-	              metrics=['accuracy'])
+	              optimizer='sgd')
 
 
-	model.fit(x_train, y_train, epochs=5, batch_size=32)
-	loss_and_metrics = model.evaluate(x_test, y_test, batch_size=128)
+	model.fit(x_train, y_train, epochs=5, batch_size=32,validation_split=0.1)
+	#loss_and_metrics = model.evaluate(x_test, y_test, batch_size=128)
 	#classes = model.predict(x_test, batch_size=128)
 
 	return model
