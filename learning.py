@@ -56,12 +56,15 @@ def get_news_vector(alone,model, news_data=[], faulty_news=[]):
 	for i in range(len(news_data)):
 		prog_st+=1
 		printProgressBar(prog_st, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
+		mean_divider = 1
 		for j in news_data[i][8]:
 			for k in j:
 				try:
 					vec_news[i,:] = np.add(vec_news[i,:], model.wv[k])
+					mean_divider += 1
 				except:
 					continue
+		vec_news[i,:] = np.divide(vec_news[i,:], mean_divider)
 		dates_news.append(news_data[i][4])
 
 	#get data and matching labels
@@ -108,11 +111,13 @@ def gen_xy(aggregated_news,lreturns,dates,dates_news,n_forward,n_past,mu_var,nam
 	l = len(dates_news) 
 	printProgressBar(j, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
 
+	temp = dates_news[0].tolist()
+	prev_d = np.datetime64(datetime.date(temp.year, temp.month, temp.day))
+
 	for i in range(len(dates_news)):
-		x = np.vstack((x, aggregated_news[i,:]))
-		x_dates.append(dates_news[i])
+		
 		temp = dates_news[i].tolist()
-		temp2 = np.datetime64(datetime.date(temp.year, temp.month, temp.day))
+		cur_d = np.datetime64(datetime.date(temp.year, temp.month, temp.day))
 		try:
 			ind_of_week = dates.index(temp2)
 		except:
@@ -120,12 +125,17 @@ def gen_xy(aggregated_news,lreturns,dates,dates_news,n_forward,n_past,mu_var,nam
 			temp3 = min(dates, key=lambda x: abs(x - temp2))
 			ind_of_week = dates.index(temp3)
 
-		if mu_var:
-			past_mu = np.mean(lreturns[(ind_of_week-n_past):ind_of_week,:],axis=0)
-			future_mu = np.mean(lreturns[ind_of_week:(ind_of_week+n_forward),:],axis=0)
+		if cur_d == prev_d:
+			prev_d = cur_d
+			#counter... bla bla
 		else:
-			past_mu = np.var(lreturns[(ind_of_week-n_past):ind_of_week,:],axis=0)
-			future_mu = np.var(lreturns[ind_of_week:(ind_of_week+n_forward),:],axis=0)
+			prev_d = cur_d
+			x = np.vstack((x, aggregated_news[i,:]))
+			x_dates.append(dates_news[i])
+
+		past_mu = np.mean(lreturns[(ind_of_week-n_past):ind_of_week,:],axis=0)
+		future_mu = np.mean(lreturns[ind_of_week:(ind_of_week+n_forward),:],axis=0)
+		
 		y = np.vstack((y, (future_mu-past_mu)))
 		j += 1
 		printProgressBar(j, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
