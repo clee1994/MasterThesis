@@ -132,6 +132,7 @@ def gen_xy(aggregated_news,lreturns,dates,dates_news,n_forward,n_past,mu_var,nam
 	y = np.delete(y,bad_stocks,1)
 
 	split_point = np.floor(np.shape(x)[0]*(1-test_split))
+	print(split_point)
 	x_train = x[0:split_point,:]
 	y_train = y[0:split_point,:]
 	x_test = x[(split_point+1):,:]
