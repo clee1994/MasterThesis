@@ -34,7 +34,7 @@ for feature_number in feature_number_list:
 
 	#transform news to vectors
 	print('Start aggregating news data:')
-	[aggregated_news, dates_news] = get_news_vector(False,model, news_data, faulty_news, feature_number)
+	[aggregated_news, dates_news] = get_news_vector(False,model,feature_number, news_data, faulty_news)
 	print('Successfully aggregated data')
 	print('--------------------------------------')
 

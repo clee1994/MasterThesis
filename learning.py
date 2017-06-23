@@ -26,7 +26,7 @@ def build_word2vec_model(alone, fnum,mcount,news_data=[], faulty_news=[]):
 
 
 
-def get_news_vector(alone,model, news_data=[], faulty_news=[],fnum): 	
+def get_news_vector(alone,model, fnum, news_data=[], faulty_news=[]): 	
 	import numpy as np
 	from progressbar import printProgressBar
 
