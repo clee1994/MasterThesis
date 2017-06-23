@@ -4,7 +4,7 @@ from learning import  gen_xy, nearest, rnn_model
 import numpy as np
 
 #modifiable variables
-path_to_news_files = "./Data_small/ReutersNews106521"
+path_to_news_files = "./Data/ReutersNews106521"
 n_forward=5
 n_past = 30
 test_split = 0.15
