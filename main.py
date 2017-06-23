@@ -5,14 +5,14 @@ import numpy as np
 
 #modifiable variables
 path_to_news_files = "./Data/ReutersNews106521"
-n_forward=5
-n_past = 30
+n_forward=10
+n_past = 40
 test_split = 0.15
 validation_split = 0.12
-batch_size = 32
-epoches = 5
-word_min_count = 10
-feature_number = 300
+batch_size = 40
+epoches = 7
+word_min_count = 50
+feature_number = 350
 
 
 #load and preprocess data
