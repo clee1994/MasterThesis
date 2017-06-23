@@ -73,70 +73,28 @@ for i in range(0,5):
 	print('--------------------------------------')
 
 
-# import datetime
-# no_t = 3
-# predict_y = modelsRNNmu[no_t].predict(x_test, batch_size=128)
-# true_y_com = np.zeros(len(predict_y))
-# pred_y_com = np.zeros(len(predict_y))
-
-# temp = x_dates_test[1].tolist()
-# prev_d = np.datetime64(datetime.date(temp.year, temp.month, temp.day))
-# j = 0
-# k = 0
-# true_y_com[0] = y_test[0,no_t]
-
-# for i in range(len(predict_y)):
-# 	temp = x_dates_test[i].tolist()
-# 	cur_d = np.datetime64(datetime.date(temp.year, temp.month, temp.day))
-	
-# 	if prev_d == cur_d:
-# 		prev_d = cur_d
-# 		#true_y_com[j,k] += y_test[i,0]
-# 		pred_y_com[j] += predict_y[i]
-# 		k += 1
-# 	else:
-# 		j += 1
-# 		true_y_com[j] = y_test[i,no_t]
-# 		pred_y_com[j] += predict_y[i]
-# 		k = 0
-# 		prev_d = cur_d
-
-
+#plotting results so far
 import matplotlib.pyplot as plt
 
-plt.figure(1)
+for i in range(len(modelsRNNmu)):
+	predict_y = modelsRNNmu[i].predict(x_test, batch_size=128)
+	plt.figure()
+	plt.clf()
+	plt.plot(y_test[:,i],label= "true y")
+	plt.plot(np.squeeze(predict_y),label="predicted y")
+	plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
+           ncol=2, mode="expand", borderaxespad=0.)
 
-plt.plot(true_y_com[0:j+1], 'r', pred_y_com[0:j+1], 'bs')
-plt.show()
-
-
-# #plt.subplot(212)
-# #plt.plot(lreturns[:,0])
-
-
-
-# predict_y = modelsRNNmu[0].predict(x_test, batch_size=128)
-
-# plt.subplot(211)
-# plt.plot(predict_y[:,0])
-
-# plt.subplot(212)
-# plt.plot(y_test[:,0])
-# plt.show()
+	plt.savefig('Output/'+str(i)+'pred_true.png')
 
 
+#save stuf
+import pickle
 
-#visualize results
+pickle.dump((x_train, x_test, y_train, y_test) , open( "Output/xy_data", "wb" ) )
+model.save("Output/word2vec_model")
+for i in range(len(modelsRNNmu)):
+	modelsRNNmu[i].save("Output/keras_model" + str(i))
 
 
-#learn news effect
 
-#train
-
-#test
-
-#minimum variance portfolio projected CG
-
-#sparsity minimum variance
-
-#performance testing
