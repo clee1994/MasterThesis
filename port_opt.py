@@ -92,3 +92,56 @@ data_plot = [trace,trace1]
 # Plot and embed in ipython notebook!
 py.iplot(data, filename='basic-scatter')
 
+
+
+# projected CG
+import numpy
+
+def nullspace(A, atol=1e-13, rtol=0):
+	#http://scipy-cookbook.readthedocs.io/items/RankNullspace.html
+	from numpy.linalg import svd
+
+	A = np.atleast_2d(A)
+	u, s, vh = svd(A)
+	tol = max(atol, rtol * s[0])
+	nnz = (s >= tol).sum()
+	ns = vh[nnz:].conj().T
+	return ns
+
+
+mu = np.random.rand(30)
+gamma = np.random.rand(30,30)
+lenm = len(mu)
+
+A = np.ones([1,len(gamma)])
+b = 1
+c = np.zeros([len(gamma),1])
+
+
+Z = nullspace(gamma)
+
+
+x = A'*((A*A')\b);
+r = gamma*x +c; 
+%P = Z*((Z'*eye(size(Z,1))*Z)\Z'); %doubts
+P = Z*((Z'*eye(size(Z,1))*Z)\Z');
+g = P*r;
+d = -g;
+
+
+while (r'*g) > tol %(rz'*(Wzz\rz)) < tol 
+    alpha = (r' * g) / (d'*gamma*d);
+    x = x + alpha*d;
+    rp = r + alpha * gamma * d;
+    gp = P * rp;
+    beta = (rp' * gp)/(r'*g);
+    d = -gp + beta*d;
+    g = gp;
+    r = rp;
+end
+
+time = toc;
+w = x;
+
+mu_p =w'*mu';
+var_p =w'*gamma*w;
