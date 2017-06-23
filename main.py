@@ -79,8 +79,9 @@ for i in range(0,3):
 	print('--------------------------------------')
 
 
-no_t = 1
-predict_y = modelsRNNmu[0].predict(x_test, batch_size=128)
+import datetime
+no_t = 3
+predict_y = modelsRNNmu[no_t].predict(x_test, batch_size=128)
 true_y_com = np.zeros(len(predict_y))
 pred_y_com = np.zeros(len(predict_y))
 
@@ -88,7 +89,7 @@ temp = x_dates_test[1].tolist()
 prev_d = np.datetime64(datetime.date(temp.year, temp.month, temp.day))
 j = 0
 k = 0
-true_y_com[0] = y_test[0,0]
+true_y_com[0] = y_test[0,no_t]
 
 for i in range(len(predict_y)):
 	temp = x_dates_test[i].tolist()
@@ -101,7 +102,7 @@ for i in range(len(predict_y)):
 		k += 1
 	else:
 		j += 1
-		true_y_com[j] = y_test[i,0]
+		true_y_com[j] = y_test[i,no_t]
 		pred_y_com[j] += predict_y[i]
 		k = 0
 		prev_d = cur_d
@@ -117,6 +118,8 @@ plt.show()
 
 #plt.subplot(212)
 #plt.plot(lreturns[:,0])
+
+
 
 predict_y = modelsRNNmu[0].predict(x_test, batch_size=128)
 
