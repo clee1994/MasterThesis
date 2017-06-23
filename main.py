@@ -73,33 +73,33 @@ for i in range(0,5):
 	print('--------------------------------------')
 
 
-import datetime
-no_t = 3
-predict_y = modelsRNNmu[no_t].predict(x_test, batch_size=128)
-true_y_com = np.zeros(len(predict_y))
-pred_y_com = np.zeros(len(predict_y))
+# import datetime
+# no_t = 3
+# predict_y = modelsRNNmu[no_t].predict(x_test, batch_size=128)
+# true_y_com = np.zeros(len(predict_y))
+# pred_y_com = np.zeros(len(predict_y))
 
-temp = x_dates_test[1].tolist()
-prev_d = np.datetime64(datetime.date(temp.year, temp.month, temp.day))
-j = 0
-k = 0
-true_y_com[0] = y_test[0,no_t]
+# temp = x_dates_test[1].tolist()
+# prev_d = np.datetime64(datetime.date(temp.year, temp.month, temp.day))
+# j = 0
+# k = 0
+# true_y_com[0] = y_test[0,no_t]
 
-for i in range(len(predict_y)):
-	temp = x_dates_test[i].tolist()
-	cur_d = np.datetime64(datetime.date(temp.year, temp.month, temp.day))
+# for i in range(len(predict_y)):
+# 	temp = x_dates_test[i].tolist()
+# 	cur_d = np.datetime64(datetime.date(temp.year, temp.month, temp.day))
 	
-	if prev_d == cur_d:
-		prev_d = cur_d
-		#true_y_com[j,k] += y_test[i,0]
-		pred_y_com[j] += predict_y[i]
-		k += 1
-	else:
-		j += 1
-		true_y_com[j] = y_test[i,no_t]
-		pred_y_com[j] += predict_y[i]
-		k = 0
-		prev_d = cur_d
+# 	if prev_d == cur_d:
+# 		prev_d = cur_d
+# 		#true_y_com[j,k] += y_test[i,0]
+# 		pred_y_com[j] += predict_y[i]
+# 		k += 1
+# 	else:
+# 		j += 1
+# 		true_y_com[j] = y_test[i,no_t]
+# 		pred_y_com[j] += predict_y[i]
+# 		k = 0
+# 		prev_d = cur_d
 
 
 import matplotlib.pyplot as plt

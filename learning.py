@@ -40,20 +40,21 @@ def get_news_vector(alone,model, news_data=[], faulty_news=[]):
 
 	for i in range(len(news_data)):
 		prog_st+=1
-		printProgressBar(prog_st, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
-		mean_divider = 0
-		for j in news_data[i][8]:
-			for k in j:
-				try:
-					vec_news[i,:] = np.add(vec_news[i,:], model.wv[k])
-					mean_divider += 1
-				except:
-					continue
-		vec_news[i,:] = np.divide(vec_news[i,:], mean_divider)
-		dates_news.append(news_data[i][4])
+		printProgressBar(prog_st, l, prefix = 'Progress:', suffix = 'Complete', length = 50)	
+		if news_data[i][8] != []:
+			mean_divider = 0
+			for j in news_data[i][8]:
+				for k in j:
+					try:
+						vec_news[i,:] = np.add(vec_news[i,:], model.wv[k])
+						mean_divider += 1
+					except:
+						continue
+			vec_news[i,:] = np.divide(vec_news[i,:], mean_divider)
+			dates_news.append(news_data[i][4])
+
 
 	dates_news = np.array(dates_news)
-
 	return [vec_news, dates_news]
 
 def nearest(items, pivot):
@@ -69,8 +70,10 @@ def gen_xy(aggregated_news,lreturns,dates,dates_news,n_forward,n_past,mu_var,nam
 
 	#find matching
 	x = np.array([])
+	x = np.zeros([0,np.shape(aggregated_news[1])[0]])
 	x = np.reshape(x, [0,np.shape(aggregated_news[1])[0]])
 	y = np.array([])
+	y = np.zeros([0,np.shape(lreturns[1])[0]])
 	y = np.reshape(y, [0,np.shape(lreturns[1])[0]])
 	
 	j = 0
