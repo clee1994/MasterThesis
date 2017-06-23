@@ -100,11 +100,11 @@ def gen_xy(aggregated_news,lreturns,dates,dates_news,n_forward,n_past,mu_var,nam
 		if cur_d == prev_d:
 			prev_d = cur_d
 			counter_av += 1
-			x[counter_news] = np.add(x[counter_news], aggregated_news[i,:])
+			x[counter_news,:] = np.add(x[counter_news,:], aggregated_news[i,:])
 		else:
 			prev_d = cur_d
 			if counter_news != -1:
-				x[counter_news] = np.divide(x[counter_news], counter_av)
+				x[counter_news,:] = np.divide(x[counter_news,:], counter_av)
 			counter_av = 1
 			counter_news += 1
 			x = np.vstack((x, aggregated_news[i,:]))

@@ -51,7 +51,6 @@ print('Start generating mu train and test data:')
 	True,
 	names,
 	test_split)
-
 print('Successfully generated mu train and test data')
 print('--------------------------------------')
 
