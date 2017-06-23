@@ -7,23 +7,16 @@
 def build_word2vec_model(alone, fnum,mcount,news_data=[], faulty_news=[]):
 	import numpy as np
 	import gensim, logging
-	import pickle
-
-	if alone:
-		f = open('./Data/processed_news_data', 'rb')
-		[news_data, faulty_news] = pickle.load(f)
-		f.close()
-
 
 	#remove stopwords - maybe keep them
 
 	#learn word2vec cbow - gensim
-	
 	logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 	allsentences = []
 	for i in news_data:
 		for j in i[8]:
 			allsentences.append(j)
+
 	# train word2vec on the two sentences
 	model = gensim.models.Word2Vec(allsentences, size=fnum, min_count=mcount, workers=8)
 
@@ -34,29 +27,21 @@ def build_word2vec_model(alone, fnum,mcount,news_data=[], faulty_news=[]):
 
 
 def get_news_vector(alone,model, news_data=[], faulty_news=[]): 	
-	import pickle
 	import numpy as np
 	from progressbar import printProgressBar
 
-	if alone:
-		f = open('./Data/processed_news_data', 'rb')
-		[news_data, faulty_news] = pickle.load(f)
-		f.close()
-
-
 	vec_news = np.zeros([len(news_data),len(model.wv['and'])])
 	dates_news = list()
-	#transform messages to vectors (mean/sum)
-
+	
+	#transform messages to vectors (mean)
 	prog_st = 0
 	l = len(news_data) 
 	printProgressBar(prog_st, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
 
-
 	for i in range(len(news_data)):
 		prog_st+=1
 		printProgressBar(prog_st, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
-		mean_divider = 1
+		mean_divider = 0
 		for j in news_data[i][8]:
 			for k in j:
 				try:
@@ -67,25 +52,6 @@ def get_news_vector(alone,model, news_data=[], faulty_news=[]):
 		vec_news[i,:] = np.divide(vec_news[i,:], mean_divider)
 		dates_news.append(news_data[i][4])
 
-	#get data and matching labels
-	# temp = news_data[0][4].tolist()
-	# prev_date = temp.date().isocalendar()[1]
-	# aggregated_news = np.array([vec_news[0,:]])
-	# cur_pos = 0
-	# dates_news = []
-	# dates_news.append(news_data[0][4])
-
-	# for i in range(1,len(news_data)):
-	# 	temp = news_data[i][4].tolist()
-	# 	cur_date = temp.date().isocalendar()[1]
-	# 	if cur_date == prev_date:
-	# 		aggregated_news[cur_pos,:] = np.add(aggregated_news[cur_pos,:],vec_news[i,:])
-	# 		prev_date = cur_date
-	# 	else:
-	# 		dates_news.append(news_data[i][4])
-	# 		cur_pos += 1
-	# 		aggregated_news = np.vstack((aggregated_news, vec_news[i,:]))
-	# 		prev_date = cur_date
 	dates_news = np.array(dates_news)
 
 	return [vec_news, dates_news]
@@ -111,32 +77,44 @@ def gen_xy(aggregated_news,lreturns,dates,dates_news,n_forward,n_past,mu_var,nam
 	l = len(dates_news) 
 	printProgressBar(j, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
 
-	temp = dates_news[0].tolist()
-	prev_d = np.datetime64(datetime.date(temp.year, temp.month, temp.day))
+
+	counter_av = 0
+	counter_news = -1
+	prev_d = np.datetime64(datetime.date(1, 1, 1))
 
 	for i in range(len(dates_news)):
 		
 		temp = dates_news[i].tolist()
 		cur_d = np.datetime64(datetime.date(temp.year, temp.month, temp.day))
+
+		#matching SP date
 		try:
-			ind_of_week = dates.index(temp2)
+			ind_of_week = dates.index(cur_d)
 		except:
-			temp3 = nearest(dates,temp2)
-			temp3 = min(dates, key=lambda x: abs(x - temp2))
+			temp3 = nearest(dates,cur_d)
+			temp3 = min(dates, key=lambda x: abs(x - cur_d))
 			ind_of_week = dates.index(temp3)
 
+
+		#add news, up
 		if cur_d == prev_d:
 			prev_d = cur_d
-			#counter... bla bla
+			counter_av += 1
+			x[counter_news] = np.add(x[counter_news], aggregated_news[i,:])
 		else:
 			prev_d = cur_d
+			if counter_news != -1:
+				x[counter_news] = np.divide(x[counter_news], counter_av)
+			counter_av = 1
+			counter_news += 1
 			x = np.vstack((x, aggregated_news[i,:]))
 			x_dates.append(dates_news[i])
 
-		past_mu = np.mean(lreturns[(ind_of_week-n_past):ind_of_week,:],axis=0)
-		future_mu = np.mean(lreturns[ind_of_week:(ind_of_week+n_forward),:],axis=0)
-		
-		y = np.vstack((y, (future_mu-past_mu)))
+			#mu for labels
+			past_mu = np.mean(lreturns[(ind_of_week-n_past):ind_of_week,:],axis=0)
+			future_mu = np.mean(lreturns[ind_of_week:(ind_of_week+n_forward),:],axis=0)
+			
+			y = np.vstack((y, (future_mu-past_mu)))
 		j += 1
 		printProgressBar(j, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
 
