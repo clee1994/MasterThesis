@@ -10,9 +10,9 @@ n_past = 60
 test_split = 0.15
 validation_split = 0.12
 batch_size = 40
-epoches = 4
-word_min_count = 130
-feature_number = 250
+epoches = 5
+word_min_count = 160
+feature_number = 200
 
 
 #load and preprocess data
@@ -87,7 +87,7 @@ for i in range(len(modelsRNNmu)):
 	plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
            ncol=2, mode="expand", borderaxespad=0.)
 
-	plt.savefig('Output/'+str(i)+'pred_true.png')
+	plt.savefig('Output/pics/'+str(i)+'pred_true.png')
 
 
 #save stuf

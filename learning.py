@@ -158,11 +158,12 @@ def rnn_model(x_train,y_train, val_split, bs, ep):
 
 
 	#here comes a design questions, how many layers and how many neurons per layer
-	model.add(LSTM(16, input_shape=x_train.shape[1:], return_sequences=True))
+	model.add(LSTM(64, input_shape=x_train.shape[1:], return_sequences=True))
 	model.add(LSTM(8, return_sequences=True))
+	model.add(LSTM(4, return_sequences=True))
 	model.add(LSTM(1))
 
-	model.compile(loss='mean_absolute_error',
+	model.compile(loss='mean_squared_error',
 	              optimizer='sgd')
 
 
