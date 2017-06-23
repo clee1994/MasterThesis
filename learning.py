@@ -26,11 +26,11 @@ def build_word2vec_model(alone, fnum,mcount,news_data=[], faulty_news=[]):
 
 
 
-def get_news_vector(alone,model, news_data=[], faulty_news=[]): 	
+def get_news_vector(alone,model, news_data=[], faulty_news=[],fnum): 	
 	import numpy as np
 	from progressbar import printProgressBar
 
-	vec_news = np.zeros([len(news_data),len(model.wv['and'])])
+	vec_news = np.zeros([len(news_data),fnum])
 	dates_news = list()
 	
 	#transform messages to vectors (mean)
