@@ -24,6 +24,8 @@ def min_var_mu(mu, gamma, mu_p):
 	return w, var_p
 
 def min_var(mu, gamma):
+	import numpy as np
+
 	lenm = len(mu)
 
 	inv_sigma = np.linalg.inv(gamma)
