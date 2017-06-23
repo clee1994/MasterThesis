@@ -83,6 +83,7 @@ for feature_number in feature_number_list:
 	import matplotlib as mpl
 	mpl.use('Agg')
 	import matplotlib.pyplot as plt
+	import datetime
 
 	for i in range(len(modelsRNNmu)):
 		predict_y = modelsRNNmu[i].predict(x_test, batch_size=128)

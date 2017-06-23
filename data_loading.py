@@ -9,12 +9,14 @@ def load_news_data(alone, path):
 	import nltk.data
 	from nltk.tokenize import RegexpTokenizer
 	from progressbar import printProgressBar
+	from nltk.corpus import stopwords #stopwords removal
 
 	#load text data
 	newsdates = os.listdir(path)
 	news_data = []
 	faulty_news = []
 	sentences = []
+	stops = set(stopwords.words('english'))#stopwords removal
 
 	prog_st = 0
 	l = len(newsdates) 
@@ -63,7 +65,8 @@ def load_news_data(alone, path):
 							temp3 = []
 							for k in temp1:
 								if not k.isdigit():
-									temp3.append(k)
+									if k.lower() not in stops: #stopword removal
+										temp3.append(k)
 
 							news_sub.append(temp3)
 
