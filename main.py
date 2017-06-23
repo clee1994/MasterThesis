@@ -7,8 +7,8 @@ import numpy as np
 path_to_news_files = "./Data_small/ReutersNews106521"
 n_forward=5
 n_past = 30
-test_split = 0.1
-validation_split = 0.1
+test_split = 0.15
+validation_split = 0.12
 batch_size = 32
 epoches = 5
 word_min_count = 10
@@ -74,6 +74,8 @@ for i in range(0,5):
 
 
 #plotting results so far
+import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 
 for i in range(len(modelsRNNmu)):
