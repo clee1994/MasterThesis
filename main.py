@@ -96,6 +96,7 @@ for feature_number in feature_number_list:
 
 		plt.savefig('Output/pics/'+str(datetime.datetime.now())+str(i)+'pred_true.png')
 
+	del news_data, faulty_news, model, aggregated_news, dates_news, x_train,y_train,x_test,y_test,used_stocks,x_dates_train, x_dates_test, modelsRNNmu
 
 	#save stuf
 import pickle
