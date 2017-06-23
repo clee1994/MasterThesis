@@ -65,7 +65,7 @@ modelsRNNmu = list()
 modelsRNNsigma = list()
 loss_mu = list()
 loss_sigma = list()
-for i in range(0,3):
+for i in range(0,10):
 	print('Start building prediction model:')
 	modelsRNNmu.append(rnn_model(x_train,y_train[:,i],validation_split,batch_size,epoches))
 	temp1 = modelsRNNmu[i].evaluate(x_test, y_test[:,i])
@@ -108,27 +108,27 @@ for i in range(len(predict_y)):
 		prev_d = cur_d
 
 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
-plt.figure(1)
+# plt.figure(1)
 
-plt.plot(true_y_com[0:j+1], 'r', pred_y_com[0:j+1], 'bs')
-plt.show()
-
-
-#plt.subplot(212)
-#plt.plot(lreturns[:,0])
+# plt.plot(true_y_com[0:j+1], 'r', pred_y_com[0:j+1], 'bs')
+# plt.show()
 
 
+# #plt.subplot(212)
+# #plt.plot(lreturns[:,0])
 
-predict_y = modelsRNNmu[0].predict(x_test, batch_size=128)
 
-plt.subplot(211)
-plt.plot(predict_y[:,0])
 
-plt.subplot(212)
-plt.plot(y_test[:,0])
-plt.show()
+# predict_y = modelsRNNmu[0].predict(x_test, batch_size=128)
+
+# plt.subplot(211)
+# plt.plot(predict_y[:,0])
+
+# plt.subplot(212)
+# plt.plot(y_test[:,0])
+# plt.show()
 
 
 
