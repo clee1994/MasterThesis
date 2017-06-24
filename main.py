@@ -161,7 +161,7 @@ batch_size = 40
 epoches_list = [1,2,3]
 word_min_count_list = [10,160,400]
 feature_number_list = [150, 200, 250, 300, 350]
-firms_used = 40
+firms_used = 5
 
 for n_forward in n_forward_list:
 	for n_past in n_past_list:
