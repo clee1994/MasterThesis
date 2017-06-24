@@ -58,6 +58,7 @@ print('Start generating mu train and test data:')
 print('Successfully generated mu train and test data')
 print('--------------------------------------')
 
+firms_used = np.shape(y_test)[1]
 
 modelsRNNmu = list()
 modelsRNNsigma = list()
