@@ -94,9 +94,11 @@ def gen_xy(aggregated_news,lreturns,dates,dates_news,n_forward,n_past,mu_var,nam
 		try:
 			ind_of_week = dates.index(cur_d)
 		except:
-			temp3 = nearest(dates,cur_d)
-			temp3 = min(dates, key=lambda x: abs(x - cur_d))
-			ind_of_week = dates.index(temp3)
+			cur_d = prev_d
+			#temp3 = nearest(dates,cur_d)
+			#temp3 = min(dates, key=lambda x: abs(x - cur_d))
+			#ind_of_week = dates.index(temp3)
+			#print('no change')
 
 
 		#add news, up

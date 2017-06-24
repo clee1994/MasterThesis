@@ -39,26 +39,37 @@ def min_var(mu, gamma):
 	return w, mu_p, var_p
 
 
+def ret2prices(ret_series,base_value):
+	import numpy as np
+
+	prices = np.zeros([len(ret_series)+1])
+	prices[0] = base_value
+	for i in range(len(ret_series)):
+		prices[i+1] = prices[i] * np.exp(ret_series[i])
+
+	return prices
 
 
-data_ts = np.random.rand(100,20)
+#testing for new optimization functions
 
-mu = np.mean(data_ts,axis=0)
-gamma = np.cov(np.transpose(data_ts))
+# data_ts = np.random.rand(100,20)
+
+# mu = np.mean(data_ts,axis=0)
+# gamma = np.cov(np.transpose(data_ts))
 
 
-mu_pp = list()
-var_pp = list()
-for i in (np.arange(100)/100):
-	mu_pp.append(i)
-	[w, var_p] = min_var_mu(mu,gamma,i)
-	var_pp.append(var_p)
+# mu_pp = list()
+# var_pp = list()
+# for i in (np.arange(100)/100):
+# 	mu_pp.append(i)
+# 	[w, var_p] = min_var_mu(mu,gamma,i)
+# 	var_pp.append(var_p)
 
-[w, mu_p, var_p] = min_var(mu, gamma)
+# [w, mu_p, var_p] = min_var(mu, gamma)
 
-import matplotlib.pyplot as plt
-plt.figure()
-plt.clf()
-plt.plot(var_pp,mu_pp, 'ro')
-plt.plot(var_p,mu_p, 'bo')
-plt.show()
+# import matplotlib.pyplot as plt
+# plt.figure()
+# plt.clf()
+# plt.plot(var_pp,mu_pp, 'ro')
+# plt.plot(var_p,mu_p, 'bo')
+# plt.show()
