@@ -168,7 +168,7 @@ def rnn_model(x_train,y_train, val_split, bs, ep):
 	model.add(LSTM(52, input_shape=x_train.shape[1:], return_sequences=True))
 	model.add(LSTM(36, return_sequences=True))
 	#model.add(LSTM(4, return_sequences=True))
-	model.add(LSTM(8))
+	model.add(LSTM(1))
 
 	model.compile(loss='mean_squared_error',
 	              optimizer='sgd')
