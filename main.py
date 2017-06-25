@@ -192,10 +192,10 @@ for n_forward in n_forward_list:
 
 				plt.savefig('Output/pics/'+str(datetime.datetime.now())+cur_m+"_"+str(n_forward)+"_"+str(n_past)+"_"+str(epoches)+'port_performance.png')
 				plt.close()
-				del realized_mu, i_realized_mu, value_over_time, i_value_over_time
+				del realized_mu, i_realized_mu, value_over_time, i_value_over_time, predict_y
 
-			del aggregated_news,dates_news,x_train,y_train,x_test,y_test,used_stocks,x_dates_train, x_dates_test, model
-
+			del aggregated_news,dates_news, model
+			del x_train,y_train,x_test,y_test,used_stocks,x_dates_train, x_dates_test	
 
 
 
