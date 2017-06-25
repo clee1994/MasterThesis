@@ -9,6 +9,7 @@ import os as os
 
 import sys
 import datetime
+import gc
 
 import matplotlib as mpl
 mpl.use('Agg')
@@ -107,9 +108,9 @@ for n_forward in n_forward_list:
 					tempRNN.save("Output/modelsKeras/"+cur_m+"_"+str(n_forward)+"_"+str(n_past)+"_"+str(epoches))
 					#modelsRNNmu.append(tempRNN)
 					
-					temp1 = tempRNN.evaluate(x_test, y_test[:,i])
-					loss_mu.append(temp1)
-					print(temp1)
+					print(tempRNN.evaluate(x_test, y_test[:,i]))
+					#loss_mu.append(temp1)
+					#print(temp1)
 					# modelsRNNsigma.append(rnn_model(sigma_x_train,sigma_y_train[:,i]))
 					# temp1 = modelsRNNsigma[i].evaluate(sigma_x_test, sigma_y_test[:,i])
 					# loss_sigma.append(temp1)
@@ -130,6 +131,8 @@ for n_forward in n_forward_list:
 					plt.close()
 					#del predict_y
 					del tempRNN
+					gc.collect()
+					plt.close("all")
 				#del news_data, faulty_news, model, aggregated_news, dates_news, x_train,y_train,x_test,y_test,used_stocks,x_dates_train, x_dates_test, modelsRNNmu
 
 
@@ -193,9 +196,11 @@ for n_forward in n_forward_list:
 				plt.savefig('Output/pics/'+str(datetime.datetime.now())+cur_m+"_"+str(n_forward)+"_"+str(n_past)+"_"+str(epoches)+'port_performance.png')
 				plt.close()
 				del realized_mu, i_realized_mu, value_over_time, i_value_over_time, predict_y
+				gc.collect();
 
 			del aggregated_news,dates_news, model
 			del x_train,y_train,x_test,y_test,used_stocks,x_dates_train, x_dates_test	
+			gc.collect()
 
 
 
