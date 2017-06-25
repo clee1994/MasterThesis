@@ -9,6 +9,11 @@ import os as os
 
 import sys
 import datetime
+
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt
+import datetime
 #sys.stdout = open('Output/logfile'+str(datetime.datetime.now()), 'w')
 
 
@@ -22,7 +27,7 @@ batch_size = 40
 epoches_list = [1,2,3]
 word_min_count_list = [10,160,400]
 feature_number_list = [150, 200, 250, 300, 350]
-firms_used = 40
+firms_used = 30
 
 
 #def main_comp(path_to_news_files,n_forward,n_past,test_split,validation_split, batch_size,epoches,word_min_count, feature_number, firms_used):
@@ -87,10 +92,11 @@ for n_forward in n_forward_list:
 			firms_used = np.shape(y_test)[1]
 
 			for epoches in epoches_list:
-				modelsRNNmu = list()
+				#modelsRNNmu = list()
 				#modelsRNNsigma = list()
 				loss_mu = list()
 				loss_sigma = list()
+				predict_y = list()
 
 				# modelsRNNmu.append(rnn_model(x_train,y_train[:,4],validation_split,batch_size,epoches))
 				# temp1 = modelsRNNmu[0].evaluate(x_test, y_test[:,4])
@@ -99,9 +105,9 @@ for n_forward in n_forward_list:
 					print('Start building prediction model:')
 					tempRNN = rnn_model(x_train,y_train[:,i],validation_split,batch_size,epoches)
 					tempRNN.save("Output/modelsKeras/"+cur_m+"_"+str(n_forward)+"_"+str(n_past)+"_"+str(epoches))
-					modelsRNNmu.append(tempRNN)
-					del tempRNN
-					temp1 = modelsRNNmu[i].evaluate(x_test, y_test[:,i])
+					#modelsRNNmu.append(tempRNN)
+					
+					temp1 = tempRNN.evaluate(x_test, y_test[:,i])
 					loss_mu.append(temp1)
 					print(temp1)
 					# modelsRNNsigma.append(rnn_model(sigma_x_train,sigma_y_train[:,i]))
@@ -111,17 +117,8 @@ for n_forward in n_forward_list:
 					print('Successfully generated model')
 					print('--------------------------------------')
 
-
-
-
-				#plotting results so far
-				import matplotlib as mpl
-				mpl.use('Agg')
-				import matplotlib.pyplot as plt
-				import datetime
-
-				for i in range(len(modelsRNNmu)):
-					predict_y = modelsRNNmu[i].predict(x_test, batch_size=128)
+					predict_y.append(tempRNN.predict(x_test, batch_size=128))
+					
 					plt.figure()
 					plt.clf()
 					plt.plot(y_test[:,i],label= "true y")
@@ -131,7 +128,8 @@ for n_forward in n_forward_list:
 
 					plt.savefig('Output/pics/'+str(datetime.datetime.now())+"_"+str(i)+"_"+cur_m+"_"+str(n_forward)+"_"+str(n_past)+"_"+str(epoches)+'pred_true.png')
 					plt.close()
-					del predict_y
+					#del predict_y
+					del tempRNN
 				#del news_data, faulty_news, model, aggregated_news, dates_news, x_train,y_train,x_test,y_test,used_stocks,x_dates_train, x_dates_test, modelsRNNmu
 
 
@@ -161,8 +159,9 @@ for n_forward in n_forward_list:
 					#using news to improve
 					for j in range(firms_used):
 						#absolutly ridiculus change
-						temp_data_input_predict = np.reshape(x_test[i,:], (1,) + x_test[i,:].shape)
-						mu_change = modelsRNNmu[j].predict(temp_data_input_predict)
+						#temp_data_input_predict = np.reshape(x_test[i,:], (1,) + x_test[i,:].shape)
+						mu_change = predict_y[j][i]
+						#[j].predict(temp_data_input_predict)
 						improved_mu[j] = mu[j] + mu_change
 
 					gamma = np.cov(lreturns[(ind_d-n_past):ind_d, firm_ind],rowvar=False)
@@ -193,8 +192,9 @@ for n_forward in n_forward_list:
 
 				plt.savefig('Output/pics/'+str(datetime.datetime.now())++cur_m+"_"+str(n_forward)+"_"+str(n_past)+"_"+str(epoches)+'port_performance.png')
 				plt.close()
+				del realized_mu, i_realized_mu, value_over_time, i_value_over_time
 
-			del aggregated_news,dates_news,x_train,y_train,x_test,y_test,used_stocks,x_dates_train, x_dates_test, modelsRNNmu, realized_mu, i_realized_mu, model, modelsRNNmu
+			del aggregated_news,dates_news,x_train,y_train,x_test,y_test,used_stocks,x_dates_train, x_dates_test, model
 
 
 
