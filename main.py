@@ -25,40 +25,40 @@ feature_number_list = [150, 200, 250, 300, 350]
 firms_used = 40
 
 
-#def main_comp(path_to_news_files,n_forward,n_past,test_split,validation_split, batch_size,epoches,word_min_count, feature_number, firms_used):
-# for feature_number in feature_number_list:
-#load and preprocess data
-print('Start reading in news:')
-[news_data, faulty_news] = load_news_data(False,path_to_news_files)
-print('Successfully read all news')
-print('--------------------------------------')
-print('Start reading in SP500 data:')
-[prices, dates, names, lreturns, mu, sigma,dates_SP_weekly] = load_SP_data(False)
-print('Successfully read all data')
+# #def main_comp(path_to_news_files,n_forward,n_past,test_split,validation_split, batch_size,epoches,word_min_count, feature_number, firms_used):
+# # for feature_number in feature_number_list:
+# #load and preprocess data
+# print('Start reading in news:')
+# [news_data, faulty_news] = load_news_data(False,path_to_news_files)
+# print('Successfully read all news')
+# print('--------------------------------------')
+# print('Start reading in SP500 data:')
+# [prices, dates, names, lreturns, mu, sigma,dates_SP_weekly] = load_SP_data(False)
+# print('Successfully read all data')
 
-#train word2vec model
-for word_min_count in word_min_count_list:
-	for feature_number in feature_number_list:
-		print('--------------------------------------')
-		print('Start building word2vec model:')
-		model = build_word2vec_model(False,feature_number,word_min_count, news_data, faulty_news)
-		model.save("Output/models/"+str(word_min_count)+"_"+str(feature_number))
+# #train word2vec model
+# for word_min_count in word_min_count_list:
+# 	for feature_number in feature_number_list:
+# 		print('--------------------------------------')
+# 		print('Start building word2vec model:')
+# 		model = build_word2vec_model(False,feature_number,word_min_count, news_data, faulty_news)
+# 		model.save("Output/models/"+str(word_min_count)+"_"+str(feature_number))
 		
-		print('Successfully build model')
-		print('--------------------------------------')
+# 		print('Successfully build model')
+# 		print('--------------------------------------')
 
-		#transform news to vectors
-		print('Start aggregating news data:')
-		[aggregated_news, dates_news] = get_news_vector(False,model,feature_number, news_data, faulty_news)
-		print('Successfully aggregated data')
-		print('--------------------------------------')
+# 		#transform news to vectors
+# 		print('Start aggregating news data:')
+# 		[aggregated_news, dates_news] = get_news_vector(False,model,feature_number, news_data, faulty_news)
+# 		print('Successfully aggregated data')
+# 		print('--------------------------------------')
 
-		pickle.dump( [aggregated_news,dates_news], open( "Output/aggr_news/"+str(word_min_count)+"_"+str(feature_number), "wb" ) )
+# 		pickle.dump( [aggregated_news,dates_news], open( "Output/aggr_news/"+str(word_min_count)+"_"+str(feature_number), "wb" ) )
 
-		del model, aggregated_news, dates_news
+# 		del model, aggregated_news, dates_news
 
 
-model_list = os.listdir("Output/models")
+model_list = os.listdir("Output/aggr_news")
 
 for n_forward in n_forward_list:
 	for n_past in n_past_list:
