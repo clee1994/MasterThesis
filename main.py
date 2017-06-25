@@ -9,7 +9,7 @@ import os as os
 
 import sys
 import datetime
-sys.stdout = open('Output/logfile'+str(datetime.datetime.now()), 'w')
+#sys.stdout = open('Output/logfile'+str(datetime.datetime.now()), 'w')
 
 
 #modifiable variables
