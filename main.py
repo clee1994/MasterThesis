@@ -25,16 +25,16 @@ feature_number_list = [150, 200, 250, 300, 350]
 firms_used = 40
 
 
-# #def main_comp(path_to_news_files,n_forward,n_past,test_split,validation_split, batch_size,epoches,word_min_count, feature_number, firms_used):
-# # for feature_number in feature_number_list:
-# #load and preprocess data
-# print('Start reading in news:')
-# [news_data, faulty_news] = load_news_data(False,path_to_news_files)
-# print('Successfully read all news')
-# print('--------------------------------------')
-# print('Start reading in SP500 data:')
-# [prices, dates, names, lreturns, mu, sigma,dates_SP_weekly] = load_SP_data(False)
-# print('Successfully read all data')
+#def main_comp(path_to_news_files,n_forward,n_past,test_split,validation_split, batch_size,epoches,word_min_count, feature_number, firms_used):
+# for feature_number in feature_number_list:
+#load and preprocess data
+print('Start reading in news:')
+[news_data, faulty_news] = load_news_data(False,path_to_news_files)
+print('Successfully read all news')
+print('--------------------------------------')
+print('Start reading in SP500 data:')
+[prices, dates, names, lreturns, mu, sigma,dates_SP_weekly] = load_SP_data(False)
+print('Successfully read all data')
 
 # #train word2vec model
 # for word_min_count in word_min_count_list:
