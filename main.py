@@ -95,7 +95,7 @@ for n_forward in n_forward_list:
 				#modelsRNNmu = list()
 				#modelsRNNsigma = list()
 				loss_mu = list()
-				loss_sigma = list()
+				#loss_sigma = list()
 				predict_y = list()
 
 				# modelsRNNmu.append(rnn_model(x_train,y_train[:,4],validation_split,batch_size,epoches))
@@ -190,7 +190,7 @@ for n_forward in n_forward_list:
 				plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
 				           ncol=2, mode="expand", borderaxespad=0.)
 
-				plt.savefig('Output/pics/'+str(datetime.datetime.now())++cur_m+"_"+str(n_forward)+"_"+str(n_past)+"_"+str(epoches)+'port_performance.png')
+				plt.savefig('Output/pics/'+str(datetime.datetime.now())+cur_m+"_"+str(n_forward)+"_"+str(n_past)+"_"+str(epoches)+'port_performance.png')
 				plt.close()
 				del realized_mu, i_realized_mu, value_over_time, i_value_over_time
 
