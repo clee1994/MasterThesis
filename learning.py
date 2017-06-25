@@ -116,8 +116,8 @@ def gen_xy(aggregated_news,lreturns,dates,dates_news,n_forward,n_past,mu_var,nam
 			x_dates.append(dates_news[i])
 
 			#mu for labels
-			past_mu = np.mean(lreturns[(ind_of_week-n_past):ind_of_week,:],axis=0)
-			future_mu = np.mean(lreturns[ind_of_week:(ind_of_week+n_forward),:],axis=0)
+			past_mu = np.nanmean(lreturns[(ind_of_week-n_past):ind_of_week,:],axis=0)
+			future_mu = np.nanmean(lreturns[ind_of_week:(ind_of_week+n_forward),:],axis=0)
 			
 			y = np.vstack((y, (future_mu-past_mu)))
 		j += 1
@@ -129,7 +129,7 @@ def gen_xy(aggregated_news,lreturns,dates,dates_news,n_forward,n_past,mu_var,nam
 
 	#drop stocks with insufficient data
 	for i in range(np.shape(y)[1]):
-		if (np.sum(np.isnan(y[:,i]))/len(y[:,i])) > 0.1:
+		if (np.sum(np.isnan(y[:,i]))/len(y[:,i])) > 0.05:
 			bad_stocks.append(i)
 		else:
 			used_stocks.append(names[i])

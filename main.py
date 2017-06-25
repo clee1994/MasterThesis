@@ -112,7 +112,7 @@ def main_comp(path_to_news_files,n_forward,n_past,test_split,validation_split, b
 		except:
 			print('cant happen')
 
-		mu = np.mean(lreturns[(ind_d-n_past):ind_d, firm_ind],axis=0)
+		mu = np.nanmean(lreturns[(ind_d-n_past):ind_d, firm_ind],axis=0)
 
 		improved_mu = np.zeros(firms_used)
 		#using news to improve
