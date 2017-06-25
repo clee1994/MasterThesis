@@ -127,7 +127,7 @@ def gen_xy(aggregated_news,lreturns,dates,dates_news,n_forward,n_past,mu_var,nam
 		j += 1
 		printProgressBar(j, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
 
-	print(y)
+	#print(y)
 
 	used_stocks = list()
 	bad_stocks = list()

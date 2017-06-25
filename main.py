@@ -88,7 +88,7 @@ for n_forward in n_forward_list:
 
 			for epoches in epoches_list:
 				modelsRNNmu = list()
-				modelsRNNsigma = list()
+				#modelsRNNsigma = list()
 				loss_mu = list()
 				loss_sigma = list()
 
@@ -129,8 +129,9 @@ for n_forward in n_forward_list:
 					plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
 				           ncol=2, mode="expand", borderaxespad=0.)
 
-					plt.savefig('Output/pics/'+str(datetime.datetime.now())+str(i)+'pred_true.png')
+					plt.savefig('Output/pics/'+str(datetime.datetime.now())+"_"+str(i)+"_"+cur_m+"_"+str(n_forward)+"_"+str(n_past)+"_"+str(epoches)+'pred_true.png')
 					plt.close()
+					del predict_y
 				#del news_data, faulty_news, model, aggregated_news, dates_news, x_train,y_train,x_test,y_test,used_stocks,x_dates_train, x_dates_test, modelsRNNmu
 
 
@@ -190,10 +191,10 @@ for n_forward in n_forward_list:
 				plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
 				           ncol=2, mode="expand", borderaxespad=0.)
 
-				plt.savefig('Output/pics/'+str(datetime.datetime.now())+str(i)+'port_performance.png')
+				plt.savefig('Output/pics/'+str(datetime.datetime.now())++cur_m+"_"+str(n_forward)+"_"+str(n_past)+"_"+str(epoches)+'port_performance.png')
 				plt.close()
 
-			del aggregated_news,dates_news,x_train,y_train,x_test,y_test,used_stocks,x_dates_train, x_dates_test, modelsRNNmu, realized_mu, i_realized_mu
+			del aggregated_news,dates_news,x_train,y_train,x_test,y_test,used_stocks,x_dates_train, x_dates_test, modelsRNNmu, realized_mu, i_realized_mu, model, modelsRNNmu
 
 
 
