@@ -18,6 +18,35 @@ import datetime
 #sys.stdout = open('Output/logfile'+str(datetime.datetime.now()), 'w')
 
 
+
+#stocks to be used 
+"AAPL",
+"MSFT",
+"AMZN",
+"JNJ",
+"FFIV",
+"XOM",
+"BRK-B",
+"JPM",
+"GOOG",
+"GOOG",
+"GE",
+"WFC",
+"T",
+"BAC",
+"PG",
+"PFE",
+"CVX",
+"CMCSA",
+"PM",
+"HD",
+"VZ",
+"MRK",
+"UTX",
+"CSCO",
+"V",
+
+
 #modifiable variables
 path_to_news_files = "./Data_small/ReutersNews106521"
 n_forward_list=[1,3,7]
@@ -138,6 +167,8 @@ def inner_loop_shit(n_forward, n_past, cur_m ):
 			plt.close("all")
 			#del predict_y
 			del tempRNN, loss_text
+			from keras import backend as K
+			K.clear_session()
 			predict_y.append(temp_y_pred)
 			del temp_y_pred
 			gc.collect()
@@ -218,6 +249,7 @@ for n_forward in n_forward_list:
 	for n_past in n_past_list:
 		for cur_m in model_list:
 			inner_loop_shit(n_forward, n_past, cur_m )
+			gc.collect()
 
 
 
