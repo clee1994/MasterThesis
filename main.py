@@ -117,22 +117,25 @@ for n_forward in n_forward_list:
 					# print(temp1)
 					print('Successfully generated model')
 					print('--------------------------------------')
-
-					predict_y.append(tempRNN.predict(x_test, batch_size=128))
+					temp_y_pred = tempRNN.predict(x_test, batch_size=128)
+					
 					
 					plt.figure()
 					plt.clf()
 					plt.plot(y_test[:,i],label= "true y")
-					plt.plot(np.squeeze(predict_y),label="predicted y")
+					plt.plot(np.squeeze(temp_y_pred),label="predicted y")
 					plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
 				           ncol=2, mode="expand", borderaxespad=0.)
 
 					plt.savefig('Output/pics/'+str(datetime.datetime.now())+"_"+str(i)+"_"+cur_m+"_"+str(n_forward)+"_"+str(n_past)+"_"+str(epoches)+'pred_true.png')
 					plt.close()
+					plt.close("all")
 					#del predict_y
 					del tempRNN
+					predict_y.append(temp_y_pred)
+					del temp_y_pred
 					gc.collect()
-					plt.close("all")
+					
 				#del news_data, faulty_news, model, aggregated_news, dates_news, x_train,y_train,x_test,y_test,used_stocks,x_dates_train, x_dates_test, modelsRNNmu
 
 
