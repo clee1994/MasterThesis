@@ -19,7 +19,7 @@ import datetime
 
 
 #modifiable variables
-path_to_news_files = "./Data/ReutersNews106521"
+path_to_news_files = "./Data_small/ReutersNews106521"
 n_forward_list=[1,3,7]
 n_past_list = [20,60,100]
 epoches_list = [1,3]
@@ -129,10 +129,11 @@ def inner_loop_shit(n_forward, n_past, cur_m ):
 			plt.clf()
 			plt.plot(y_test[:,i],label= "true y")
 			plt.plot(np.squeeze(temp_y_pred),label="predicted y")
+			#plt.text(0.05, 0.95, str(loss_text))
+			print(str(loss_text))
 			plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
 		           ncol=2, mode="expand", borderaxespad=0.)
-			plt.text(0.95, 0.95, str(loss_text))
-			plt.savefig('Output/pics/'+str(datetime.datetime.now())+"_"+str(i)+"_"+cur_m+"_"+str(n_forward)+"_"+str(n_past)+"_"+str(epoches)+'pred_true.png')
+			plt.savefig('Output/pics/'+str(loss_text)+'_'+str(datetime.datetime.now())+"_"+str(i)+"_"+cur_m+"_"+str(n_forward)+"_"+str(n_past)+"_"+str(epoches)+'pred_true.png')
 			plt.close()
 			plt.close("all")
 			#del predict_y
