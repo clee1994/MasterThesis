@@ -108,7 +108,8 @@ for n_forward in n_forward_list:
 					tempRNN.save("Output/modelsKeras/"+cur_m+"_"+str(n_forward)+"_"+str(n_past)+"_"+str(epoches))
 					#modelsRNNmu.append(tempRNN)
 					
-					print(tempRNN.evaluate(x_test, y_test[:,i]))
+					loss_text = tempRNN.evaluate(x_test, y_test[:,i])
+					print(loss_text)
 					#loss_mu.append(temp1)
 					#print(temp1)
 					# modelsRNNsigma.append(rnn_model(sigma_x_train,sigma_y_train[:,i]))
@@ -126,12 +127,12 @@ for n_forward in n_forward_list:
 					plt.plot(np.squeeze(temp_y_pred),label="predicted y")
 					plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
 				           ncol=2, mode="expand", borderaxespad=0.)
-
+					plt.text(0.95, 0.95, str(loss_text))
 					plt.savefig('Output/pics/'+str(datetime.datetime.now())+"_"+str(i)+"_"+cur_m+"_"+str(n_forward)+"_"+str(n_past)+"_"+str(epoches)+'pred_true.png')
 					plt.close()
 					plt.close("all")
 					#del predict_y
-					del tempRNN
+					del tempRNN, loss_text
 					predict_y.append(temp_y_pred)
 					del temp_y_pred
 					gc.collect()
