@@ -10,10 +10,10 @@ def plot_pred_true(y,yhat):
 	plt.plot(y,label= "true y")
 	plt.plot(yhat,label="predicted y")
 	#plt.text(0.05, 0.95, str(loss_text))
-	print(str(loss_text))
+	#print(str(loss_text))
 	plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
 	   			ncol=2, mode="expand", borderaxespad=0.)
-	plt.savefig('Output/pics/'+str(loss_text)+'_'+str(datetime.datetime.now())+"_"+str(i)+"_"+cur_m+"_"+str(n_forward)+"_"+str(n_past)+"_"+str(epoches)+'pred_true.png')
+	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'pred_true.png')
 	plt.close()
 	plt.close("all")
 

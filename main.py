@@ -7,7 +7,7 @@ import datetime
 
 
 #modifiable variables
-path_to_news_files = "./Data/ReutersNews106521"
+path_to_news_files = "./Data_small/ReutersNews106521"
 firms_used = 25
 
 #traning splits
@@ -23,11 +23,15 @@ n_past_list = 60
 
 
 
-
 #load and preprocess data
 print(str(datetime.datetime.now())+': Start reading in news:')
 [news_data, faulty_news] = load_news_data(path_to_news_files,True)
 print(str(datetime.datetime.now())+': Successfully read all news')
+
+
+#keras tokenizer experiment
+
+ 
 
 
 print(str(datetime.datetime.now())+': Start reading in SP500 data:')
@@ -36,8 +40,8 @@ print(str(datetime.datetime.now())+': Successfully read all data')
 
 
 print(str(datetime.datetime.now())+': Start generating x and y')
-dict_words = gen_dict(news_data)
-[x,y] = gen_xy_daily(news_data,lreturns,dates,dict_words,vocab_size)
+#dict_words = gen_dict(news_data)
+[x,y] = gen_xy_daily(news_data,lreturns,dates, vocab_size)
 print(str(datetime.datetime.now())+': Successfully generated x and y')
 
 
@@ -48,7 +52,7 @@ from keras.models import Sequential
 from keras.layers import Dense, Activation, Embedding, Dropout, Flatten
 
 model = Sequential([
-	Embedding(vocab_size, 32, input_length=np.shape(x_train)[1]),
+	Embedding(vocab_size+1, 32, input_length=np.shape(x_train)[1]),
 	Flatten(),
 	Dense(100,activation="relu"),
 	Dropout(0.7),
@@ -58,4 +62,7 @@ model = Sequential([
 model.compile(loss="mean_squared_error",optimizer="Adam")
 model.fit(x_train,y_train[:,0],validation_data=(x_test,y_test[:,0]),epochs=2,batch_size=10)
 
+
+#evaluate
+plot_pred_true(y_test,model.predict(x_test, batch_size=10))
 

@@ -93,18 +93,28 @@ def load_SP_data(stock_names,pref_number):
 	import pandas as pd
 	import pickle
 	import datetime
+	from progressbar import printProgressBar
 
 	#load SP500 Data
-	raw_data = pd.read_csv('./Data/SP.csv', sep=',',header=None)
+	raw_data = pd.read_csv('./Data/SP.csv', sep=',',header=None,low_memory=False)
 	temp = raw_data.values[1:,1:]
 	prices = temp.astype(float)
 	dates = np.array(raw_data.values[2:,0],dtype='datetime64')
 	names = raw_data.values[0,1:]
 	lreturns = np.diff(np.log(prices),n=1, axis=0)
 
+	prog_st = 0
+	l = len(stock_names) 
+	printProgressBar(prog_st, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
+
+
 	#remove not listed stocks
 	ind_stocks = list()
 	for i in stock_names:
+		prog_st += 1
+		printProgressBar(prog_st, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
+
+
 		temp = list(names).index(i)
 		if (np.sum(np.isnan(lreturns[:,temp]))/np.shape(lreturns)[0]) < 0.05:
 			ind_stocks.append(temp)

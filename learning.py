@@ -62,11 +62,25 @@ def gen_dict(news):
 
 
 
-def gen_xy_daily(news,lreturns,dates_stocks,dict_words, words_used):
+def gen_xy_daily(news,lreturns,dates_stocks,vocab_size):
 	import datetime
 	import numpy as np
 	from keras.preprocessing import sequence
 	from progressbar import printProgressBar
+	from keras.preprocessing.text import Tokenizer
+
+
+	all_words = []
+	for i in range(len(news)):
+		for j in range(len(news[i][8])):
+			for k in news[i][8][j]:
+				all_words.append(k)
+
+	tokenizer = Tokenizer(num_words=vocab_size)
+	tokenizer.fit_on_texts(all_words)
+	del all_words
+
+
 
 	data_days = []
 	y = []
@@ -101,20 +115,30 @@ def gen_xy_daily(news,lreturns,dates_stocks,dict_words, words_used):
 				ind_temp = min(dates_stocks, key=lambda x: abs(x - cur_d))
 				y.append(lreturns[list(dates_stocks).index(ind_temp),:])
 
+			if day_count-1 != -1:
+				data_days[day_count-1] = np.hstack(np.array(data_days[day_count-1])).tolist()
+
 		#skip last sentence
 		for j in range(len(i[8])-1):
-			for k in i[8][j]:
-				data_days[day_count].append(dict_words.index(k))
+			try:
+				temp_seq = np.hstack(np.array(tokenizer.texts_to_sequences(i[8][j])))
+			except:
+				pass
+			#flatten = lambda l: [item for sublist in l for item in sublist]
+			#flat_list = [item for sublist in temp_seq for item in sublist]
+			data_days[day_count].append(temp_seq.tolist())
 
 	#length info
 	#import numpy as np
 	#lens = np.array(list(map(len, data_days)))
 	#truncate at 15000
-
+	data_days[day_count] = np.hstack(np.array(data_days[day_count])).tolist()
+	#return data_days
+	#print(np.shape(np.array(data_days))) 
 	x = sequence.pad_sequences(data_days, maxlen=15000, value=0)
-	x[x > words_used] = words_used
+	#x[x > words_used] = words_used
 
-	del data_days
+	#del data_days
 
 	return x,np.array(y)
 
