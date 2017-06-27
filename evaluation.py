@@ -1,5 +1,5 @@
 #plotting
-def plot_pred_true(y,yhat)
+def plot_pred_true(y,yhat):
 	import matplotlib as mpl
 	mpl.use('Agg')
 	import matplotlib.pyplot as plt

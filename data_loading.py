@@ -1,11 +1,10 @@
 
 
-def load_news_data(alone, path):
+def load_news_data(path, stop_word_removal):
 
 	import numpy as np
 	import pandas as pd
 	import os as os
-	import pickle
 	import nltk.data
 	from nltk.tokenize import RegexpTokenizer
 	from progressbar import printProgressBar
@@ -65,7 +64,10 @@ def load_news_data(alone, path):
 							temp3 = []
 							for k in temp1:
 								if not k.isdigit():
-									if k.lower() not in stops: #stopword removal
+									if stop_word_removal:
+										if k.lower() not in stops: #stopword removal
+											temp3.append(k)
+									else:
 										temp3.append(k)
 
 							news_sub.append(temp3)
@@ -80,16 +82,12 @@ def load_news_data(alone, path):
 
 	news_data = sorted(news_data, key=lambda news: news[4] )
 
-	if alone:
-		f = open('./Data/processed_news_data', 'wb')
-		pickle.dump([news_data, faulty_news], f)
-		f.close()
 
 	return [news_data, faulty_news]
 
 
 
-def load_SP_data(alone,stock_names,pref_number):
+def load_SP_data(stock_names,pref_number):
 
 	import numpy as np
 	import pandas as pd
@@ -119,11 +117,6 @@ def load_SP_data(alone,stock_names,pref_number):
 	lreturns = lreturns[:,ind_stocks]
 	prices = prices[:,ind_stocks]
 
-
-	if alone:
-		f = open('./Data/processed_SP_data', 'wb')
-		pickle.dump([prices, dates, names, lreturns, mu_vec, sigma_vec, dates_SP_weekly], f)
-		f.close()
 
 
 	return [prices, dates, names, lreturns]
