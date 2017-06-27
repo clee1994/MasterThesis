@@ -56,6 +56,6 @@ model = Sequential([
 	])
 
 model.compile(loss="mean_squared_error",optimizer="Adam")
-model.fit(x_train,y_train,validation_data=(x_test,y_test),epochs=2,batch_size=10)
+model.fit(x_train,y_train[:,0],validation_data=(x_test,y_test[:,0]),epochs=2,batch_size=10)
 
 

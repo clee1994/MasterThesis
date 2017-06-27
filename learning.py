@@ -11,10 +11,20 @@ def gen_dict(news):
 			for k in news[i][8][j]:
 				all_words.append(k)
 
+	prog_st = 0
+	l = len(all_words) 
+	printProgressBar(prog_st, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
+
+
+
 	#gen dictionary
 	mydict={}
 	counter = 0
 	for k in all_words:
+		prog_st += 1
+		printProgressBar(prog_st, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
+
+
 	    if(counter>0 and k in mydict):
 	        continue
 	    else:    
@@ -28,8 +38,16 @@ def gen_dict(news):
 	sort_temp = sorted(mydict.items(), key=lambda x: x[1][1],reverse=True)
 	del mydict
 
+	prog_st = 0
+	l = len(sort_temp) 
+	printProgressBar(prog_st, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
+
+
 	sort_dict = []
 	for i in range(len(sort_temp)):
+		prog_st += 1
+		printProgressBar(prog_st, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
+
 		sort_dict.append(sort_temp[i][0])
 		#sort_dict[sort_temp[i][0]] = i
 
@@ -52,8 +70,17 @@ def gen_xy_daily(news,lreturns,dates_stocks,dict_words, words_used):
 	y = []
 	day_count = -1
 
+	prog_st = 0
+	l = len(news) 
+	printProgressBar(prog_st, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
+
+
 	prev_d = np.datetime64(datetime.date(1, 1, 1))
 	for i in news:
+		prog_st += 1
+		printProgressBar(prog_st, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
+
+
 		temp_d = []
 		temp = i[4].tolist()
 		cur_d = np.datetime64(datetime.date(temp.year, temp.month, temp.day))
