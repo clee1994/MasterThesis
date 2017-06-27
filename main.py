@@ -52,7 +52,7 @@ model = Sequential([
 	Flatten(),
 	Dense(100,activation="relu"),
 	Dropout(0.7),
-	Dense(1,activation="sigmoid")
+	Dense(1,activation="relu")
 	])
 
 model.compile(loss="mean_squared_error",optimizer="Adam")

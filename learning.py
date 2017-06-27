@@ -5,6 +5,8 @@
 
 
 def gen_dict(news):
+	from progressbar import printProgressBar
+
 	all_words = []
 	for i in range(len(news)):
 		for j in range(len(news[i][8])):
@@ -64,6 +66,7 @@ def gen_xy_daily(news,lreturns,dates_stocks,dict_words, words_used):
 	import datetime
 	import numpy as np
 	from keras.preprocessing import sequence
+	from progressbar import printProgressBar
 
 	data_days = []
 	y = []
