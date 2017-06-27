@@ -24,7 +24,7 @@ def gen_dict(news):
 		prog_st += 1
 		printProgressBar(prog_st, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
 
-	    if(counter>0 and k in mydict):
+		if(counter>0 and k in mydict):
 	    	continue
 	    else:
 	    	counter +=1
