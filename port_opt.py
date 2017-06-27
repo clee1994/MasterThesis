@@ -54,7 +54,7 @@ def ret2prices(ret_series,base_value):
 
 # data_ts = np.random.rand(100,20)
 
-# mu = np.mean(data_ts,axis=0)
+# mu = np.sto(sdata_ts,axis=0)
 # gamma = np.cov(np.transpose(data_ts))
 
 

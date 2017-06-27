@@ -2,95 +2,54 @@ from data_loading import load_news_data, load_SP_data
 from learning import build_word2vec_model, get_news_vector
 from learning import  gen_xy, nearest, rnn_model
 from port_opt import min_var_mu, min_var, ret2prices
+from stocks import stocks_used
 import numpy as np
-import gensim
-import pickle
-import os as os
-
-import sys
-import datetime
-import gc
-
-import matplotlib as mpl
-mpl.use('Agg')
-import matplotlib.pyplot as plt
-import datetime
-#sys.stdout = open('Output/logfile'+str(datetime.datetime.now()), 'w')
-
-
-
-#stocks to be used 
-# "AAPL",
-# "MSFT",
-# "AMZN",
-# "JNJ",
-# "FFIV",
-# "XOM",
-# "BRK-B",
-# "JPM",
-# "GOOG",
-# "GOOG",
-# "GE",
-# "WFC",
-# "T",
-# "BAC",
-# "PG",
-# "PFE",
-# "CVX",
-# "CMCSA",
-# "PM",
-# "HD",
-# "VZ",
-# "MRK",
-# "UTX",
-# "CSCO",
-# "V",
 
 
 #modifiable variables
 path_to_news_files = "./Data_small/ReutersNews106521"
-n_forward_list=[1,3,7]
-n_past_list = [20,60,100]
-epoches_list = [1,3]
-word_min_count_list = [10,160,400]
-feature_number_list = [150, 200, 250, 300, 350]
-firms_used = 30
+firms_used = 25
+
+#traning splits
 test_split = 0.15
 validation_split = 0.12
-batch_size = 40
+
+#mean change approach
+n_forward_list = 3
+n_past_list = 60
 
 
-#def main_comp(path_to_news_files,n_forward,n_past,test_split,validation_split, batch_size,epoches,word_min_count, feature_number, firms_used):
-# for feature_number in feature_number_list:
+
+
+
+
 #load and preprocess data
-#print('Start reading in news:')
-#[news_data, faulty_news] = load_news_data(False,path_to_news_files)
-#print('Successfully read all news')
+print('Start reading in news:')
+[news_data, faulty_news] = load_news_data(False,path_to_news_files)
+print('Successfully read all news')
 print('--------------------------------------')
 print('Start reading in SP500 data:')
 [prices, dates, names, lreturns, mu, sigma,dates_SP_weekly] = load_SP_data(False)
 print('Successfully read all data')
 
-# #train word2vec model
-# for word_min_count in word_min_count_list:
-# 	for feature_number in feature_number_list:
-# 		print('--------------------------------------')
-# 		print('Start building word2vec model:')
-# 		model = build_word2vec_model(False,feature_number,word_min_count, news_data, faulty_news)
-# 		model.save("Output/models/"+str(word_min_count)+"_"+str(feature_number))
-		
-# 		print('Successfully build model')
-# 		print('--------------------------------------')
+#train word2vec model
+print('--------------------------------------')
+print('Start building word2vec model:')
+model = build_word2vec_model(False,feature_number,word_min_count, news_data, faulty_news)
+model.save("Output/models/"+str(word_min_count)+"_"+str(feature_number))
 
-# 		#transform news to vectors
-# 		print('Start aggregating news data:')
-# 		[aggregated_news, dates_news] = get_news_vector(False,model,feature_number, news_data, faulty_news)
-# 		print('Successfully aggregated data')
-# 		print('--------------------------------------')
+print('Successfully build model')
+print('--------------------------------------')
 
-# 		pickle.dump( [aggregated_news,dates_news], open( "Output/aggr_news/"+str(word_min_count)+"_"+str(feature_number), "wb" ) )
+#transform news to vectors
+print('Start aggregating news data:')
+[aggregated_news, dates_news] = get_news_vector(False,model,feature_number, news_data, faulty_news)
+print('Successfully aggregated data')
+print('--------------------------------------')
 
-# 		del model, aggregated_news, dates_news
+pickle.dump( [aggregated_news,dates_news], open( "Output/aggr_news/"+str(word_min_count)+"_"+str(feature_number), "wb" ) )
+
+#del model, aggregated_news, dates_news
 
 
 def inner_loop_shit(n_forward, n_past, cur_m ):
@@ -149,22 +108,7 @@ def inner_loop_shit(n_forward, n_past, cur_m ):
 			print('--------------------------------------')
 			temp_y_pred = tempRNN.predict(x_test, batch_size=128)
 			
-			import matplotlib as mpl
-			mpl.use('Agg')
-			import matplotlib.pyplot as plt
-			import datetime
 			
-			plt.figure()
-			plt.clf()
-			plt.plot(y_test[:,i],label= "true y")
-			plt.plot(np.squeeze(temp_y_pred),label="predicted y")
-			#plt.text(0.05, 0.95, str(loss_text))
-			print(str(loss_text))
-			plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
-		           ncol=2, mode="expand", borderaxespad=0.)
-			plt.savefig('Output/pics/'+str(loss_text)+'_'+str(datetime.datetime.now())+"_"+str(i)+"_"+cur_m+"_"+str(n_forward)+"_"+str(n_past)+"_"+str(epoches)+'pred_true.png')
-			plt.close()
-			plt.close("all")
 			#del predict_y
 			del tempRNN, loss_text
 			from keras import backend as K
@@ -251,5 +195,80 @@ for n_forward in n_forward_list:
 			inner_loop_shit(n_forward, n_past, cur_m )
 			gc.collect()
 
+#plotting
+
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt
+import datetime
+
+plt.figure()
+plt.clf()
+plt.plot(y_test[:,i],label= "true y")
+plt.plot(np.squeeze(temp_y_pred),label="predicted y")
+#plt.text(0.05, 0.95, str(loss_text))
+print(str(loss_text))
+plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
+       ncol=2, mode="expand", borderaxespad=0.)
+plt.savefig('Output/pics/'+str(loss_text)+'_'+str(datetime.datetime.now())+"_"+str(i)+"_"+cur_m+"_"+str(n_forward)+"_"+str(n_past)+"_"+str(epoches)+'pred_true.png')
+plt.close()
+plt.close("all")
+
+#evalute portfolio construction
+
+def evaluate_portfolio(used_stocks,x_dates_test,lreturns,n_past,n_forward):
+
+	firm_ind = list()
+	for i in range(firms_used):
+		firm_ind.append(list(names).index(used_stocks[i]))
+
+	realized_mu = list()
+	i_realized_mu = list()
+
+	for i in range(len(x_dates_test)):
+		temp = x_dates_test[i].tolist()
+		cur_d = np.datetime64(datetime.date(temp.year, temp.month, temp.day))
+		try:
+			ind_d = list(dates).index(cur_d)
+		except:
+			print('cant happen')
+
+		mu = np.nanmean(lreturns[(ind_d-n_past):ind_d, firm_ind],axis=0)
+
+		#depends what shall be tested
+		improved_mu = np.zeros(firms_used)
+		#using news to improve
+		for j in range(firms_used):
+			#absolutly ridiculus change
+			#temp_data_input_predict = np.reshape(x_test[i,:], (1,) + x_test[i,:].shape)
+			mu_change = predict_y[j][i]
+			#[j].predict(temp_data_input_predict)
+			improved_mu[j] = mu[j] + mu_change
+
+		gamma = np.cov(lreturns[(ind_d-n_past):ind_d, firm_ind],rowvar=False)
+
+		[w, mu_p, var_p] = min_var(mu, gamma)
+		[i_w, i_mu_p, i_var_p] = min_var(improved_mu, gamma)
+		realized_mu.append(np.dot(w,lreturns[ind_d,firm_ind]))
+		i_realized_mu.append(np.dot(i_w,lreturns[ind_d,firm_ind]))
 
 
+	#visualization of results!
+	realized_mu = np.array(realized_mu).flatten()
+	value_over_time = ret2prices(realized_mu,100)
+
+	i_realized_mu = np.array(i_realized_mu).flatten()
+	i_value_over_time = ret2prices(i_realized_mu,100)
+
+	import matplotlib.pyplot as plt
+	plt.figure() 
+	plt.clf()
+	plt.plot(value_over_time , 'r', label='ordinary min var')
+	plt.plot(i_value_over_time , 'b', label='improved min var portfolio')
+
+	#plt.plot(np.subtract(value_over_time,i_value_over_time), 'g', label='improved min var portfolio')
+	plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
+	           ncol=2, mode="expand", borderaxespad=0.)
+
+	plt.savefig('Output/pics/'+str(datetime.datetime.now())+cur_m+"_"+str(n_forward)+"_"+str(n_past)+"_"+str(epoches)+'port_performance.png')
+	plt.close()
