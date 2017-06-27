@@ -27,8 +27,8 @@ def gen_dict(news):
 		if(counter>0 and k in mydict):
 			continue
 		else:
-		counter +=1
-		mydict[k] = [counter, all_words.count(k)]
+			counter+=1
+			mydict[k] = [counter, all_words.count(k)]
 
 	del all_words
 
