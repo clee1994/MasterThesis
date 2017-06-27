@@ -25,10 +25,10 @@ def gen_dict(news):
 		printProgressBar(prog_st, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
 
 		if(counter>0 and k in mydict):
-	    	continue
-	    else:
-	    	counter +=1
-	    	mydict[k] = [counter, all_words.count(k)]
+			continue
+		else:
+		counter +=1
+		mydict[k] = [counter, all_words.count(k)]
 
 	del all_words
 
