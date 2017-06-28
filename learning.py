@@ -116,7 +116,10 @@ def gen_xy_daily(news,lreturns,dates_stocks,vocab_size):
 				y.append(lreturns[list(dates_stocks).index(ind_temp),:])
 
 			if day_count-1 != -1:
-				data_days[day_count-1] = np.hstack(np.array(data_days[day_count-1])).tolist()
+				try:
+					data_days[day_count-1] = np.hstack(np.array(data_days[day_count-1])).tolist()
+				except:
+					pass
 
 		#skip last sentence
 		for j in range(len(i[8])-1):
@@ -132,7 +135,10 @@ def gen_xy_daily(news,lreturns,dates_stocks,vocab_size):
 	#import numpy as np
 	#lens = np.array(list(map(len, data_days)))
 	#truncate at 15000
-	data_days[day_count] = np.hstack(np.array(data_days[day_count])).tolist()
+	try:
+		data_days[day_count] = np.hstack(np.array(data_days[day_count])).tolist()
+	except:
+		pass
 	#return data_days
 	#print(np.shape(np.array(data_days))) 
 	x = sequence.pad_sequences(data_days, maxlen=15000, value=0)

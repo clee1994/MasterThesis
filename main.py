@@ -7,7 +7,7 @@ import datetime
 
 
 #modifiable variables
-path_to_news_files = "./Data_small/ReutersNews106521"
+path_to_news_files = "./Data/ReutersNews106521"
 firms_used = 25
 
 #traning splits
