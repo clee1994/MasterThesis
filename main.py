@@ -15,7 +15,7 @@ test_split = 0.15
 validation_split = 0.12
 
 #
-vocab_size = 5000
+vocab_size = 4000
 
 #mean change approach
 n_forward_list = 3
@@ -49,20 +49,45 @@ x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
 
 #model
 from keras.models import Sequential
-from keras.layers import Dense, Activation, Embedding, Dropout, Flatten
+from keras.layers import Dense, Activation, Embedding, Dropout, Flatten, Convolution1D, MaxPooling1D, LSTM
 
 model = Sequential([
-	Embedding(vocab_size+1, 32, input_length=np.shape(x_train)[1]),
+	Embedding(vocab_size+1, 40, input_length=np.shape(x_train)[1]),
 	Flatten(),
 	Dense(100,activation="relu"),
 	Dropout(0.7),
-	Dense(1,activation="relu")
+	Dense(1,activation="sigmoid")
 	])
 
-model.compile(loss="mean_squared_error",optimizer="Adam")
-model.fit(x_train,y_train[:,0],validation_data=(x_test,y_test[:,0]),epochs=2,batch_size=10)
+
+conv_model = Sequential([
+	Embedding(vocab_size+1, 32, input_length=np.shape(x_train)[1]),
+	Dropout(0.2),
+	Convolution1D(64, 5, border_mode='same', activation="relu" ),
+	Dropout(0.2),
+	MaxPooling1D(),
+	Flatten(),
+	Dense(100,activation="relu"),
+	Dropout(0.7),
+	Dense(1,activation="sigmoid")
+	])
+
+rnn_model = Sequential([
+	Embedding(vocab_size+1, 32, input_length=np.shape(x_train)[1]),
+	LSTM(52,return_sequences=True),
+	LSTM(1)
+	])
+
+rnn_model.compile(loss='mean_squared_error', optimizer='sgd')
+rnn_model.fit(x_train,y_train[:,0],validation_data=(x_test,y_test[:,0]),epochs=5,batch_size=25)
+
+model.compile(loss="binary_crossentropy",optimizer="Adam", metrics=["accuracy"])
+model.fit(x_train,y_train[:,0],validation_data=(x_test,y_test[:,0]),epochs=5,batch_size=10)
+
+conv_model.compile(loss="mean_squared_error",optimizer="Adam")
+conv_model.fit(x_train,y_train[:,0],validation_data=(x_test,y_test[:,0]),epochs=2,batch_size=25)
 
 
 #evaluate
-plot_pred_true(y_test,model.predict(x_test, batch_size=10))
+plot_pred_true(y_test,rnn_model.predict(x_test, batch_size=25))
 

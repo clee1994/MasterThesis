@@ -72,8 +72,8 @@ def gen_xy_daily(news,lreturns,dates_stocks,vocab_size):
 
 	all_words = []
 	for i in range(len(news)):
-		for j in range(len(news[i][8])):
-			for k in news[i][8][j]:
+		for j in range(len(news[i][2])):
+			for k in news[i][2][j]:
 				all_words.append(k)
 
 	tokenizer = Tokenizer(num_words=vocab_size)
@@ -110,10 +110,16 @@ def gen_xy_daily(news,lreturns,dates_stocks,vocab_size):
 			day_count += 1
 			#mu/y -> what do I want, the mean next day, average next three days
 			try:
-				y.append(lreturns[list(dates_stocks).index(cur_d),:])
+				#temp_mu = np.nanmean(lreturns[list(dates_stocks).index(cur_d):(list(dates_stocks).index(cur_d)+3),:],axis=0)
+				#temp_mu = np.sign(lreturns[list(dates_stocks).index(cur_d),:])
+				temp_mu = lreturns[list(dates_stocks).index(cur_d),:]
+				y.append(temp_mu)
 			except:
 				ind_temp = min(dates_stocks, key=lambda x: abs(x - cur_d))
-				y.append(lreturns[list(dates_stocks).index(ind_temp),:])
+				temp_mu = lreturns[list(dates_stocks).index(ind_temp),:]
+				#temp_mu = np.nanmean(lreturns[list(dates_stocks).index(ind_temp):(list(dates_stocks).index(ind_temp)+3),:],axis=0)
+				#temp_mu = np.sign(lreturns[list(dates_stocks).index(ind_temp),:])
+				y.append(temp_mu)
 
 			if day_count-1 != -1:
 				try:
@@ -122,9 +128,9 @@ def gen_xy_daily(news,lreturns,dates_stocks,vocab_size):
 					pass
 
 		#skip last sentence
-		for j in range(len(i[8])-1):
+		for j in range(len(i[2])-1):
 			try:
-				temp_seq = np.hstack(np.array(tokenizer.texts_to_sequences(i[8][j])))
+				temp_seq = np.hstack(np.array(tokenizer.texts_to_sequences(i[2][j])))
 			except:
 				pass
 			#flatten = lambda l: [item for sublist in l for item in sublist]
@@ -134,6 +140,7 @@ def gen_xy_daily(news,lreturns,dates_stocks,vocab_size):
 	#length info
 	#import numpy as np
 	#lens = np.array(list(map(len, data_days)))
+	#print(lens.mean())
 	#truncate at 15000
 	try:
 		data_days[day_count] = np.hstack(np.array(data_days[day_count])).tolist()
@@ -141,7 +148,7 @@ def gen_xy_daily(news,lreturns,dates_stocks,vocab_size):
 		pass
 	#return data_days
 	#print(np.shape(np.array(data_days))) 
-	x = sequence.pad_sequences(data_days, maxlen=15000, value=0)
+	x = sequence.pad_sequences(data_days, maxlen=1700, value=0)
 	#x[x > words_used] = words_used
 
 	#del data_days
@@ -158,6 +165,7 @@ def train_test_split(x,y,test_split):
 	x_test = x[(split_point+1):,:]
 	y_test = y[(split_point+1):,:]
 	return x_train,y_train,x_test,y_test
+
 
 
 
