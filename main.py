@@ -1,255 +1,241 @@
 from data_loading import load_news_data, load_SP_data 
-from learning import build_word2vec_model, get_news_vector
-from learning import  gen_xy, nearest, rnn_model
-from port_opt import min_var_mu, min_var, ret2prices
+from learning import gen_xy_daily, train_test_split
+from evaluation import plot_pred_true, evaluate_portfolio
+from stocks_small import stocks_used
 import numpy as np
-import gensim
-import pickle
-import os as os
-
-import sys
-import datetime
-import gc
-
-import matplotlib as mpl
-mpl.use('Agg')
-import matplotlib.pyplot as plt
-import datetime
-#sys.stdout = open('Output/logfile'+str(datetime.datetime.now()), 'w')
-
-
-
-#stocks to be used 
-# "AAPL",
-# "MSFT",
-# "AMZN",
-# "JNJ",
-# "FFIV",
-# "XOM",
-# "BRK-B",
-# "JPM",
-# "GOOG",
-# "GOOG",
-# "GE",
-# "WFC",
-# "T",
-# "BAC",
-# "PG",
-# "PFE",
-# "CVX",
-# "CMCSA",
-# "PM",
-# "HD",
-# "VZ",
-# "MRK",
-# "UTX",
-# "CSCO",
-# "V",
+import datetime 
 
 
 #modifiable variables
-path_to_news_files = "./Data_small/ReutersNews106521"
-n_forward_list=[1,3,7]
-n_past_list = [20,60,100]
-epoches_list = [1,3]
-word_min_count_list = [10,160,400]
-feature_number_list = [150, 200, 250, 300, 350]
-firms_used = 30
+path_to_news_files = "./Data/ReutersNews106521"
+firms_used = 25
+
+#traning splits
 test_split = 0.15
 validation_split = 0.12
-batch_size = 40
+
+#
+vocab_size = 4000
+feature_size = 700
+
+#mean change approach
+n_forward_list = 3
+n_past_list = 60
 
 
-#def main_comp(path_to_news_files,n_forward,n_past,test_split,validation_split, batch_size,epoches,word_min_count, feature_number, firms_used):
-# for feature_number in feature_number_list:
+
 #load and preprocess data
-#print('Start reading in news:')
-#[news_data, faulty_news] = load_news_data(False,path_to_news_files)
-#print('Successfully read all news')
-print('--------------------------------------')
-print('Start reading in SP500 data:')
-[prices, dates, names, lreturns, mu, sigma,dates_SP_weekly] = load_SP_data(False)
-print('Successfully read all data')
-
-# #train word2vec model
-# for word_min_count in word_min_count_list:
-# 	for feature_number in feature_number_list:
-# 		print('--------------------------------------')
-# 		print('Start building word2vec model:')
-# 		model = build_word2vec_model(False,feature_number,word_min_count, news_data, faulty_news)
-# 		model.save("Output/models/"+str(word_min_count)+"_"+str(feature_number))
-		
-# 		print('Successfully build model')
-# 		print('--------------------------------------')
-
-# 		#transform news to vectors
-# 		print('Start aggregating news data:')
-# 		[aggregated_news, dates_news] = get_news_vector(False,model,feature_number, news_data, faulty_news)
-# 		print('Successfully aggregated data')
-# 		print('--------------------------------------')
-
-# 		pickle.dump( [aggregated_news,dates_news], open( "Output/aggr_news/"+str(word_min_count)+"_"+str(feature_number), "wb" ) )
-
-# 		del model, aggregated_news, dates_news
+print(str(datetime.datetime.now())+': Start reading in news:')
+[news_data, faulty_news] = load_news_data(path_to_news_files,False)
+print(str(datetime.datetime.now())+': Successfully read all news')
 
 
-def inner_loop_shit(n_forward, n_past, cur_m ):
-	firms_used = 30
-	test_split = 0.15
-	validation_split = 0.12
-	batch_size = 40
-
-	model = gensim.models.Word2Vec.load("Output/models/"+cur_m)
-	[aggregated_news,dates_news] = pickle.load( open( "Output/aggr_news/"+cur_m, "rb" ) )
-
-	#generat x and y data/train/test
-	print('Start generating mu train and test data:')
-	[x_train,y_train,x_test,y_test,used_stocks,x_dates_train, x_dates_test] = gen_xy(
-		aggregated_news,
-		lreturns[:,0:firms_used],
-		dates,
-		dates_news,
-		n_forward,
-		n_past,
-		True,
-		names,
-		test_split)
-	print('Successfully generated mu train and test data')
-	print('--------------------------------------')
-
-	pickle.dump( [x_train,y_train,x_test,y_test,used_stocks,x_dates_train, x_dates_test], open( "Output/xy/"+str(n_forward)+"_"+str(n_past), "wb" ) )
-
-	firms_used = np.shape(y_test)[1]
-
-	for epoches in epoches_list:
-		#modelsRNNmu = list()
-		#modelsRNNsigma = list()
-		loss_mu = list()
-		#loss_sigma = list()
-		predict_y = list()
-
-		# modelsRNNmu.append(rnn_model(x_train,y_train[:,4],validation_split,batch_size,epoches))
-		# temp1 = modelsRNNmu[0].evaluate(x_test, y_test[:,4])
-		# loss_mu.append(temp1)
-		for i in range(0,firms_used):
-			print('Start building prediction model:')
-			tempRNN = rnn_model(x_train,y_train[:,i],validation_split,batch_size,epoches)
-			tempRNN.save("Output/modelsKeras/"+cur_m+"_"+str(n_forward)+"_"+str(n_past)+"_"+str(epoches))
-			#modelsRNNmu.append(tempRNN)
-			
-			loss_text = tempRNN.evaluate(x_test, y_test[:,i])
-			print(loss_text)
-			#loss_mu.append(temp1)
-			#print(temp1)
-			# modelsRNNsigma.append(rnn_model(sigma_x_train,sigma_y_train[:,i]))
-			# temp1 = modelsRNNsigma[i].evaluate(sigma_x_test, sigma_y_test[:,i])
-			# loss_sigma.append(temp1)
-			# print(temp1)
-			print('Successfully generated model')
-			print('--------------------------------------')
-			temp_y_pred = tempRNN.predict(x_test, batch_size=128)
-			
-			import matplotlib as mpl
-			mpl.use('Agg')
-			import matplotlib.pyplot as plt
-			import datetime
-			
-			plt.figure()
-			plt.clf()
-			plt.plot(y_test[:,i],label= "true y")
-			plt.plot(np.squeeze(temp_y_pred),label="predicted y")
-			#plt.text(0.05, 0.95, str(loss_text))
-			print(str(loss_text))
-			plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
-		           ncol=2, mode="expand", borderaxespad=0.)
-			plt.savefig('Output/pics/'+str(loss_text)+'_'+str(datetime.datetime.now())+"_"+str(i)+"_"+cur_m+"_"+str(n_forward)+"_"+str(n_past)+"_"+str(epoches)+'pred_true.png')
-			plt.close()
-			plt.close("all")
-			#del predict_y
-			del tempRNN, loss_text
-			from keras import backend as K
-			K.clear_session()
-			predict_y.append(temp_y_pred)
-			del temp_y_pred
-			gc.collect()
-			
-		#del news_data, faulty_news, model, aggregated_news, dates_news, x_train,y_train,x_test,y_test,used_stocks,x_dates_train, x_dates_test, modelsRNNmu
 
 
-		#backtesting portfolio opt with improved estimates
+print(str(datetime.datetime.now())+': Start reading in SP500 data:')
+[prices, dates, names, lreturns] = load_SP_data(stocks_used, firms_used)
+print(str(datetime.datetime.now())+': Successfully read all data')
 
 
-		#firm indices
-		firm_ind = list()
+#pickle dump and load
+import pickle
+pickle.dump([news_data, prices, dates, names, lreturns], open( "small_raw", "wb" ) )
 
-		for i in range(firms_used):
-			firm_ind.append(list(names).index(used_stocks[i]))
-
-		realized_mu = list()
-		i_realized_mu = list()
-
-		for i in range(len(x_dates_test)):
-			temp = x_dates_test[i].tolist()
-			cur_d = np.datetime64(datetime.date(temp.year, temp.month, temp.day))
-			try:
-				ind_d = list(dates).index(cur_d)
-			except:
-				print('cant happen')
-
-			mu = np.nanmean(lreturns[(ind_d-n_past):ind_d, firm_ind],axis=0)
-
-			improved_mu = np.zeros(firms_used)
-			#using news to improve
-			for j in range(firms_used):
-				#absolutly ridiculus change
-				#temp_data_input_predict = np.reshape(x_test[i,:], (1,) + x_test[i,:].shape)
-				mu_change = predict_y[j][i]
-				#[j].predict(temp_data_input_predict)
-				improved_mu[j] = mu[j] + mu_change
-
-			gamma = np.cov(lreturns[(ind_d-n_past):ind_d, firm_ind],rowvar=False)
-
-			[w, mu_p, var_p] = min_var(mu, gamma)
-			[i_w, i_mu_p, i_var_p] = min_var(improved_mu, gamma)
-			realized_mu.append(np.dot(w,lreturns[ind_d,firm_ind]))
-			i_realized_mu.append(np.dot(i_w,lreturns[ind_d,firm_ind]))
+[news_data, prices, dates, names, lreturns] = pickle.load( open( "small_raw", "rb" ) )
 
 
-		#visualization of results!
-		realized_mu = np.array(realized_mu).flatten()
-		value_over_time = ret2prices(realized_mu,100)
+feature_size = 990
 
-		i_realized_mu = np.array(i_realized_mu).flatten()
-		i_value_over_time = ret2prices(i_realized_mu,100)
+for feature_size in [90, 150, 350, 500, 700]:
 
-
-		import matplotlib.pyplot as plt
-		plt.figure() 
-		plt.clf()
-		plt.plot(value_over_time , 'r', label='ordinary min var')
-		plt.plot(i_value_over_time , 'b', label='improved min var portfolio')
-
-		#plt.plot(np.subtract(value_over_time,i_value_over_time), 'g', label='improved min var portfolio')
-		plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
-		           ncol=2, mode="expand", borderaxespad=0.)
-
-		plt.savefig('Output/pics/'+str(datetime.datetime.now())+cur_m+"_"+str(n_forward)+"_"+str(n_past)+"_"+str(epoches)+'port_performance.png')
-		plt.close()
-		del realized_mu, i_realized_mu, value_over_time, i_value_over_time, predict_y
-		gc.collect()
-
-	del aggregated_news,dates_news, model
-	del x_train,y_train,x_test,y_test,used_stocks,x_dates_train, x_dates_test	
-	gc.collect()
+	print(str(datetime.datetime.now())+': Start generating xy:')
+	[x,y] = gen_xy_daily(news_data,lreturns,dates,feature_size,8,50)
+	x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
+	print(str(datetime.datetime.now())+': Successfully generated xy')
 
 
-model_list = os.listdir("Output/aggr_news")
+	import pickle
+	pickle.dump([x_train, y_train, x_test, y_test], open( "small_xy_"+str(feature_size), "wb" ) )
+	print(str(feature_size))
 
-for n_forward in n_forward_list:
-	for n_past in n_past_list:
-		for cur_m in model_list:
-			inner_loop_shit(n_forward, n_past, cur_m )
-			gc.collect()
+
+
+#ht: 2 headline, 8 text
+print(str(datetime.datetime.now())+': Start generating xy:')
+[x,y] = gen_xy_daily(news_data,lreturns,dates,150,7,10,8)
+x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
+print(str(datetime.datetime.now())+': Successfully generated xy')
+
+
+
+
+#ATTENTION!!!!
+[x_train, y_train, x_test, y_test] = pickle.load( open( "small_xy_500", "rb" ) )
+
+#ridge regression easy model
+from sklearn.linear_model import Ridge
+from sklearn import svm
+
+#3000 standard
+clf = Ridge(alpha=50)
+clf.fit(x_train, y_train)
+
+
+plot_pred_true(y_test,clf.predict(x_test))
+
+import tensorflow as tf
+from keras.losses import mean_squared_error
+sess = tf.InteractiveSession()
+np.mean(mean_squared_error(y_test,clf.predict(x_test)).eval())
+
+
+
+
+#classification
+y_train[y_train < 0] = 0
+y_test[y_test < 0] = 0
+clf = svm.SVC()
+clf.fit(x_train, y_train)
+res =  np.reshape(np.array(clf.predict(x_test)),[387,1])
+np.sum(np.abs(np.subtract(y_test,res)))/np.shape(y_test)[0]
+
+
+#-------
+# create model
+model = Sequential()
+model.add(Dense(13, input_dim=x_train.shape[1:], kernel_initializer='normal', activation='relu'))
+model.add(Dense(1, kernel_initializer='normal'))
+# Compile model
+model.compile(loss='mean_squared_error', optimizer='adam')
+model.fit(x_train,y_train[:,0],validation_data=(x_test,y_test[:,0]),epochs=2,batch_size=25)
+plot_pred_true(y_test,model.predict(x_test, batch_size=25))
+
+
+
+
+
+
+x_train = np.transpose(x_train)
+
+#single layer neuronal net
+from keras.models import Sequential
+from keras.layers import Dense, Activation, Embedding, Dropout, Flatten, Convolution1D, MaxPooling1D, LSTM
+
+model = Sequential([
+	#Embedding(vocab_size+1, 40, input_length=np.shape(x_train)[1]),
+	Dense(100,input_shape=x_train.shape[1:], activation="relu"),
+	#Flatten(),
+	Dropout(0.7),
+	Dense(1,activation="relu"),
+	])
+model.compile(loss="mean_squared_error",optimizer="Adam")
+model.fit(x_train,y_train[:,0],validation_data=(x_test,y_test[:,0]),epochs=2,batch_size=25)
+plot_pred_true(y_test,model.predict(x_test))
+
+
+
+
+#LSTM
+rnn_model = Sequential([
+	LSTM(52,input_shape=x_train.shape[1:],return_sequences=True),
+	LSTM(36, return_sequences=True),
+	LSTM(1)
+	])
+rnn_model.compile(loss="mean_squared_error",optimizer="Adam")
+
+x_train_l = np.reshape(x_train, x_train.shape + (1,))
+x_test_l = np.reshape(x_test, x_test.shape + (1,))
+
+rnn_model.fit(x_train_l,y_train[:,0],validation_data=(x_test_l,y_test[:,0]),epochs=2,batch_size=25)
+plot_pred_true(y_test,rnn_model.predict(x_test_l))
+
+rnn2_model = Sequential()
+
+rnn2_model.add(LSTM(52, input_shape=x_train.shape[1:], return_sequences=True))
+rnn2_model.add(LSTM(36, return_sequences=True))
+#model.add(LSTM(4, return_sequences=True))
+rnn2_model.add(LSTM(1))
+
+
+from keras import backend as K
+K.clear_session()
+
+#CNN
+cnn_model = Sequential([
+	Convolution1D(64, 5, border_mode='same',input_shape=x_train.shape[1:], activation="relu" ),
+	Dropout(0.2),
+	MaxPooling1D(),
+	Flatten(),
+	Dense(100,activation="relu"),
+	Dropout(0.7),
+	Dense(1)
+	])
+cnn_model.compile(loss="mean_squared_error",optimizer="Adam")
+cnn_model.fit(x_train,y_train[:,0],validation_data=(x_test,y_test[:,0]),epochs=2,batch_size=25)
+plot_pred_true(y_test,cnn_model.predict(x_test))
+
+
+
+
+#--------------------------------------------------------
+
+
+x_train = np.reshape(x_train, x_train.shape + (1,))
+x_test = np.reshape(x_test, x_test.shape + (1,))
+
+model.compile(loss="mean_squared_error",optimizer="Adam")
+model.fit(x_train,y_train[:,0],validation_data=(x_test,y_test[:,0]),epochs=2,batch_size=25)
+
+
+
+#model
+from keras.models import Sequential
+from keras.layers import Dense, Activation, Embedding, Dropout, Flatten, Convolution1D, MaxPooling1D, LSTM
+
+
+model = Sequential([
+	#Embedding(vocab_size+1, 40, input_length=np.shape(x_train)[1]),
+	Dense(32,input_shape=x_train.shape[1:], activation="relu"),
+	#Flatten(),
+	Dense(100,activation="relu"),
+	Dropout(0.7),
+	Dense(1)
+	])
+
+conv_model = Sequential([
+	#Embedding(vocab_size+1, 32, input_length=np.shape(x_train)[1]),
+	#Dropout(0.2),
+	Convolution1D(64, 5, border_mode='same', activation="relu" ),
+	Dropout(0.2),
+	MaxPooling1D(),
+	Flatten(),
+	Dense(100,activation="relu"),
+	Dropout(0.7),
+	Dense(1)
+	])
+
+rnn_model = Sequential([
+	#Embedding(vocab_size+1, 32, input_length=np.shape(x_train)[1]),
+	LSTM(52,return_sequences=True),
+	LSTM(36, return_sequences=True),
+	LSTM(1)
+	])
+
+rnn_model.compile(loss='mean_squared_error', optimizer='Adam')
+rnn_model.fit(x_train,y_train[:,0],validation_data=(x_test,y_test[:,0]),epochs=2,batch_size=25)
+
+model.compile(loss="mean_squared_error",optimizer="Adam")
+model.fit(x_train,y_train[:,0],validation_data=(x_test,y_test[:,0]),epochs=2,batch_size=25)
+
+conv_model.compile(loss="mean_squared_error",optimizer="Adam")
+conv_model.fit(x_train,y_train[:,0],validation_data=(x_test,y_test[:,0]),epochs=2,batch_size=25)
+
+
+#evaluate
+plot_pred_true(y_test,model.predict(x_test, batch_size=25))
+plot_pred_true(y_test,conv_model.predict(x_test, batch_size=25))
+plot_pred_true(y_test,rnn_model.predict(x_test, batch_size=25))
+
 
 
 
