@@ -3,4 +3,4 @@ __pycache__
 Data_small/
 temp.py
 Output/
-small_*
+pickle_data/
