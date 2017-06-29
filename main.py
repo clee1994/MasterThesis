@@ -61,8 +61,10 @@ for feature_size in [90, 150, 350, 500, 700]:
 
 
 #ht: 2 headline, 8 text
+#7 /10
+#12 better
 print(str(datetime.datetime.now())+': Start generating xy:')
-[x,y] = gen_xy_daily(news_data,lreturns,dates,150,7,10,8)
+[x,y] = gen_xy_daily(news_data,lreturns,dates,350,8,10,2)
 x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
 print(str(datetime.datetime.now())+': Successfully generated xy')
 
@@ -100,14 +102,73 @@ res =  np.reshape(np.array(clf.predict(x_test)),[387,1])
 np.sum(np.abs(np.subtract(y_test,res)))/np.shape(y_test)[0]
 
 
+
+#loop model
+for fts in [320, 340, 350, 360, 380]:
+
+	print(str(datetime.datetime.now())+': Start generating xy:')
+	[x,y] = gen_xy_daily(news_data,lreturns,dates,fts,8,10,2)
+	x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
+	print(str(datetime.datetime.now())+': Successfully generated xy')
+
+
+	y_train[y_train < 0] = 0
+	y_test[y_test < 0] = 0
+	clf = svm.SVC()
+	clf.fit(x_train, y_train)
+	res =  np.reshape(np.array(clf.predict(x_test)),[387,1])
+	print("Feauture Size: "+str(fts) +" Error: " +str(np.sum(np.abs(np.subtract(y_test,res)))/np.shape(y_test)[0]))
+
+for fts in [5,6,7,8,10]:
+	print(str(datetime.datetime.now())+': Start generating xy:')
+	[x,y] = gen_xy_daily(news_data,lreturns,dates,350,fts,10,2)
+	x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
+	print(str(datetime.datetime.now())+': Successfully generated xy')
+
+
+	y_train[y_train < 0] = 0
+	y_test[y_test < 0] = 0
+	clf = svm.SVC()
+	clf.fit(x_train, y_train)
+	res =  np.reshape(np.array(clf.predict(x_test)),[387,1])
+	print("window Size: "+str(fts) +" Error: " +str(np.sum(np.abs(np.subtract(y_test,res)))/np.shape(y_test)[0]))
+
+for fts in [5,10,20]:
+	print(str(datetime.datetime.now())+': Start generating xy:')
+	[x,y] = gen_xy_daily(news_data,lreturns,dates,350,8,fts,2)
+	x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
+	print(str(datetime.datetime.now())+': Successfully generated xy')
+
+
+	y_train[y_train < 0] = 0
+	y_test[y_test < 0] = 0
+	clf = svm.SVC()
+	clf.fit(x_train, y_train)
+	res =  np.reshape(np.array(clf.predict(x_test)),[387,1])
+	print("mcount Size: "+str(fts) +" Error: " +str(np.sum(np.abs(np.subtract(y_test,res)))/np.shape(y_test)[0]))
+
+
 #-------
 # create model
+from keras.models import Sequential
+
 model = Sequential()
-model.add(Dense(13, input_dim=x_train.shape[1:], kernel_initializer='normal', activation='relu'))
-model.add(Dense(1, kernel_initializer='normal'))
-# Compile model
-model.compile(loss='mean_squared_error', optimizer='adam')
+
+from keras.layers import Dense, Activation
+
+model.add(Dense(units=64, input_dim=350))
+model.add(Activation('relu'))
+model.add(Dense(units=10))
+model.add(Activation('softmax'))
+
+model.compile(loss='categorical_crossentropy',
+              optimizer='sgd',
+              metrics=['accuracy'])
+
+
 model.fit(x_train,y_train[:,0],validation_data=(x_test,y_test[:,0]),epochs=2,batch_size=25)
+
+
 plot_pred_true(y_test,model.predict(x_test, batch_size=25))
 
 
