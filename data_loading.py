@@ -107,7 +107,7 @@ def load_SP_data(stock_names,pref_number):
 	l = len(stock_names) 
 	printProgressBar(prog_st, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
 
-
+	ret_names = []
 	#remove not listed stocks
 	ind_stocks = list()
 	for i in stock_names:
@@ -118,6 +118,7 @@ def load_SP_data(stock_names,pref_number):
 		temp = list(names).index(i)
 		if (np.sum(np.isnan(lreturns[:,temp]))/np.shape(lreturns)[0]) < 0.05:
 			ind_stocks.append(temp)
+			ret_names.append(i)
 		del temp
 
 	ind_stocks = np.array(ind_stocks)
@@ -129,4 +130,4 @@ def load_SP_data(stock_names,pref_number):
 
 
 
-	return [prices, dates, names, lreturns]
+	return [prices, dates, ret_names, lreturns]

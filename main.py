@@ -1,27 +1,17 @@
 from data_loading import load_news_data, load_SP_data 
 from learning import gen_xy_daily, train_test_split
 from evaluation import plot_pred_true, evaluate_portfolio
-from stocks_small import stocks_used
+from stocks_big import stocks_used
 import numpy as np
 import datetime 
 
 
 #modifiable variables
 path_to_news_files = "./Data/ReutersNews106521"
-firms_used = 25
+firms_used = 505
 
 #traning splits
 test_split = 0.15
-validation_split = 0.12
-
-#
-vocab_size = 4000
-feature_size = 700
-
-#mean change approach
-n_forward_list = 3
-n_past_list = 60
-
 
 
 #load and preprocess data
@@ -30,53 +20,150 @@ print(str(datetime.datetime.now())+': Start reading in news:')
 print(str(datetime.datetime.now())+': Successfully read all news')
 
 
-
-
 print(str(datetime.datetime.now())+': Start reading in SP500 data:')
 [prices, dates, names, lreturns] = load_SP_data(stocks_used, firms_used)
 print(str(datetime.datetime.now())+': Successfully read all data')
 
 
 #pickle dump and load
-import pickle
-pickle.dump([news_data, prices, dates, names, lreturns], open( "small_raw", "wb" ) )
+#import pickle
+#pickle.dump([news_data, prices, dates, names, lreturns], open( "small_raw", "wb" ) )
 
-[news_data, prices, dates, names, lreturns] = pickle.load( open( "small_raw", "rb" ) )
-
-
-feature_size = 990
-
-for feature_size in [90, 150, 350, 500, 700]:
-
-	print(str(datetime.datetime.now())+': Start generating xy:')
-	[x,y] = gen_xy_daily(news_data,lreturns,dates,feature_size,8,50)
-	x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
-	print(str(datetime.datetime.now())+': Successfully generated xy')
-
-
-	import pickle
-	pickle.dump([x_train, y_train, x_test, y_test], open( "small_xy_"+str(feature_size), "wb" ) )
-	print(str(feature_size))
-
+#[news_data, prices, dates, names, lreturns] = pickle.load( open( "small_raw", "rb" ) )
 
 
 #ht: 2 headline, 8 text
-#7 /10
-#12 better
+#350,6,10 -> server results... no idea why
 print(str(datetime.datetime.now())+': Start generating xy:')
-[x,y] = gen_xy_daily(news_data,lreturns,dates,350,8,10,2)
+[x,y] = gen_xy_daily(news_data,lreturns,dates,340,8,21,2)
 x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
 print(str(datetime.datetime.now())+': Successfully generated xy')
 
 
+#stock picking
+#classification
+y_train[y_train < 0] = 0
+y_test[y_test < 0] = 0
 
+loss_ar_svm = []
 
-#ATTENTION!!!!
-[x_train, y_train, x_test, y_test] = pickle.load( open( "small_xy_500", "rb" ) )
-
-#ridge regression easy model
-from sklearn.linear_model import Ridge
 from sklearn import svm
+for i in range(np.shape(y_train)[1]):
+
+	#classification
+
+	#SVM
+	clf = svm.SVC()
+	clf.fit(x_train, y_train[:,i])
+	res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
+	temptt = (np.sum(np.abs(np.subtract(y_test[:,i],res)))/np.shape(y_test[:,i])[0])
+	#print(temptt)
+	loss_ar_svm.append(temptt)
+
+
+npal = np.array(loss_ar_svm)
+firm_ind_u = np.argsort(npal)
+
+npal[firm_ind_u[0:25]]
+names[firm_ind_u[0:25]]
+
+
+
+
+
+
+#fit best model for each stock
+
+
+all_loss = []
+sum_loss = []
+
+#creat different training x
+
+x_fts = []
+#parameter calibration with SVM
+for fts in np.linspace(180,440,8,dtype=int):
+	print(str(datetime.datetime.now())+': Start generating xy:')
+	[x,y] = gen_xy_daily(news_data,lreturns,dates,fts,8,10,2)
+	x_fts.append(x)
+	x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
+	print(str(datetime.datetime.now())+': Successfully generated xy')
+	y_train[y_train < 0] = 0
+	y_test[y_test < 0] = 0
+	
+
+
+x_ws = []
+for fts in np.linspace(4,12,8,dtype=int):
+	print(str(datetime.datetime.now())+': Start generating xy:')
+	[x,y] = gen_xy_daily(news_data,lreturns,dates,350,fts,10,2)
+	x_ws.append(x)
+	x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
+	print(str(datetime.datetime.now())+': Successfully generated xy')
+	y_train[y_train < 0] = 0
+	y_test[y_test < 0] = 0
+	
+
+x_mc = []
+for fts in np.linspace(0,25,8,dtype=int):
+	print(str(datetime.datetime.now())+': Start generating xy:')
+	[x,y] = gen_xy_daily(news_data,lreturns,dates,350,8,fts,2)
+	x_mc.append(x)
+	x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
+	print(str(datetime.datetime.now())+': Successfully generated xy')
+	y_train[y_train < 0] = 0
+	y_test[y_test < 0] = 0
+	
+
+import pickle
+pickle.dump([x_fts, x_ws, x_mc], open( "Data/diffx", "wb" ) )
+
+[x_fts, x_ws, x_mc] = pickle.load( open( "Data/diffx", "rb" ) )
+
+
+#single stock parameter calibration
+
+loss_cali = []
+for i in arange(25):
+	loss_cali.append([])
+	for x in x_fts:
+		x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
+		y_train[y_train < 0] = 0
+		y_test[y_test < 0] = 0
+		clf = svm.SVC()
+		clf.fit(x_train, y_train[:,i])
+		res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
+		temptt = (np.sum(np.abs(np.subtract(y_test[:,i],res)))/np.shape(y_test[:,i])[0])
+		loss_cali[i].append(temptt)
+
+	for x in x_ws:
+		x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
+		y_train[y_train < 0] = 0
+		y_test[y_test < 0] = 0
+		clf = svm.SVC()
+		clf.fit(x_train, y_train[:,i])
+		res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
+		temptt = (np.sum(np.abs(np.subtract(y_test[:,i],res)))/np.shape(y_test[:,i])[0])
+		loss_cali[i].append(temptt)
+
+	for x in x_mc:
+		x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
+		y_train[y_train < 0] = 0
+		y_test[y_test < 0] = 0
+		clf = svm.SVC()
+		clf.fit(x_train, y_train[:,i])
+		res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
+		temptt = (np.sum(np.abs(np.subtract(y_test[:,i],res)))/np.shape(y_test[:,i])[0])
+		loss_cali[i].append(temptt)
+
+
+
+
+
+
+#ridge regression + kernel for every stock -> calibration
+from sklearn.linear_model import Ridge
+
 
 #3000 standard
 clf = Ridge(alpha=50)
@@ -91,212 +178,11 @@ sess = tf.InteractiveSession()
 np.mean(mean_squared_error(y_test,clf.predict(x_test)).eval())
 
 
-
-
-#classification
-y_train[y_train < 0] = 0
-y_test[y_test < 0] = 0
-clf = svm.SVC()
-clf.fit(x_train, y_train)
-res =  np.reshape(np.array(clf.predict(x_test)),[387,1])
-np.sum(np.abs(np.subtract(y_test,res)))/np.shape(y_test)[0]
+#actually getting estimates
 
 
 
-#loop model
-for fts in [320, 340, 350, 360, 380]:
-
-	print(str(datetime.datetime.now())+': Start generating xy:')
-	[x,y] = gen_xy_daily(news_data,lreturns,dates,fts,8,10,2)
-	x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
-	print(str(datetime.datetime.now())+': Successfully generated xy')
-
-
-	y_train[y_train < 0] = 0
-	y_test[y_test < 0] = 0
-	clf = svm.SVC()
-	clf.fit(x_train, y_train)
-	res =  np.reshape(np.array(clf.predict(x_test)),[387,1])
-	print("Feauture Size: "+str(fts) +" Error: " +str(np.sum(np.abs(np.subtract(y_test,res)))/np.shape(y_test)[0]))
-
-for fts in [5,6,7,8,10]:
-	print(str(datetime.datetime.now())+': Start generating xy:')
-	[x,y] = gen_xy_daily(news_data,lreturns,dates,350,fts,10,2)
-	x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
-	print(str(datetime.datetime.now())+': Successfully generated xy')
-
-
-	y_train[y_train < 0] = 0
-	y_test[y_test < 0] = 0
-	clf = svm.SVC()
-	clf.fit(x_train, y_train)
-	res =  np.reshape(np.array(clf.predict(x_test)),[387,1])
-	print("window Size: "+str(fts) +" Error: " +str(np.sum(np.abs(np.subtract(y_test,res)))/np.shape(y_test)[0]))
-
-for fts in [5,10,20]:
-	print(str(datetime.datetime.now())+': Start generating xy:')
-	[x,y] = gen_xy_daily(news_data,lreturns,dates,350,8,fts,2)
-	x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
-	print(str(datetime.datetime.now())+': Successfully generated xy')
-
-
-	y_train[y_train < 0] = 0
-	y_test[y_test < 0] = 0
-	clf = svm.SVC()
-	clf.fit(x_train, y_train)
-	res =  np.reshape(np.array(clf.predict(x_test)),[387,1])
-	print("mcount Size: "+str(fts) +" Error: " +str(np.sum(np.abs(np.subtract(y_test,res)))/np.shape(y_test)[0]))
-
-
-#-------
-# create model
-from keras.models import Sequential
-
-model = Sequential()
-
-from keras.layers import Dense, Activation
-
-model.add(Dense(units=64, input_dim=350))
-model.add(Activation('relu'))
-model.add(Dense(units=10))
-model.add(Activation('softmax'))
-
-model.compile(loss='categorical_crossentropy',
-              optimizer='sgd',
-              metrics=['accuracy'])
-
-
-model.fit(x_train,y_train[:,0],validation_data=(x_test,y_test[:,0]),epochs=2,batch_size=25)
-
-
-plot_pred_true(y_test,model.predict(x_test, batch_size=25))
-
-
-
-
-
-
-x_train = np.transpose(x_train)
-
-#single layer neuronal net
-from keras.models import Sequential
-from keras.layers import Dense, Activation, Embedding, Dropout, Flatten, Convolution1D, MaxPooling1D, LSTM
-
-model = Sequential([
-	#Embedding(vocab_size+1, 40, input_length=np.shape(x_train)[1]),
-	Dense(100,input_shape=x_train.shape[1:], activation="relu"),
-	#Flatten(),
-	Dropout(0.7),
-	Dense(1,activation="relu"),
-	])
-model.compile(loss="mean_squared_error",optimizer="Adam")
-model.fit(x_train,y_train[:,0],validation_data=(x_test,y_test[:,0]),epochs=2,batch_size=25)
-plot_pred_true(y_test,model.predict(x_test))
-
-
-
-
-#LSTM
-rnn_model = Sequential([
-	LSTM(52,input_shape=x_train.shape[1:],return_sequences=True),
-	LSTM(36, return_sequences=True),
-	LSTM(1)
-	])
-rnn_model.compile(loss="mean_squared_error",optimizer="Adam")
-
-x_train_l = np.reshape(x_train, x_train.shape + (1,))
-x_test_l = np.reshape(x_test, x_test.shape + (1,))
-
-rnn_model.fit(x_train_l,y_train[:,0],validation_data=(x_test_l,y_test[:,0]),epochs=2,batch_size=25)
-plot_pred_true(y_test,rnn_model.predict(x_test_l))
-
-rnn2_model = Sequential()
-
-rnn2_model.add(LSTM(52, input_shape=x_train.shape[1:], return_sequences=True))
-rnn2_model.add(LSTM(36, return_sequences=True))
-#model.add(LSTM(4, return_sequences=True))
-rnn2_model.add(LSTM(1))
-
-
-from keras import backend as K
-K.clear_session()
-
-#CNN
-cnn_model = Sequential([
-	Convolution1D(64, 5, border_mode='same',input_shape=x_train.shape[1:], activation="relu" ),
-	Dropout(0.2),
-	MaxPooling1D(),
-	Flatten(),
-	Dense(100,activation="relu"),
-	Dropout(0.7),
-	Dense(1)
-	])
-cnn_model.compile(loss="mean_squared_error",optimizer="Adam")
-cnn_model.fit(x_train,y_train[:,0],validation_data=(x_test,y_test[:,0]),epochs=2,batch_size=25)
-plot_pred_true(y_test,cnn_model.predict(x_test))
-
-
-
-
-#--------------------------------------------------------
-
-
-x_train = np.reshape(x_train, x_train.shape + (1,))
-x_test = np.reshape(x_test, x_test.shape + (1,))
-
-model.compile(loss="mean_squared_error",optimizer="Adam")
-model.fit(x_train,y_train[:,0],validation_data=(x_test,y_test[:,0]),epochs=2,batch_size=25)
-
-
-
-#model
-from keras.models import Sequential
-from keras.layers import Dense, Activation, Embedding, Dropout, Flatten, Convolution1D, MaxPooling1D, LSTM
-
-
-model = Sequential([
-	#Embedding(vocab_size+1, 40, input_length=np.shape(x_train)[1]),
-	Dense(32,input_shape=x_train.shape[1:], activation="relu"),
-	#Flatten(),
-	Dense(100,activation="relu"),
-	Dropout(0.7),
-	Dense(1)
-	])
-
-conv_model = Sequential([
-	#Embedding(vocab_size+1, 32, input_length=np.shape(x_train)[1]),
-	#Dropout(0.2),
-	Convolution1D(64, 5, border_mode='same', activation="relu" ),
-	Dropout(0.2),
-	MaxPooling1D(),
-	Flatten(),
-	Dense(100,activation="relu"),
-	Dropout(0.7),
-	Dense(1)
-	])
-
-rnn_model = Sequential([
-	#Embedding(vocab_size+1, 32, input_length=np.shape(x_train)[1]),
-	LSTM(52,return_sequences=True),
-	LSTM(36, return_sequences=True),
-	LSTM(1)
-	])
-
-rnn_model.compile(loss='mean_squared_error', optimizer='Adam')
-rnn_model.fit(x_train,y_train[:,0],validation_data=(x_test,y_test[:,0]),epochs=2,batch_size=25)
-
-model.compile(loss="mean_squared_error",optimizer="Adam")
-model.fit(x_train,y_train[:,0],validation_data=(x_test,y_test[:,0]),epochs=2,batch_size=25)
-
-conv_model.compile(loss="mean_squared_error",optimizer="Adam")
-conv_model.fit(x_train,y_train[:,0],validation_data=(x_test,y_test[:,0]),epochs=2,batch_size=25)
-
-
-#evaluate
-plot_pred_true(y_test,model.predict(x_test, batch_size=25))
-plot_pred_true(y_test,conv_model.predict(x_test, batch_size=25))
-plot_pred_true(y_test,rnn_model.predict(x_test, batch_size=25))
-
+#portfolio damn yeahs
 
 
 

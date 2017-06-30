@@ -58,3 +58,5 @@ stocks_used = ["AAPL",
 "ABBV",
 "ABT",
 "AGN"]
+
+#zoe claire robson
