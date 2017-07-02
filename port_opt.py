@@ -50,6 +50,7 @@ def ret2prices(ret_series,base_value):
 	return prices
 
 
+
 #testing for new optimization functions
 
 # data_ts = np.random.rand(100,20)

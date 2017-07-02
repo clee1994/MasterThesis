@@ -48,7 +48,27 @@ def plot_pred_true_b(y,yhat,benchm):
 
 #evalute portfolio construction
 
-def evaluate_portfolio(used_stocks,x_dates_test,lreturns,n_past,n_forward):
+def mu_gen_past(lreturns, dates_lr, x_dates_test, used_stocks_ind, n_past):
+	import numpy as np
+
+	mu = []
+	for i in range(len(x_dates_test)):
+		temp = x_dates_test[i].tolist()
+		cur_d = np.datetime64(datetime.date(temp.year, temp.month, temp.day))
+		try:
+			ind_d = list(dates_lr).index(cur_d)
+		except:
+			ind_d = min(dates_lr, key=lambda x: abs(x - cur_d))
+		mu.append(np.mean(lreturns[(ind_d-n_past):ind_d,used_stocks_ind],axis=0))
+
+	mu = np.array(mu)
+	return mu
+
+def cov_gen(lreturns, x_dates_test, used_stocks):
+	return 0
+
+
+def evaluate_portfolio(used_stocks,x_dates_test,lreturns,mu_ts,cov_ts):
 	from port_opt import min_var_mu, min_var, ret2prices
 
 	firm_ind = list()

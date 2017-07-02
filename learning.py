@@ -29,6 +29,7 @@ def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ht,ylm):
 	y = []
 	x = []
 	words = []
+	x_dates = []
 
 	#progressbar
 	prog_st = 0
@@ -53,6 +54,7 @@ def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ht,ylm):
 			#text/x
 			if prev_d != np.datetime64(datetime.date(1, 1, 1)):
 				documents.append(TaggedDocument(words,str(cur_d)))
+				x_dates.append(cur_d)
 				words = []
 			prev_d = cur_d
 			#mu/y -> what do I want, the mean next day, average next three days
@@ -65,6 +67,7 @@ def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ht,ylm):
 	
 	try:
 		documents.append(TaggedDocument(words,tags=str(cur_d)))
+		x_dates.append(cur_d)
 	except:
 		pass
 
@@ -78,7 +81,7 @@ def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ht,ylm):
 	for i in documents:
 		x.append(model.infer_vector(i[0]))
 
-	return [np.array(x), np.array(y)]
+	return [np.array(x), np.array(y),np.array(x_dates)]
 
 
 
@@ -120,7 +123,7 @@ def produce_doc2vecmodels_sign(fts_space,ws_space,mc_spacenews_data,lreturns,dat
 	x_fts = []
 	#parameter calibration with SVM
 	for fts in fts_space:
-		[x,y] = gen_xy_daily(news_data,lreturns,dates,fts,8,10,2,data_label_method_sign)
+		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,fts,8,10,2,data_label_method_sign)
 		x_fts.append(x)
 		x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
 		y_train[y_train < 0] = 0
@@ -128,7 +131,7 @@ def produce_doc2vecmodels_sign(fts_space,ws_space,mc_spacenews_data,lreturns,dat
 		
 	x_ws = []
 	for fts in ws_space:
-		[x,y] = gen_xy_daily(news_data,lreturns,dates,350,fts,10,2,data_label_method_sign)
+		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,350,fts,10,2,data_label_method_sign)
 		x_ws.append(x)
 		x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
 		y_train[y_train < 0] = 0
@@ -137,7 +140,7 @@ def produce_doc2vecmodels_sign(fts_space,ws_space,mc_spacenews_data,lreturns,dat
 
 	x_mc = []
 	for fts in mc_space:
-		[x,y] = gen_xy_daily(news_data,lreturns,dates,350,8,fts,2,data_label_method_sign)
+		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,350,8,fts,2,data_label_method_sign)
 		x_mc.append(x)
 		x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
 		y_train[y_train < 0] = 0
@@ -152,7 +155,7 @@ def produce_doc2vecmodels_sign(fts_space,ws_space,mc_spacenews_data,lreturns,dat
 def sort_predictability(news_data,lreturns,dates,test_split):
 	import datetime
 	import numpy as np
-	[x,y] = gen_xy_daily(news_data,lreturns,dates,340,8,21,2,data_label_method_sign)
+	[x,y,_] = gen_xy_daily(news_data,lreturns,dates,340,8,21,2,data_label_method_sign)
 	x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
 
 
@@ -249,8 +252,8 @@ def stock_xy(firms_used,test_split):
 		fts_op = fts_space[np.argmin(fts_w)]
 		ws_op = ws_space[np.argmin(xws_w)]
 		mc_op = mc_space[np.argmin(xmc_w)]
-		[x,y] = gen_xy_daily(news_data,lreturns,dates,fts_op,ws_op,mc_op,2,data_label_method_val)
+		[x,y,x_dates] = gen_xy_daily(news_data,lreturns,dates,fts_op,ws_op,mc_op,2,data_label_method_val)
 		y_cal.append(y[:,i])
 		x_cal.append(x)
 
-	return x_cal,y_cal
+	return x_cal,y_cal,x_dates
