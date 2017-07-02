@@ -21,6 +21,31 @@ def plot_pred_true(y,yhat):
 	plt.close()
 	plt.close("all")
 
+#plotting
+def plot_pred_true_b(y,yhat,benchm):
+	import matplotlib as mpl
+	mpl.use('Agg')
+	import matplotlib.pyplot as plt
+	import datetime
+	import numpy as np
+
+
+	plt.figure()
+	plt.clf()
+	f, axarr = plt.subplots(2, sharex=True)
+	axarr[0].plot(y,label= "true y")
+	axarr[0].plot(yhat,label="predicted y")
+	axarr[0].plot(benchm,label="benchmark")
+	axarr[1].plot(np.abs(np.subtract(yhat,y)),label="diff prediction")
+	axarr[1].plot(np.abs(np.subtract(benchm,y)),label="diff benchmark")
+	axarr[0].legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
+	   			ncol=2, mode="expand", borderaxespad=0.)
+	axarr[1].legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
+	   			ncol=2, mode="expand", borderaxespad=0.)
+	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'pred_true.png')
+	plt.close()
+	plt.close("all")
+
 #evalute portfolio construction
 
 def evaluate_portfolio(used_stocks,x_dates_test,lreturns,n_past,n_forward):

@@ -1,5 +1,5 @@
 from data_loading import load_news_data, load_SP_data 
-import learning # import gen_xy_daily, train_test_split
+from learning import * #gen_xy_daily, train_test_split
 from evaluation import plot_pred_true, evaluate_portfolio
 from stocks.stocks_big import stocks_used
 import numpy as np
@@ -8,7 +8,7 @@ import pickle
 
 
 #modifiable variables
-path_to_news_files = "./Data_small/ReutersNews106521"
+path_to_news_files = "./Data/ReutersNews106521"
 firms_used = 25
 
 #traning splits
@@ -18,6 +18,7 @@ test_split = 0.15
 fts_space = np.linspace(180,440,8,dtype=int)
 ws_space = np.linspace(4,18,8,dtype=int)
 mc_space = np.linspace(0,35,8,dtype=int)
+
 
 #load and preprocess data
 print(str(datetime.datetime.now())+': Start reading in news:')
@@ -31,26 +32,19 @@ print(str(datetime.datetime.now())+': Successfully read all data')
 
 
 #pickle dump and load
-#import pickle
-#pickle.dump([news_data, prices, dates, names, lreturns], open( "small_raw", "wb" ) )
+import pickle
+pickle.dump([news_data, prices, dates, names, lreturns], open( "small_raw", "wb" ) )
 
-#[news_data, prices, dates, names, lreturns] = pickle.load( open( "small_raw", "rb" ) )
+[news_data, prices, dates, names, lreturns] = pickle.load( open( "small_raw", "rb" ) )
 
 
 #ht: 2 headline, 8 text
 #350,6,10 -> server results... no idea why
 firm_ind_u = sort_predictability(news_data,lreturns,dates,test_split)
 
-names = np.array(names) 
-npal[firm_ind_u[0:firms_used]]
-names[firm_ind_u[0:firms_used]]
-
-
 
 #fit best model for each stock
-[x_fts, x_ws, x_mc] = produce_doc2vecmodels_sign(fts_space,ws_space,mc_space)
-
-
+[x_fts, x_ws, x_mc, y] = produce_doc2vecmodels_sign(fts_space,ws_space,mc_space,lreturns,dates,test_split,news_data)
 
 
 #single stock parameter calibration
@@ -66,6 +60,10 @@ from sklearn.model_selection import cross_val_score
 from sklearn.metrics import mean_squared_error
 from sklearn import linear_model
 from sklearn.model_selection import GridSearchCV
+
+
+x_train, y_train, x_test, y_test = train_test_split(x_cal[0], y_cal[0], test_split)
+bench_y = bench_mark_mu(lreturns,dates,70,len(y_test))
 
 loss_rm = []
 for i in range(firms_used): 
@@ -85,17 +83,14 @@ for i in range(firms_used):
 	#print(mean_squared_error(y_test, y_test))
 
 
-	plot_pred_true(y_test,clf.predict(x_test))
-	res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
+	plot_pred_true_b(y_test,clf.predict(x_test),bench_y[:,firm_ind_u[i]])
+	#res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
+	res = np.array(clf.predict(x_test)).flatten()
 	temptt = np.mean(np.abs(np.subtract(y_test,res)))
 	loss_rm.append(temptt)
-	print(temptt)
+	#print(temptt)
 
 
-
-
-sess = tf.InteractiveSession()
-np.mean(mean_squared_error(y_test,clf.predict(x_test)).eval())
 
 
 #actually getting estimates

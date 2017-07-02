@@ -89,7 +89,10 @@ def train_test_split(x,y,test_split):
 	if y.ndim < 2:
 		y_train = y[0:split_point]
 		y_test = y[(split_point+1):]
-	
+	else:
+		y_train = y[0:split_point,:]
+		y_test = y[(split_point+1):,:]
+
 	x_train = x[0:split_point,:]
 	x_test = x[(split_point+1):,:]
 	
@@ -104,9 +107,11 @@ def bench_mark_mu(lreturns,dates_stocks,n_past,len_o):
 
 	ret_val = np.array(ret_val)
 	ind_len = np.shape(ret_val)[0]-1
-	return ret_val[:,ind_len-len_o:ind_len]
+	return ret_val[ind_len-len_o:ind_len,:]
 
-def produce_doc2vecmodels_sign(fts_space,ws_space,mc_spacenews_data,lreturns,dates,test_split):
+
+
+def produce_doc2vecmodels_sign(fts_space,ws_space,mc_spacenews_data,lreturns,dates,test_split,news_data):
 	import datetime
 	import numpy as np
 
@@ -115,7 +120,7 @@ def produce_doc2vecmodels_sign(fts_space,ws_space,mc_spacenews_data,lreturns,dat
 	x_fts = []
 	#parameter calibration with SVM
 	for fts in fts_space:
-		[x,y] = gen_xy_daily(news_data,lreturns,dates,fts,8,10,2)
+		[x,y] = gen_xy_daily(news_data,lreturns,dates,fts,8,10,2,data_label_method_sign)
 		x_fts.append(x)
 		x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
 		y_train[y_train < 0] = 0
@@ -123,7 +128,7 @@ def produce_doc2vecmodels_sign(fts_space,ws_space,mc_spacenews_data,lreturns,dat
 		
 	x_ws = []
 	for fts in ws_space:
-		[x,y] = gen_xy_daily(news_data,lreturns,dates,350,fts,10,2)
+		[x,y] = gen_xy_daily(news_data,lreturns,dates,350,fts,10,2,data_label_method_sign)
 		x_ws.append(x)
 		x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
 		y_train[y_train < 0] = 0
@@ -132,16 +137,16 @@ def produce_doc2vecmodels_sign(fts_space,ws_space,mc_spacenews_data,lreturns,dat
 
 	x_mc = []
 	for fts in mc_space:
-		[x,y] = gen_xy_daily(news_data,lreturns,dates,350,8,fts,2)
+		[x,y] = gen_xy_daily(news_data,lreturns,dates,350,8,fts,2,data_label_method_sign)
 		x_mc.append(x)
 		x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
 		y_train[y_train < 0] = 0
 		y_test[y_test < 0] = 0
 
 	import pickle
-	pickle.dump([x_fts, x_ws, x_mc], open( "Data/diffx", "wb" ) )
+	pickle.dump([x_fts, x_ws, x_mc,y], open( "Data/diffx", "wb" ) )
 
-	return x_fts, x_ws, x_mc
+	return x_fts, x_ws, x_mc, y
 		
 
 def sort_predictability(news_data,lreturns,dates,test_split):
@@ -166,7 +171,8 @@ def sort_predictability(news_data,lreturns,dates,test_split):
 		#SVM
 		clf = svm.SVC()
 		clf.fit(x_train, y_train[:,i])
-		res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
+		#res =  np.reshape(np.array(clf.predict(x_test)),[1,np.shape(x_test)[0]])
+		res =  np.array(clf.predict(x_test)).flatten()
 		temptt = (np.sum(np.abs(np.subtract(y_test[:,i],res)))/np.shape(y_test[:,i])[0])
 		#print(temptt)
 		loss_ar_svm.append(temptt)
@@ -174,6 +180,11 @@ def sort_predictability(news_data,lreturns,dates,test_split):
 
 	npal = np.array(loss_ar_svm)
 	firm_ind_u = np.argsort(npal)
+
+	#optional information
+	#names = np.array(names) 
+	#npal[firm_ind_u[0:firms_used]]
+	#names[firm_ind_u[0:firms_used]]
 
 	return firm_ind_u
 
@@ -183,7 +194,9 @@ def stock_xy(firms_used,test_split):
 	import pickle
 	import numpy as np
 	import datetime
-	[x_fts, x_ws, x_mc] = pickle.load( open( "Data/diffx", "rb" ) )
+	from sklearn import svm
+
+	[x_fts, x_ws, x_mc,y] = pickle.load( open( "Data/diffx", "rb" ) )
 	loss_cali = []
 	y_cal = []
 	x_cal = []
@@ -196,7 +209,8 @@ def stock_xy(firms_used,test_split):
 			y_test[y_test < 0] = 0
 			clf = svm.SVC()
 			clf.fit(x_train, y_train[:,i])
-			res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
+			#res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
+			res = np.array(clf.predict(x_test)).flatten()
 			temptt = (np.sum(np.abs(np.subtract(y_test[:,i],res)))/np.shape(y_test[:,i])[0])
 			loss_cali[j].append(temptt)
 
@@ -206,7 +220,8 @@ def stock_xy(firms_used,test_split):
 			y_test[y_test < 0] = 0
 			clf = svm.SVC()
 			clf.fit(x_train, y_train[:,i])
-			res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
+			#res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
+			res = np.array(clf.predict(x_test)).flatten()
 			temptt = (np.sum(np.abs(np.subtract(y_test[:,i],res)))/np.shape(y_test[:,i])[0])
 			loss_cali[j].append(temptt)
 
@@ -216,7 +231,8 @@ def stock_xy(firms_used,test_split):
 			y_test[y_test < 0] = 0
 			clf = svm.SVC()
 			clf.fit(x_train, y_train[:,i])
-			res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
+			#res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
+			res = np.array(clf.predict(x_test)).flatten()
 			temptt = (np.sum(np.abs(np.subtract(y_test[:,i],res)))/np.shape(y_test[:,i])[0])
 			loss_cali[j].append(temptt)
 
