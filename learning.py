@@ -96,7 +96,145 @@ def train_test_split(x,y,test_split):
 	return x_train,y_train,x_test,y_test
 
 
+def bench_mark_mu(lreturns,dates_stocks,n_past,len_o):
+	import numpy as np
+	ret_val = []
+	for i in range(len(lreturns)-(n_past+1)):
+		ret_val.append(np.mean(lreturns[i:(i+n_past),:],axis=0))
+
+	ret_val = np.array(ret_val)
+	ind_len = np.shape(ret_val)[0]-1
+	return ret_val[:,ind_len-len_o:ind_len]
+
+def produce_doc2vecmodels_sign(fts_space,ws_space,mc_spacenews_data,lreturns,dates,test_split):
+	import datetime
+	import numpy as np
+
+	#creat different training x
+	# probably has to be nested....
+	x_fts = []
+	#parameter calibration with SVM
+	for fts in fts_space:
+		[x,y] = gen_xy_daily(news_data,lreturns,dates,fts,8,10,2)
+		x_fts.append(x)
+		x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
+		y_train[y_train < 0] = 0
+		y_test[y_test < 0] = 0
+		
+	x_ws = []
+	for fts in ws_space:
+		[x,y] = gen_xy_daily(news_data,lreturns,dates,350,fts,10,2)
+		x_ws.append(x)
+		x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
+		y_train[y_train < 0] = 0
+		y_test[y_test < 0] = 0
+		
+
+	x_mc = []
+	for fts in mc_space:
+		[x,y] = gen_xy_daily(news_data,lreturns,dates,350,8,fts,2)
+		x_mc.append(x)
+		x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
+		y_train[y_train < 0] = 0
+		y_test[y_test < 0] = 0
+
+	import pickle
+	pickle.dump([x_fts, x_ws, x_mc], open( "Data/diffx", "wb" ) )
+
+	return x_fts, x_ws, x_mc
+		
+
+def sort_predictability(news_data,lreturns,dates,test_split):
+	import datetime
+	import numpy as np
+	[x,y] = gen_xy_daily(news_data,lreturns,dates,340,8,21,2,data_label_method_sign)
+	x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
+
+
+	#stock picking
+	#classification
+	y_train[y_train < 0] = 0
+	y_test[y_test < 0] = 0
+
+	loss_ar_svm = []
+
+	from sklearn import svm
+	for i in range(np.shape(y_train)[1]):
+
+		#classification
+
+		#SVM
+		clf = svm.SVC()
+		clf.fit(x_train, y_train[:,i])
+		res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
+		temptt = (np.sum(np.abs(np.subtract(y_test[:,i],res)))/np.shape(y_test[:,i])[0])
+		#print(temptt)
+		loss_ar_svm.append(temptt)
+
+
+	npal = np.array(loss_ar_svm)
+	firm_ind_u = np.argsort(npal)
+
+	return firm_ind_u
+
+
+def stock_xy(firms_used,test_split):
+	#single stock parameter calibration
+	import pickle
+	import numpy as np
+	import datetime
+	[x_fts, x_ws, x_mc] = pickle.load( open( "Data/diffx", "rb" ) )
+	loss_cali = []
+	y_cal = []
+	x_cal = []
+	for j in range(firms_used):
+		i = firm_ind_u[j]
+		loss_cali.append([])
+		for x in x_fts:
+			x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
+			y_train[y_train < 0] = 0
+			y_test[y_test < 0] = 0
+			clf = svm.SVC()
+			clf.fit(x_train, y_train[:,i])
+			res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
+			temptt = (np.sum(np.abs(np.subtract(y_test[:,i],res)))/np.shape(y_test[:,i])[0])
+			loss_cali[j].append(temptt)
+
+		for x in x_ws:
+			x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
+			y_train[y_train < 0] = 0
+			y_test[y_test < 0] = 0
+			clf = svm.SVC()
+			clf.fit(x_train, y_train[:,i])
+			res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
+			temptt = (np.sum(np.abs(np.subtract(y_test[:,i],res)))/np.shape(y_test[:,i])[0])
+			loss_cali[j].append(temptt)
+
+		for x in x_mc:
+			x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
+			y_train[y_train < 0] = 0
+			y_test[y_test < 0] = 0
+			clf = svm.SVC()
+			clf.fit(x_train, y_train[:,i])
+			res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
+			temptt = (np.sum(np.abs(np.subtract(y_test[:,i],res)))/np.shape(y_test[:,i])[0])
+			loss_cali[j].append(temptt)
 
 
 
+	y_cal = []
+	x_cal = [] 
+	for j in range(firms_used):
+		i = firm_ind_u[j]
+		#build the right x data for y
+		
 
+		fts_w, xws_w, xmc_w = np.split(np.array(loss_cali[j]),3)
+		fts_op = fts_space[np.argmin(fts_w)]
+		ws_op = ws_space[np.argmin(xws_w)]
+		mc_op = mc_space[np.argmin(xmc_w)]
+		[x,y] = gen_xy_daily(news_data,lreturns,dates,fts_op,ws_op,mc_op,2,data_label_method_val)
+		y_cal.append(y[:,i])
+		x_cal.append(x)
+
+	return x_cal,y_cal
