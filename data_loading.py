@@ -87,7 +87,7 @@ def load_news_data(path, stop_word_removal):
 
 
 
-def load_SP_data(stock_names,pref_number):
+def load_SP_data(stock_names):
 
 	import numpy as np
 	import pandas as pd
@@ -122,8 +122,8 @@ def load_SP_data(stock_names,pref_number):
 		del temp
 
 	ind_stocks = np.array(ind_stocks)
-	if len(ind_stocks) > pref_number:
-		ind_stocks = ind_stocks[:pref_number]
+	#if len(ind_stocks) > pref_number:
+	#	ind_stocks = ind_stocks[:pref_number]
 
 	lreturns = lreturns[:,ind_stocks]
 	prices = prices[:,ind_stocks]

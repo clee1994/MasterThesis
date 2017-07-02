@@ -1,5 +1,23 @@
 
-def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ht):
+def data_label_method_sign(lreturns, cur_d,dates_stocks):
+	import numpy as np
+	try:
+		ret_val = np.sign(lreturns[list(dates_stocks).index(cur_d),:])
+	except:
+		ind_temp = min(dates_stocks, key=lambda x: abs(x - cur_d))
+		ret_val = np.sign(lreturns[list(dates_stocks).index(ind_temp),:])
+	return ret_val
+
+def data_label_method_val(lreturns, cur_d,dates_stocks):
+	import numpy as np
+	try:
+		ret_val = lreturns[list(dates_stocks).index(cur_d),:]
+	except:
+		ind_temp = min(dates_stocks, key=lambda x: abs(x - cur_d))
+		ret_val = lreturns[list(dates_stocks).index(ind_temp),:]
+	return ret_val
+
+def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ht,ylm):
 	import datetime
 	import numpy as np
 	from progressbar import printProgressBar
@@ -38,17 +56,7 @@ def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ht):
 				words = []
 			prev_d = cur_d
 			#mu/y -> what do I want, the mean next day, average next three days
-			try:
-				#temp_mu = np.nanmean(lreturns[list(dates_stocks).index(cur_d):(list(dates_stocks).index(cur_d)+3),:],axis=0)
-				temp_mu = np.sign(lreturns[list(dates_stocks).index(cur_d),:])
-				#temp_mu = lreturns[list(dates_stocks).index(cur_d),:]
-				y.append(temp_mu)
-			except:
-				ind_temp = min(dates_stocks, key=lambda x: abs(x - cur_d))
-				#temp_mu = lreturns[list(dates_stocks).index(ind_temp),:]
-				#temp_mu = np.nanmean(lreturns[list(dates_stocks).index(ind_temp):(list(dates_stocks).index(ind_temp)+3),:],axis=0)
-				temp_mu = np.sign(lreturns[list(dates_stocks).index(ind_temp),:])
-				y.append(temp_mu)
+			y.append(ylm(lreturns, cur_d,dates_stocks))
 
 		#x and skip last sentence
 		for j in range(len(i[ht])-1):
@@ -74,16 +82,17 @@ def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ht):
 
 
 
-
-
-
 def train_test_split(x,y,test_split):
 	import numpy as np
+
 	split_point = int(np.floor(np.shape(x)[0]*(1-test_split)))
+	if y.ndim < 2:
+		y_train = y[0:split_point]
+		y_test = y[(split_point+1):]
+	
 	x_train = x[0:split_point,:]
-	y_train = y[0:split_point,:]
 	x_test = x[(split_point+1):,:]
-	y_test = y[(split_point+1):,:]
+	
 	return x_train,y_train,x_test,y_test
 
 
