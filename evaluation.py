@@ -86,9 +86,6 @@ def cov_gen_past(lreturns, dates_lr, x_dates_test, used_stocks_ind, n_past):
 	mu = np.array(mu)
 	return mu
 
-def cov_gen(lreturns, x_dates_test, used_stocks):
-	return 0
-
 
 def evaluate_portfolio(used_stocks,x_dates_test,lreturns,mu_ts,cov_ts,firm_ind,dates):
 	from port_opt import min_var_mu, min_var, ret2prices

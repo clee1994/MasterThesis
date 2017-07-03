@@ -8,8 +8,8 @@ import gc
 
 
 # 0. modifiable variables
-path_to_news_files = "./Data/ReutersNews106521"
-firms_used = 25
+path_to_news_files = "./Data_small/ReutersNews106521"
+firms_used = 3
 n_past = 50
 
 #traning splits
@@ -41,36 +41,35 @@ print(str(datetime.datetime.now())+': Successfully read all data')
 
 
 
-# 3. building mu predictions from data
-firm_ind_u = sort_predictability(news_data,lreturns,dates,test_split)
+# 3. select stocks
+firm_ind_u = sort_predictability(news_data,lreturns,dates,test_split)[0:firms_used]
 print(str(datetime.datetime.now())+': Successfully sorted')
 
-#fit best model for each stock
+
+# 4. produce possible doc2vec models
 [x_fts, x_ws, x_mc, y] = produce_doc2vecmodels_sign(fts_space,ws_space,mc_space,lreturns,dates,test_split,news_data)
 gc.collect()
 print(str(datetime.datetime.now())+': Successfully produce doc2vec model sign')
 
 
-#single stock parameter calibration
-[x_cal, y_cal, x_dates] = stock_xy(firms_used,test_split, firm_ind_u,fts_space,ws_space, mc_space,news_data,lreturns,dates,x_fts, x_ws, x_mc,y)
-del news_data, x_fts, x_ws, x_mc, y
+
+# 5. single stock parameter calibration & get improved mu estimates
+for i in firm_ind_u:
+
+	[x_cal, y_cal, x_dates] = stock_xy(test_split,fts_space,ws_space, mc_space,news_data,lreturns[:,i],dates,x_fts, x_ws, x_mc,y)
+	mu_p_ts = mu_news_estimate(x_cal, y_cal, test_split, lreturns[:,i], dates, n_past)
+	print(str(datetime.datetime.now())+': Successfully produced mu_p_ts for '+names[i])
+
+#del x_cal, y_cal,news_data, x_fts, x_ws, x_mc, y
 gc.collect()
-print(str(datetime.datetime.now())+': Successfully produced x_cal')
 
 
-#get improved mu estimates
-mu_p_ts = mu_news_estimate(x_cal, y_cal, test_split, lreturns, firms_used, firm_ind_u,dates)
-del x_cal, y_cal
-gc.collect()
-print(str(datetime.datetime.now())+': Successfully produced mu_p_ts')
+# 7. single stock parameter calibration & get improved cov estimates
 
 
 
-# 4. building cov predictions from data
 
-
-
-# 5. standard past observation past mu and cov
+# 6. standard past observation past mu and cov
 split_point = int(np.floor(np.shape(x_dates)[0]*(1-test_split)))
 pmu_p_ts = mu_gen_past(lreturns, dates, x_dates[(split_point+1):], firm_ind_u[0:firms_used], n_past)
 pcov_p_ts = cov_gen_past(lreturns, dates, x_dates[(split_point+1):], firm_ind_u[0:firms_used], n_past)
@@ -78,13 +77,13 @@ pcov_p_ts = cov_gen_past(lreturns, dates, x_dates[(split_point+1):], firm_ind_u[
 
 
 
-# 6. build portfolios based on both
+# 7. build portfolios based on both
 [_,first_line] = evaluate_portfolio(np.array(names)[firm_ind_u[0:firms_used]],x_dates[(split_point+1):],lreturns,pmu_p_ts,pcov_p_ts,firm_ind_u[0:firms_used],dates)
 [_,second_line] = evaluate_portfolio(np.array(names)[firm_ind_u[0:firms_used]],x_dates[(split_point+1):],lreturns,mu_p_ts,pcov_p_ts,firm_ind_u[0:firms_used],dates)
-del dates, names, lreturns, firm_ind_u, x_dates, mu_p_ts, pmu_p_ts, pcov_p_ts, split_point
+#del dates, names, lreturns, firm_ind_u, x_dates, mu_p_ts, pmu_p_ts, pcov_p_ts, split_point
 gc.collect
 
-# 7. plotting the final results
+# 8. plotting the final results
 final_plots([first_line,second_line],['standard', 'improved'])
 
 

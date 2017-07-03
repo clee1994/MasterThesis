@@ -260,7 +260,7 @@ def stock_xy(firms_used,test_split, firm_ind_u, fts_space,ws_space, mc_space, ne
 
 
 
-def mu_news_estimate(x_cal, y_cal, test_split, lreturns, firms_used, firm_ind_u,dates):
+def mu_news_estimate(x_cal, y_cal, test_split, lreturns, firms_used, firm_ind_u,dates, n_past):
 	#ridge regression + kernel for every stock -> calibration
 	from sklearn.linear_model import Ridge
 	from sklearn.model_selection import GridSearchCV
@@ -270,7 +270,7 @@ def mu_news_estimate(x_cal, y_cal, test_split, lreturns, firms_used, firm_ind_u,
 
 	x_train, y_train, x_test, y_test = train_test_split(x_cal[0], y_cal[0], test_split)
 
-	bench_y = bench_mark_mu(lreturns,dates,70,len(y_test))
+	bench_y = bench_mark_mu(lreturns,dates,n_past,len(y_test))
 
 	loss_rm = []
 	mu_p_ts = np.zeros((len(y_test),firms_used))

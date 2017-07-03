@@ -130,4 +130,4 @@ def load_SP_data(stock_names):
 
 
 
-	return [prices, dates, ret_names, lreturns]
+	return [prices, dates, np.array(ret_names), lreturns]
