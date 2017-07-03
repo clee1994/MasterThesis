@@ -114,7 +114,7 @@ def bench_mark_mu(lreturns,dates_stocks,n_past,len_o):
 
 
 
-def produce_doc2vecmodels_sign(fts_space,ws_space,mc_spacenews_data,lreturns,dates,test_split,news_data):
+def produce_doc2vecmodels_sign(fts_space,ws_space,mc_space,lreturns,dates,test_split,news_data):
 	import datetime
 	import numpy as np
 
@@ -192,7 +192,7 @@ def sort_predictability(news_data,lreturns,dates,test_split):
 	return firm_ind_u
 
 
-def stock_xy(firms_used,test_split):
+def stock_xy(firms_used,test_split, firm_ind_u, fts_space,ws_space, mc_space, news_data,lreturns,dates):
 	#single stock parameter calibration
 	import pickle
 	import numpy as np
@@ -257,3 +257,50 @@ def stock_xy(firms_used,test_split):
 		x_cal.append(x)
 
 	return x_cal,y_cal,x_dates
+
+
+
+def mu_news_estimate(x_cal, y_cal, test_split, lreturns, firms_used, firm_ind_u,dates):
+	#ridge regression + kernel for every stock -> calibration
+	from sklearn.linear_model import Ridge
+	from sklearn.model_selection import GridSearchCV
+	import numpy as np
+	from evaluation import plot_pred_true_b
+
+
+	x_train, y_train, x_test, y_test = train_test_split(x_cal[0], y_cal[0], test_split)
+
+	bench_y = bench_mark_mu(lreturns,dates,70,len(y_test))
+
+	loss_rm = []
+	mu_p_ts = np.zeros((len(y_test),firms_used))
+	for i in range(firms_used): 
+
+		#3000 standard
+		x_train, y_train, x_test, y_test = train_test_split(x_cal[i], y_cal[i], test_split)
+		parameters = { 'alpha':[0.1,1,5,10,30]}
+
+		modrr = Ridge(alpha=30)
+		clf = GridSearchCV(modrr, parameters)
+		#clf = KernelRidge(alpha=30, kernel="rbf",kernel_params =[.1,(1e-05, 100000.0)]) -> also not super useful
+		#clf = linear_model.Lasso(alpha = 0) -> not really usefull
+
+		#print(cross_val_score(clf, x_cal[i], y_cal[i], cv=5))
+		clf.fit(x_train, y_train)
+		y_pred = clf.predict(x_test)
+		mu_p_ts[:,i] = y_pred
+		#print(mean_squared_error(y_test, y_test))
+
+
+		plot_pred_true_b(y_test,clf.predict(x_test),bench_y[:,firm_ind_u[i]])
+		#res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
+		res = np.array(clf.predict(x_test)).flatten()
+		temptt = np.mean(np.abs(np.subtract(y_test,res)))
+		loss_rm.append(temptt)
+		#print(temptt)
+
+	return mu_p_ts
+
+
+
+

@@ -1,6 +1,6 @@
 from data_loading import load_news_data, load_SP_data 
 from learning import * #gen_xy_daily, train_test_split
-from evaluation import plot_pred_true, evaluate_portfolio
+from evaluation import *
 from stocks.stocks_big import stocks_used
 import numpy as np
 import datetime 
@@ -8,16 +8,20 @@ import pickle
 
 
 #modifiable variables
-path_to_news_files = "./Data_small/ReutersNews106521"
-firms_used = 3
+path_to_news_files = "./Data/ReutersNews106521"
+firms_used = 25
 
 #traning splits
 test_split = 0.15
 
 #doc2vec spaces
-fts_space = np.linspace(180,440,8,dtype=int)
-ws_space = np.linspace(4,18,8,dtype=int)
-mc_space = np.linspace(0,35,8,dtype=int)
+#fts_space = np.linspace(180,440,8,dtype=int)
+#ws_space = np.linspace(4,18,8,dtype=int)
+#mc_space = np.linspace(0,35,8,dtype=int)
+
+fts_space = np.linspace(150,550,12,dtype=int)
+ws_space = np.linspace(2,22,12,dtype=int)
+mc_space = np.linspace(0,50,12,dtype=int)
 
 
 #load and preprocess data
@@ -48,55 +52,14 @@ firm_ind_u = sort_predictability(news_data,lreturns,dates,test_split)
 
 
 #single stock parameter calibration
-[x_cal, y_cal, x_dates] = stock_xy(firms_used,test_split)
+[x_cal, y_cal, x_dates] = stock_xy(firms_used,test_split, firm_ind_u,fts_space,ws_space, mc_space,news_data,lreturns,dates)
 
-
-
-#ridge regression + kernel for every stock -> calibration
-from sklearn.linear_model import Ridge
-from sklearn.kernel_ridge import KernelRidge
-from sklearn.model_selection import learning_curve
-from sklearn.model_selection import cross_val_score
-from sklearn.metrics import mean_squared_error
-from sklearn import linear_model
-from sklearn.model_selection import GridSearchCV
-
-
-x_train, y_train, x_test, y_test = train_test_split(x_cal[0], y_cal[0], test_split)
-
-bench_y = bench_mark_mu(lreturns,dates,70,len(y_test))
-
-loss_rm = []
-mu_p_ts = np.zeros((len(y_test),firms_used))
-for i in range(firms_used): 
-
-	#3000 standard
-	x_train, y_train, x_test, y_test = train_test_split(x_cal[i], y_cal[i], test_split)
-	parameters = { 'alpha':[0.1,1,5,10,30]}
-
-	modrr = Ridge(alpha=30)
-	clf = GridSearchCV(modrr, parameters)
-	#clf = KernelRidge(alpha=30, kernel="rbf",kernel_params =[.1,(1e-05, 100000.0)]) -> also not super useful
-	#clf = linear_model.Lasso(alpha = 0) -> not really usefull
-
-	#print(cross_val_score(clf, x_cal[i], y_cal[i], cv=5))
-	clf.fit(x_train, y_train)
-	y_pred = clf.predict(x_test)
-	mu_p_ts[:,i] = y_pred
-	#print(mean_squared_error(y_test, y_test))
-
-
-	plot_pred_true_b(y_test,clf.predict(x_test),bench_y[:,firm_ind_u[i]])
-	#res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
-	res = np.array(clf.predict(x_test)).flatten()
-	temptt = np.mean(np.abs(np.subtract(y_test,res)))
-	loss_rm.append(temptt)
-	#print(temptt)
+#get improved mu estimates
+mu_p_ts = mu_news_estimate(x_cal, y_cal, test_split, lreturns, firms_used, firm_ind_u,dates)
 
 
 #gen mu ts
 split_point = int(np.floor(np.shape(x_dates)[0]*(1-test_split)))
-
 
 pmu_p_ts = mu_gen_past(lreturns, dates, x_dates[(split_point+1):], firm_ind_u[0:firms_used], 50)
 
@@ -108,6 +71,23 @@ pcov_p_ts = cov_gen_past(lreturns, dates, x_dates[(split_point+1):], firm_ind_u[
 #plug it into portfolio
 
 
-[_,_] = evaluate_portfolio(np.array(names)[firm_ind_u[0:firms_used]],x_dates,lreturns,pmu_p_ts,pcov_p_ts)
+[_,first_line] = evaluate_portfolio(np.array(names)[firm_ind_u[0:firms_used]],x_dates[(split_point+1):],lreturns,pmu_p_ts,pcov_p_ts,firm_ind_u[0:firms_used],dates)
+[_,second_line] = evaluate_portfolio(np.array(names)[firm_ind_u[0:firms_used]],x_dates[(split_point+1):],lreturns,mu_p_ts,pcov_p_ts,firm_ind_u[0:firms_used],dates)
 
 
+
+#plotting the final results
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt
+plt.figure() 
+plt.clf()
+plt.plot(first_line , 'r', label='ordinary min var')
+plt.plot(second_line , 'b', label='improved min var portfolio')
+
+#plt.plot(np.subtract(value_over_time,i_value_over_time), 'g', label='improved min var portfolio')
+plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
+           ncol=2, mode="expand", borderaxespad=0.)
+
+plt.savefig('Output/pics/'+str(datetime.datetime.now())+'port_performance.png')
+plt.close()

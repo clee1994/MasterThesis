@@ -50,6 +50,7 @@ def plot_pred_true_b(y,yhat,benchm):
 
 def mu_gen_past(lreturns, dates_lr, x_dates_test, used_stocks_ind, n_past):
 	import numpy as np
+	import datetime
 
 	mu = []
 	for i in range(len(x_dates_test)):
@@ -68,6 +69,7 @@ def mu_gen_past(lreturns, dates_lr, x_dates_test, used_stocks_ind, n_past):
 
 def cov_gen_past(lreturns, dates_lr, x_dates_test, used_stocks_ind, n_past):
 	import numpy as np
+	import datetime
 
 	mu = []
 	for i in range(len(x_dates_test)):
@@ -88,12 +90,14 @@ def cov_gen(lreturns, x_dates_test, used_stocks):
 	return 0
 
 
-def evaluate_portfolio(used_stocks,x_dates_test,lreturns,mu_ts,cov_ts):
+def evaluate_portfolio(used_stocks,x_dates_test,lreturns,mu_ts,cov_ts,firm_ind,dates):
 	from port_opt import min_var_mu, min_var, ret2prices
+	import datetime
+	import numpy as np
 
-	firm_ind = list()
-	for i in range(firms_used):
-		firm_ind.append(list(names).index(used_stocks[i]))
+	# firm_ind = list()
+	# for i in range(firms_used):
+	# 	firm_ind.append(list(names).index(used_stocks[i]))
 
 	realized_mu = list()
 	i_realized_mu = list()
@@ -104,7 +108,8 @@ def evaluate_portfolio(used_stocks,x_dates_test,lreturns,mu_ts,cov_ts):
 		try:
 			ind_d = list(dates).index(cur_d)
 		except:
-			print('cant happen')
+			temp1 = min(dates, key=lambda x: abs(x - cur_d))
+			ind_d = list(dates).index(temp1)
 
 		mu = mu_ts[i]#np.nanmean(lreturns[(ind_d-n_past):ind_d, firm_ind],axis=0)
 
@@ -134,22 +139,21 @@ def evaluate_portfolio(used_stocks,x_dates_test,lreturns,mu_ts,cov_ts):
 	#i_value_over_time = ret2prices(i_realized_mu,100)
 
 
-	import matplotlib as mpl
-	mpl.use('Agg')
-	import matplotlib.pyplot as plt
-	plt.figure() 
-	plt.clf()
-	plt.plot(value_over_time , 'r', label='ordinary min var')
-	#plt.plot(i_value_over_time , 'b', label='improved min var portfolio')
+	# import matplotlib as mpl
+	# mpl.use('Agg')
+	# import matplotlib.pyplot as plt
+	# plt.figure() 
+	# plt.clf()
+	# plt.plot(value_over_time , 'r', label='ordinary min var')
+	# #plt.plot(i_value_over_time , 'b', label='improved min var portfolio')
 
-	#plt.plot(np.subtract(value_over_time,i_value_over_time), 'g', label='improved min var portfolio')
-	plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
-	           ncol=2, mode="expand", borderaxespad=0.)
+	# #plt.plot(np.subtract(value_over_time,i_value_over_time), 'g', label='improved min var portfolio')
+	# plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
+	#            ncol=2, mode="expand", borderaxespad=0.)
 
-	plt.savefig('Output/pics/'+str(datetime.datetime.now())+cur_m+"_"+str(n_forward)+"_"+str(n_past)+"_"+str(epoches)+'port_performance.png')
-	plt.close()
+	# plt.savefig('Output/pics/'+str(datetime.datetime.now())+'port_performance.png')
+	# plt.close()
 
 	return realized_mu, value_over_time
 
 
-	
