@@ -16,13 +16,13 @@ n_past = 100
 test_split = 0.15
 
 #doc2vec spaces
-fts_space = np.linspace(180,440,8,dtype=int)
-ws_space = np.linspace(4,18,8,dtype=int)
-mc_space = np.linspace(0,35,8,dtype=int)
+#fts_space = np.linspace(180,440,8,dtype=int)
+#ws_space = np.linspace(4,18,8,dtype=int)
+#mc_space = np.linspace(0,35,8,dtype=int)
 
-# fts_space = np.linspace(150,550,12,dtype=int)
-# ws_space = np.linspace(2,22,12,dtype=int)
-# mc_space = np.linspace(0,50,12,dtype=int)
+fts_space = np.linspace(150,650,16,dtype=int)
+ws_space = np.linspace(2,22,16,dtype=int)
+mc_space = np.linspace(0,50,16,dtype=int)
 
 
 
