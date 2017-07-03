@@ -8,8 +8,8 @@ import gc
 
 
 # 0. modifiable variables
-path_to_news_files = "./Data_small/ReutersNews106521"
-firms_used = 3
+path_to_news_files = "./Data/ReutersNews106521"
+firms_used = 25
 n_past = 50
 
 #traning splits
