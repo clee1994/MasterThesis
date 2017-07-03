@@ -10,9 +10,9 @@ from sklearn.linear_model import Ridge
 
 
 # 0. modifiable variables
-path_to_news_files = "./Data_small/ReutersNews106521"
-firms_used = 3
-n_past = 60
+path_to_news_files = "./Data/ReutersNews106521"
+firms_used = 25
+n_past = 70
 
 #traning splits
 test_split = 0.15
@@ -63,8 +63,6 @@ for i in firm_ind_u:
 	mu_p_ts = np.concatenate([mu_p_ts,mu_news_estimate(x_cal, y_cal, test_split, temp1, dates, n_past,i,bench_mark_mu)],axis=1)
 	print(str(datetime.datetime.now())+': Successfully produced mu_p_ts for '+names[i])
 
-#del x_cal, y_cal,news_data, x_fts, x_ws, x_mc, y
-gc.collect()
 
 
 # 7. single stock parameter calibration & get improved cov estimates
@@ -78,12 +76,16 @@ for i in range(len(firm_ind_u)):
 		cov_p_ts[:,j,i] = cov_p_ts[:,i,j]
 		print(str(datetime.datetime.now())+': Successfully produced co_p_ts for '+names[firm_ind_u[i]]+' and '+names[firm_ind_u[j]])
 
+#del x_cal, y_cal,news_data, x_fts, x_ws, x_mc, y
+gc.collect()
+
 
 
 # 6. standard past observation past mu and cov
 split_point = int(np.floor(np.shape(x_dates)[0]*(1-test_split)))
 pmu_p_ts = mu_gen_past(lreturns, dates, x_dates[(split_point+1):], firm_ind_u[0:firms_used], n_past)
 pcov_p_ts = cov_gen_past(lreturns, dates, x_dates[(split_point+1):], firm_ind_u[0:firms_used], n_past)
+
 
 
 
@@ -95,6 +97,7 @@ sp500 = pure_SP(x_dates[(split_point+1):])
 
 #del dates, names, lreturns, firm_ind_u, x_dates, mu_p_ts, pmu_p_ts, pcov_p_ts, split_point
 gc.collect
+
 
 # 8. plotting the final results
 final_plots([first_line,second_line,sp500],['standard', 'improved','SP500'])
