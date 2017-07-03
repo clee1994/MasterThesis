@@ -8,8 +8,8 @@ import pickle
 
 
 #modifiable variables
-path_to_news_files = "./Data/ReutersNews106521"
-firms_used = 25
+path_to_news_files = "./Data_small/ReutersNews106521"
+firms_used = 3
 
 #traning splits
 test_split = 0.15
@@ -48,7 +48,7 @@ firm_ind_u = sort_predictability(news_data,lreturns,dates,test_split)
 
 
 #single stock parameter calibration
-[x_cal, y_cal] = stock_xy(firms_used,test_split)
+[x_cal, y_cal, x_dates] = stock_xy(firms_used,test_split)
 
 
 
@@ -63,9 +63,11 @@ from sklearn.model_selection import GridSearchCV
 
 
 x_train, y_train, x_test, y_test = train_test_split(x_cal[0], y_cal[0], test_split)
+
 bench_y = bench_mark_mu(lreturns,dates,70,len(y_test))
 
 loss_rm = []
+mu_p_ts = np.zeros((len(y_test),firms_used))
 for i in range(firms_used): 
 
 	#3000 standard
@@ -80,6 +82,7 @@ for i in range(firms_used):
 	#print(cross_val_score(clf, x_cal[i], y_cal[i], cv=5))
 	clf.fit(x_train, y_train)
 	y_pred = clf.predict(x_test)
+	mu_p_ts[:,i] = y_pred
 	#print(mean_squared_error(y_test, y_test))
 
 
@@ -91,13 +94,20 @@ for i in range(firms_used):
 	#print(temptt)
 
 
+#gen mu ts
+split_point = int(np.floor(np.shape(x_dates)[0]*(1-test_split)))
 
 
-#actually getting estimates
+pmu_p_ts = mu_gen_past(lreturns, dates, x_dates[(split_point+1):], firm_ind_u[0:firms_used], 50)
 
 
+#gen cov ts
+pcov_p_ts = cov_gen_past(lreturns, dates, x_dates[(split_point+1):], firm_ind_u[0:firms_used], 50)
 
-#portfolio damn yeahs
 
+#plug it into portfolio
+
+
+[_,_] = evaluate_portfolio(np.array(names)[firm_ind_u[0:firms_used]],x_dates,lreturns,pmu_p_ts,pcov_p_ts)
 
 
