@@ -45,18 +45,19 @@ pickle.dump([news_data, prices, dates, names, lreturns], open( "small_raw", "wb"
 #ht: 2 headline, 8 text
 #350,6,10 -> server results... no idea why
 firm_ind_u = sort_predictability(news_data,lreturns,dates,test_split)
-
+print(str(datetime.datetime.now())+': Successfully sorted')
 
 #fit best model for each stock
 [x_fts, x_ws, x_mc, y] = produce_doc2vecmodels_sign(fts_space,ws_space,mc_space,lreturns,dates,test_split,news_data)
-
+print(str(datetime.datetime.now())+': Successfully produce doc2vec model sign')
 
 #single stock parameter calibration
 [x_cal, y_cal, x_dates] = stock_xy(firms_used,test_split, firm_ind_u,fts_space,ws_space, mc_space,news_data,lreturns,dates)
+print(str(datetime.datetime.now())+': Successfully produced x_cal')
 
 #get improved mu estimates
 mu_p_ts = mu_news_estimate(x_cal, y_cal, test_split, lreturns, firms_used, firm_ind_u,dates)
-
+print(str(datetime.datetime.now())+': Successfully produced mu_p_ts')
 
 #gen mu ts
 split_point = int(np.floor(np.shape(x_dates)[0]*(1-test_split)))
