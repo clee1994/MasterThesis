@@ -17,6 +17,24 @@ def data_label_method_val(lreturns, cur_d,dates_stocks):
 		ret_val = lreturns[list(dates_stocks).index(ind_temp),:]
 	return ret_val
 
+def data_label_method_cov(lreturns, cur_d,dates_stocks):
+	#covariance future/past... important!!
+	import numpy as np
+
+	n = 3
+
+	try:
+		indt = list(dates_stocks).index(cur_d)
+		#ret_val = np.cov(lreturns[indt:indt+3,0],lreturns[indt:indt+3,1])[0,1]
+	except:
+		ind_temp = min(dates_stocks, key=lambda x: abs(x - cur_d))
+		indt = list(dates_stocks).index(ind_temp)
+	try:
+		ret_val = np.cov(lreturns[0,indt:indt+n],lreturns[1,indt:indt+n])[0,1]
+	except:
+		ret_val = np.cov(lreturns[0,indt:indt],lreturns[1,indt:])[0,1]
+	return ret_val
+
 def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ht,ylm):
 	import datetime
 	import numpy as np
@@ -113,6 +131,21 @@ def bench_mark_mu(lreturns,dates_stocks,n_past,len_o):
 	return ret_val[ind_len-len_o:ind_len,:]
 
 
+def bench_mark_cov(lreturns,dates_stocks,n_past,len_o):
+	import numpy as np
+	ret_val = []
+	for i in range(np.shape(lreturns)[1]-(n_past+1)):
+		#try:
+		ret_val.append(np.cov(lreturns[0,i:(i+n_past)],lreturns[1,i:(i+n_past)])[0,1])
+		#except:
+		#	ret_val.append(np.cov(lreturns[0,i:],lreturns[1,i:])[0,1])
+
+
+	ret_val = np.array(ret_val)
+	ind_len = np.shape(ret_val)[0]-1
+	return ret_val[ind_len-len_o:ind_len]
+
+
 
 def produce_doc2vecmodels_sign(fts_space,ws_space,mc_space,lreturns,dates,test_split,news_data):
 	import datetime
@@ -192,12 +225,11 @@ def sort_predictability(news_data,lreturns,dates,test_split):
 	return firm_ind_u
 
 
-def stock_xy(test_split, fts_space,ws_space, mc_space, news_data,lreturns,dates,x_fts, x_ws, x_mc,y):
+def stock_xy(test_split, fts_space,ws_space, mc_space, news_data,lreturns,dates,x_fts, x_ws, x_mc,y,m_eval,clf_v):
 	#single stock parameter calibration
 	#import pickle
 	import numpy as np
 	import datetime
-	from sklearn import svm
 
 	#[x_fts, x_ws, x_mc,y] = pickle.load( open( "Data/diffx", "rb" ) )
 	loss_cali = []
@@ -210,7 +242,7 @@ def stock_xy(test_split, fts_space,ws_space, mc_space, news_data,lreturns,dates,
 		x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
 		y_train[y_train < 0] = 0
 		y_test[y_test < 0] = 0
-		clf = svm.SVC()
+		clf = clf_v
 		clf.fit(x_train, y_train)
 		#res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
 		res = np.array(clf.predict(x_test)).flatten()
@@ -221,7 +253,7 @@ def stock_xy(test_split, fts_space,ws_space, mc_space, news_data,lreturns,dates,
 		x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
 		y_train[y_train < 0] = 0
 		y_test[y_test < 0] = 0
-		clf = svm.SVC()
+		clf = clf_v
 		clf.fit(x_train, y_train)
 		#res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
 		res = np.array(clf.predict(x_test)).flatten()
@@ -232,7 +264,7 @@ def stock_xy(test_split, fts_space,ws_space, mc_space, news_data,lreturns,dates,
 		x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
 		y_train[y_train < 0] = 0
 		y_test[y_test < 0] = 0
-		clf = svm.SVC()
+		clf = clf_v
 		clf.fit(x_train, y_train)
 		#res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
 		res = np.array(clf.predict(x_test)).flatten()
@@ -249,26 +281,29 @@ def stock_xy(test_split, fts_space,ws_space, mc_space, news_data,lreturns,dates,
 	ws_op = ws_space[np.argmin(xws_w)]
 	mc_op = mc_space[np.argmin(xmc_w)]
 	#print(str(fts_op)+" "+str(ws_op)+" "+str(mc_op)+" ")
-	[x_cal,y_cal,x_dates] = gen_xy_daily(news_data,lreturns,dates,fts_op,ws_op,mc_op,2,data_label_method_val)
+	[x_cal,y_cal,x_dates] = gen_xy_daily(news_data,lreturns,dates,fts_op,ws_op,mc_op,2,m_eval)
 
 	return x_cal,y_cal,x_dates
 
 
-
-def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r):
+def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,benchm_f):
 	#ridge regression + kernel for every stock -> calibration
 	from sklearn.linear_model import Ridge
 	from sklearn.model_selection import GridSearchCV
 	import numpy as np
 	from evaluation import plot_pred_true_b
 
-	y_cal = np.reshape(y_cal, [np.shape(y_cal)[0],np.shape(y_cal)[1]])
+
+	try:
+		y_cal = np.reshape(y_cal, [np.shape(y_cal)[0],np.shape(y_cal)[1]])
+	except:
+		pass
 
 	x_train, y_train, x_test, y_test = train_test_split(x_cal, y_cal, test_split)
 	#print(str(np.shape(y_train)))
 
-
-	bench_y = bench_mark_mu(lreturns,dates,n_past,len(y_test))
+	#benchmark_might be changed
+	bench_y = benchm_f(lreturns,dates,n_past,len(y_test))
 
 	loss_rm = []
 	#mu_p_ts = np.zeros((len(y_test),firms_used))

@@ -131,3 +131,32 @@ def load_SP_data(stock_names):
 
 
 	return [prices, dates, np.array(ret_names), lreturns]
+
+
+def pure_SP(x_dates):
+	import pandas as pd
+	import numpy as np
+	import datetime
+	from port_opt import ret2prices
+
+	raw_data = pd.read_csv('./Data/^GSPC.csv', sep=',',header=None,low_memory=False)
+
+	prices = raw_data.values[1:,5].astype(float)
+	dates = np.array(raw_data.values[1:,0],dtype='datetime64')
+	lreturns = np.diff(np.log(prices),n=1, axis=0)
+
+	ret = []
+	for i in range(len(x_dates)):
+		temp = x_dates[i].tolist()
+		cur_d = np.datetime64(datetime.date(temp.year, temp.month, temp.day))
+		try:
+			ind_d = list(dates).index(cur_d)
+		except:
+			temp1 = min(dates, key=lambda x: abs(x - cur_d))
+			ind_d = list(dates).index(temp1)
+		ret.append(lreturns[ind_d])
+
+	return np.array(ret2prices(ret,100))
+
+
+

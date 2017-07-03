@@ -31,7 +31,7 @@ def plot_pred_true_b(y,yhat,benchm):
 	import numpy as np
 
 
-	benchm = np.reshape(benchm,[len(benchm),1])
+	benchm = np.reshape(benchm,[len(benchm)])
 
 	plt.figure()
 	plt.clf()
@@ -45,9 +45,9 @@ def plot_pred_true_b(y,yhat,benchm):
 	axarr[1].plot(ts_temp1,label="diff prediction ("+str(np.round(np.sum(ts_temp1),4))+")")
 	axarr[1].plot(ts_temp2,label="diff benchmark ("+str(np.round(np.sum(ts_temp2),4))+")")
 	axarr[0].legend(bbox_to_anchor=(0., 1.05, 1., .102), loc=3,
-	   			ncol=2, mode="expand", borderaxespad=0.)
+				ncol=2, mode="expand", borderaxespad=0.)
 	axarr[1].legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
-	   			ncol=2, mode="expand", borderaxespad=0.)
+				ncol=2, mode="expand", borderaxespad=0.)
 	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'pred_true.png')
 	plt.close()
 	plt.close("all")
@@ -168,7 +168,7 @@ def final_plots(arg_lines,label_list):
 	plt.figure() 
 	plt.clf()
 	for i in range(len(arg_lines)):
-		plt.plot(arg_lines[i] , 'r', label=label_list[i])
+		plt.plot(arg_lines[i], label=label_list[i])
 	#plt.plot(second_line , 'b', label='improved min var portfolio')
 
 	#plt.plot(np.subtract(value_over_time,i_value_over_time), 'g', label='improved min var portfolio')
