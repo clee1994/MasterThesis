@@ -157,3 +157,21 @@ def evaluate_portfolio(used_stocks,x_dates_test,lreturns,mu_ts,cov_ts,firm_ind,d
 	return realized_mu, value_over_time
 
 
+def final_plots(arg_lines,label_list):
+	import datetime
+	import matplotlib as mpl
+	mpl.use('Agg')
+	import matplotlib.pyplot as plt
+	plt.figure() 
+	plt.clf()
+	for i in range(len(arg_lines)):
+		plt.plot(arg_lines[i] , 'r', label=label_list[i])
+	#plt.plot(second_line , 'b', label='improved min var portfolio')
+
+	#plt.plot(np.subtract(value_over_time,i_value_over_time), 'g', label='improved min var portfolio')
+	plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
+	           ncol=2, mode="expand", borderaxespad=0.)
+
+	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'port_performance.png')
+	plt.close()
+

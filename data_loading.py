@@ -91,7 +91,7 @@ def load_SP_data(stock_names):
 
 	import numpy as np
 	import pandas as pd
-	import pickle
+	#import pickle
 	import datetime
 	from progressbar import printProgressBar
 

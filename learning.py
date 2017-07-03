@@ -146,8 +146,8 @@ def produce_doc2vecmodels_sign(fts_space,ws_space,mc_space,lreturns,dates,test_s
 		y_train[y_train < 0] = 0
 		y_test[y_test < 0] = 0
 
-	import pickle
-	pickle.dump([x_fts, x_ws, x_mc,y], open( "Data/diffx", "wb" ) )
+	#import pickle
+	#pickle.dump([x_fts, x_ws, x_mc,y], open( "Data/diffx", "wb" ) )
 
 	return x_fts, x_ws, x_mc, y
 		
@@ -192,14 +192,14 @@ def sort_predictability(news_data,lreturns,dates,test_split):
 	return firm_ind_u
 
 
-def stock_xy(firms_used,test_split, firm_ind_u, fts_space,ws_space, mc_space, news_data,lreturns,dates):
+def stock_xy(firms_used,test_split, firm_ind_u, fts_space,ws_space, mc_space, news_data,lreturns,dates,x_fts, x_ws, x_mc,y):
 	#single stock parameter calibration
-	import pickle
+	#import pickle
 	import numpy as np
 	import datetime
 	from sklearn import svm
 
-	[x_fts, x_ws, x_mc,y] = pickle.load( open( "Data/diffx", "rb" ) )
+	#[x_fts, x_ws, x_mc,y] = pickle.load( open( "Data/diffx", "rb" ) )
 	loss_cali = []
 	y_cal = []
 	x_cal = []
