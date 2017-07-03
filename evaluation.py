@@ -5,6 +5,7 @@ def plot_pred_true(y,yhat):
 	import matplotlib.pyplot as plt
 	import datetime
 	import numpy as np
+	#print(np.shape(benchm))
 
 
 	plt.figure()
@@ -30,15 +31,20 @@ def plot_pred_true_b(y,yhat,benchm):
 	import numpy as np
 
 
+	benchm = np.reshape(benchm,[len(benchm),1])
+
 	plt.figure()
 	plt.clf()
 	f, axarr = plt.subplots(2, sharex=True)
 	axarr[0].plot(y,label= "true y")
 	axarr[0].plot(yhat,label="predicted y")
 	axarr[0].plot(benchm,label="benchmark")
-	axarr[1].plot(np.abs(np.subtract(yhat,y)),label="diff prediction")
-	axarr[1].plot(np.abs(np.subtract(benchm,y)),label="diff benchmark")
-	axarr[0].legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
+	ts_temp1 = np.abs(np.subtract(yhat,y))
+	ts_temp2 = np.abs(np.subtract(benchm,y))
+	#axarr[0].text(0.5, 0.5, str(np.sum(np.abs(np.subtract(yhat,y)))), fontdict=font)
+	axarr[1].plot(ts_temp1,label="diff prediction ("+str(np.round(np.sum(ts_temp1),4))+")")
+	axarr[1].plot(ts_temp2,label="diff benchmark ("+str(np.round(np.sum(ts_temp2),4))+")")
+	axarr[0].legend(bbox_to_anchor=(0., 1.05, 1., .102), loc=3,
 	   			ncol=2, mode="expand", borderaxespad=0.)
 	axarr[1].legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
 	   			ncol=2, mode="expand", borderaxespad=0.)

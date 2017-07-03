@@ -91,13 +91,13 @@ def train_test_split(x,y,test_split):
 	split_point = int(np.floor(np.shape(x)[0]*(1-test_split)))
 	if y.ndim < 2:
 		y_train = y[0:split_point]
-		y_test = y[(split_point+1):]
+		y_test = y[(split_point):]
 	else:
 		y_train = y[0:split_point,:]
-		y_test = y[(split_point+1):,:]
+		y_test = y[(split_point):,:]
 
 	x_train = x[0:split_point,:]
-	x_test = x[(split_point+1):,:]
+	x_test = x[(split_point):,:]
 	
 	return x_train,y_train,x_test,y_test
 
@@ -192,7 +192,7 @@ def sort_predictability(news_data,lreturns,dates,test_split):
 	return firm_ind_u
 
 
-def stock_xy(firms_used,test_split, firm_ind_u, fts_space,ws_space, mc_space, news_data,lreturns,dates,x_fts, x_ws, x_mc,y):
+def stock_xy(test_split, fts_space,ws_space, mc_space, news_data,lreturns,dates,x_fts, x_ws, x_mc,y):
 	#single stock parameter calibration
 	#import pickle
 	import numpy as np
@@ -203,101 +203,98 @@ def stock_xy(firms_used,test_split, firm_ind_u, fts_space,ws_space, mc_space, ne
 	loss_cali = []
 	y_cal = []
 	x_cal = []
-	for j in range(firms_used):
-		i = firm_ind_u[j]
-		loss_cali.append([])
-		for x in x_fts:
-			x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
-			y_train[y_train < 0] = 0
-			y_test[y_test < 0] = 0
-			clf = svm.SVC()
-			clf.fit(x_train, y_train[:,i])
-			#res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
-			res = np.array(clf.predict(x_test)).flatten()
-			temptt = (np.sum(np.abs(np.subtract(y_test[:,i],res)))/np.shape(y_test[:,i])[0])
-			loss_cali[j].append(temptt)
+	# for j in range(firms_used):
+	# 	i = firm_ind_u[j]
+	loss_cali.append([])
+	for x in x_fts:
+		x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
+		y_train[y_train < 0] = 0
+		y_test[y_test < 0] = 0
+		clf = svm.SVC()
+		clf.fit(x_train, y_train)
+		#res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
+		res = np.array(clf.predict(x_test)).flatten()
+		temptt = (np.sum(np.abs(np.subtract(y_test,res)))/np.shape(y_test)[0])
+		loss_cali[0].append(temptt)
 
-		for x in x_ws:
-			x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
-			y_train[y_train < 0] = 0
-			y_test[y_test < 0] = 0
-			clf = svm.SVC()
-			clf.fit(x_train, y_train[:,i])
-			#res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
-			res = np.array(clf.predict(x_test)).flatten()
-			temptt = (np.sum(np.abs(np.subtract(y_test[:,i],res)))/np.shape(y_test[:,i])[0])
-			loss_cali[j].append(temptt)
+	for x in x_ws:
+		x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
+		y_train[y_train < 0] = 0
+		y_test[y_test < 0] = 0
+		clf = svm.SVC()
+		clf.fit(x_train, y_train)
+		#res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
+		res = np.array(clf.predict(x_test)).flatten()
+		temptt = (np.sum(np.abs(np.subtract(y_test,res)))/np.shape(y_test)[0])
+		loss_cali[0].append(temptt)
 
-		for x in x_mc:
-			x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
-			y_train[y_train < 0] = 0
-			y_test[y_test < 0] = 0
-			clf = svm.SVC()
-			clf.fit(x_train, y_train[:,i])
-			#res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
-			res = np.array(clf.predict(x_test)).flatten()
-			temptt = (np.sum(np.abs(np.subtract(y_test[:,i],res)))/np.shape(y_test[:,i])[0])
-			loss_cali[j].append(temptt)
+	for x in x_mc:
+		x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
+		y_train[y_train < 0] = 0
+		y_test[y_test < 0] = 0
+		clf = svm.SVC()
+		clf.fit(x_train, y_train)
+		#res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
+		res = np.array(clf.predict(x_test)).flatten()
+		temptt = (np.sum(np.abs(np.subtract(y_test,res)))/np.shape(y_test)[0])
+		loss_cali[0].append(temptt)
 
 
-
-	y_cal = []
-	x_cal = [] 
-	for j in range(firms_used):
-		i = firm_ind_u[j]
-		#build the right x data for y
-		
-
-		fts_w, xws_w, xmc_w = np.split(np.array(loss_cali[j]),3)
-		fts_op = fts_space[np.argmin(fts_w)]
-		ws_op = ws_space[np.argmin(xws_w)]
-		mc_op = mc_space[np.argmin(xmc_w)]
-		[x,y,x_dates] = gen_xy_daily(news_data,lreturns,dates,fts_op,ws_op,mc_op,2,data_label_method_val)
-		y_cal.append(y[:,i])
-		x_cal.append(x)
+	#for j in range(firms_used):
+	#i = firm_ind_u[j]
+	#build the right x data for y
+	
+	fts_w, xws_w, xmc_w = np.split(np.array(loss_cali[0]),3)
+	fts_op = fts_space[np.argmin(fts_w)]
+	ws_op = ws_space[np.argmin(xws_w)]
+	mc_op = mc_space[np.argmin(xmc_w)]
+	#print(str(fts_op)+" "+str(ws_op)+" "+str(mc_op)+" ")
+	[x_cal,y_cal,x_dates] = gen_xy_daily(news_data,lreturns,dates,fts_op,ws_op,mc_op,2,data_label_method_val)
 
 	return x_cal,y_cal,x_dates
 
 
 
-def mu_news_estimate(x_cal, y_cal, test_split, lreturns, firms_used, firm_ind_u,dates, n_past):
+def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r):
 	#ridge regression + kernel for every stock -> calibration
 	from sklearn.linear_model import Ridge
 	from sklearn.model_selection import GridSearchCV
 	import numpy as np
 	from evaluation import plot_pred_true_b
 
+	y_cal = np.reshape(y_cal, [np.shape(y_cal)[0],np.shape(y_cal)[1]])
 
-	x_train, y_train, x_test, y_test = train_test_split(x_cal[0], y_cal[0], test_split)
+	x_train, y_train, x_test, y_test = train_test_split(x_cal, y_cal, test_split)
+	#print(str(np.shape(y_train)))
+
 
 	bench_y = bench_mark_mu(lreturns,dates,n_past,len(y_test))
 
 	loss_rm = []
-	mu_p_ts = np.zeros((len(y_test),firms_used))
-	for i in range(firms_used): 
+	#mu_p_ts = np.zeros((len(y_test),firms_used))
+	#for i in range(firms_used): 
 
-		#3000 standard
-		x_train, y_train, x_test, y_test = train_test_split(x_cal[i], y_cal[i], test_split)
-		parameters = { 'alpha':[0.1,1,5,10,30]}
+	#3000 standard
+	#x_train, y_train, x_test, y_test = train_test_split(x_cal[0], y_cal[0], test_split)
+	parameters = { 'alpha':[0.1,1,5,10,30]}
 
-		modrr = Ridge(alpha=30)
-		clf = GridSearchCV(modrr, parameters)
-		#clf = KernelRidge(alpha=30, kernel="rbf",kernel_params =[.1,(1e-05, 100000.0)]) -> also not super useful
-		#clf = linear_model.Lasso(alpha = 0) -> not really usefull
+	modrr = Ridge(alpha=30)
+	clf = GridSearchCV(modrr, parameters)
+	#clf = KernelRidge(alpha=30, kernel="rbf",kernel_params =[.1,(1e-05, 100000.0)]) -> also not super useful
+	#clf = linear_model.Lasso(alpha = 0) -> not really usefull
 
-		#print(cross_val_score(clf, x_cal[i], y_cal[i], cv=5))
-		clf.fit(x_train, y_train)
-		y_pred = clf.predict(x_test)
-		mu_p_ts[:,i] = y_pred
-		#print(mean_squared_error(y_test, y_test))
+	#print(cross_val_score(clf, x_cal[i], y_cal[i], cv=5))
+	clf.fit(x_train, y_train)
+	mu_p_ts = clf.predict(x_test)
+	#print(mean_squared_error(y_test, y_test))
 
-
-		plot_pred_true_b(y_test,clf.predict(x_test),bench_y[:,firm_ind_u[i]])
-		#res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
-		res = np.array(clf.predict(x_test)).flatten()
-		temptt = np.mean(np.abs(np.subtract(y_test,res)))
-		loss_rm.append(temptt)
-		#print(temptt)
+	#print(np.shape(bench_y))
+	plot_pred_true_b(y_test,clf.predict(x_test),bench_y.flatten())
+	#res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
+	res = np.array(clf.predict(x_test)).flatten()
+	temptt = np.mean(np.abs(np.subtract(y_test,res)))
+	loss_rm.append(temptt)
+	#print(temptt)
 
 	return mu_p_ts
 

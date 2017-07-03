@@ -8,9 +8,9 @@ import gc
 
 
 # 0. modifiable variables
-path_to_news_files = "./Data_small/ReutersNews106521"
-firms_used = 3
-n_past = 50
+path_to_news_files = "./Data/ReutersNews106521"
+firms_used = 25
+n_past = 100
 
 #traning splits
 test_split = 0.15
@@ -54,10 +54,11 @@ print(str(datetime.datetime.now())+': Successfully produce doc2vec model sign')
 
 
 # 5. single stock parameter calibration & get improved mu estimates
+mu_p_ts = np.empty((np.ceil(np.shape(y)[0]*test_split),0), float)
 for i in firm_ind_u:
-
-	[x_cal, y_cal, x_dates] = stock_xy(test_split,fts_space,ws_space, mc_space,news_data,lreturns[:,i],dates,x_fts, x_ws, x_mc,y)
-	mu_p_ts = mu_news_estimate(x_cal, y_cal, test_split, lreturns[:,i], dates, n_past)
+	temp1 = np.transpose(np.matrix( lreturns[:,i]))
+	[x_cal, y_cal, x_dates] = stock_xy(test_split,fts_space,ws_space, mc_space,news_data,temp1,dates,x_fts, x_ws, x_mc,y[:,i])
+	mu_p_ts = np.concatenate([mu_p_ts,mu_news_estimate(x_cal, y_cal, test_split, temp1, dates, n_past,i)],axis=1)
 	print(str(datetime.datetime.now())+': Successfully produced mu_p_ts for '+names[i])
 
 #del x_cal, y_cal,news_data, x_fts, x_ws, x_mc, y
@@ -78,8 +79,8 @@ pcov_p_ts = cov_gen_past(lreturns, dates, x_dates[(split_point+1):], firm_ind_u[
 
 
 # 7. build portfolios based on both
-[_,first_line] = evaluate_portfolio(np.array(names)[firm_ind_u[0:firms_used]],x_dates[(split_point+1):],lreturns,pmu_p_ts,pcov_p_ts,firm_ind_u[0:firms_used],dates)
-[_,second_line] = evaluate_portfolio(np.array(names)[firm_ind_u[0:firms_used]],x_dates[(split_point+1):],lreturns,mu_p_ts,pcov_p_ts,firm_ind_u[0:firms_used],dates)
+[_,first_line] = evaluate_portfolio(names[firm_ind_u],x_dates[(split_point+1):],lreturns,pmu_p_ts,pcov_p_ts,firm_ind_u,dates)
+[_,second_line] = evaluate_portfolio(names[firm_ind_u],x_dates[(split_point+1):],lreturns,mu_p_ts,pcov_p_ts,firm_ind_u,dates)
 #del dates, names, lreturns, firm_ind_u, x_dates, mu_p_ts, pmu_p_ts, pcov_p_ts, split_point
 gc.collect
 
