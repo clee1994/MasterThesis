@@ -7,7 +7,7 @@ def min_var_mu(mu, gamma, mu_p):
 
 	lenm = len(mu)
 
-	inv_sigma = np.linalg.inv(gamma)
+	inv_sigma = np.linalg.pinv(gamma)
 	one_v = np.ones([1,lenm])
 
 	A = np.dot(one_v,np.dot(inv_sigma,mu))
@@ -28,7 +28,7 @@ def min_var(mu, gamma):
 
 	lenm = len(mu)
 
-	inv_sigma = np.linalg.inv(gamma)
+	inv_sigma = np.linalg.pinv(gamma)
 	one_v = np.ones([1,lenm])
 
 	B = np.dot(one_v,np.dot(inv_sigma,np.transpose(one_v)))
