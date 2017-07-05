@@ -328,6 +328,9 @@ def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,be
 	#print(cross_val_score(clf, x_cal[i], y_cal[i], cv=5))
 	clf.fit(x_train, y_train)
 	mu_p_ts = clf.predict(x_test)
+
+	if benchm_f == bench_mark_cov:
+		mu_p_ts[mu_p_ts < 0] = 0
 	#print(mean_squared_error(y_test, y_test))
 
 	#print(np.shape(bench_y))
