@@ -135,7 +135,7 @@ def bench_mark_mu(lreturns,dates_stocks,n_past,len_o):
 
 	ret_val = np.array(ret_val)
 	ind_len = np.shape(ret_val)[0]-1
-	return ret_val[ind_len-len_o:ind_len,:]
+	return ret_val[ind_len-len_o:ind_len]
 
 
 def bench_mark_cov(lreturns,dates_stocks,n_past,len_o):
@@ -331,6 +331,7 @@ def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,be
 	#print(mean_squared_error(y_test, y_test))
 
 	#print(np.shape(bench_y))
+
 	plot_pred_true_b(y_test,clf.predict(x_test),bench_y.flatten())
 	#res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
 	res = np.array(clf.predict(x_test)).flatten()

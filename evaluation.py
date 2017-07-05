@@ -32,6 +32,8 @@ def plot_pred_true_b(y,yhat,benchm):
 
 
 	benchm = np.reshape(benchm,[len(benchm)])
+	y = np.reshape(y,[len(y)])
+	yhat = np.reshape(yhat,[len(yhat)])
 
 	plt.figure()
 	plt.clf()
