@@ -1,26 +1,32 @@
 
+
+#now i am taking next days return, 
+#so taking todays news to evaluate what is going to happen tomorrow
+
 def data_label_method_sign(lreturns, cur_d,dates_stocks):
 	import numpy as np
 	try:
-		ret_val = np.sign(lreturns[list(dates_stocks).index(cur_d),:])
+		ret_val = np.sign(lreturns[list(dates_stocks).index(cur_d)+1,:])
 	except:
 		ind_temp = min(dates_stocks, key=lambda x: abs(x - cur_d))
-		ret_val = np.sign(lreturns[list(dates_stocks).index(ind_temp),:])
+		ret_val = np.sign(lreturns[list(dates_stocks).index(ind_temp)+1,:])
 	return ret_val
 
 def data_label_method_val(lreturns, cur_d,dates_stocks):
 	import numpy as np
 	try:
-		ret_val = lreturns[list(dates_stocks).index(cur_d),:]
+		ret_val = lreturns[list(dates_stocks).index(cur_d)+1,:]
 	except:
 		ind_temp = min(dates_stocks, key=lambda x: abs(x - cur_d))
-		ret_val = lreturns[list(dates_stocks).index(ind_temp),:]
+		ret_val = lreturns[list(dates_stocks).index(ind_temp)+1,:]
 	return ret_val
 
+#now I am taking past and future to correctly estimate var/cov
 def data_label_method_cov(lreturns, cur_d,dates_stocks):
 	#covariance future/past... important!!
 	import numpy as np
 
+	#important
 	n = 3
 
 	try:
@@ -30,9 +36,9 @@ def data_label_method_cov(lreturns, cur_d,dates_stocks):
 		ind_temp = min(dates_stocks, key=lambda x: abs(x - cur_d))
 		indt = list(dates_stocks).index(ind_temp)
 	try:
-		ret_val = np.cov(lreturns[0,indt:indt+n],lreturns[1,indt:indt+n])[0,1]
+		ret_val = np.cov(lreturns[0,indt-n:indt+n],lreturns[1,indt-n:indt+n])[0,1]
 	except:
-		ret_val = np.cov(lreturns[0,indt:indt],lreturns[1,indt:])[0,1]
+		ret_val = np.cov(lreturns[0,indt-n:],lreturns[1,indt-n:])[0,1]
 	return ret_val
 
 def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ht,ylm):
@@ -78,8 +84,8 @@ def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ht,ylm):
 			#mu/y -> what do I want, the mean next day, average next three days
 			y.append(ylm(lreturns, cur_d,dates_stocks))
 
-		#x and skip last sentence
-		for j in range(len(i[ht])-1):
+		#x and skip last sentence / headlines... no last sentence only one
+		for j in range(len(i[ht])):
 			for hj in i[ht][j]:
 				 words.append(hj)
 	
@@ -120,6 +126,7 @@ def train_test_split(x,y,test_split):
 	return x_train,y_train,x_test,y_test
 
 
+#maybe benchmark also based on dates
 def bench_mark_mu(lreturns,dates_stocks,n_past,len_o):
 	import numpy as np
 	ret_val = []
@@ -311,7 +318,7 @@ def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,be
 
 	#3000 standard
 	#x_train, y_train, x_test, y_test = train_test_split(x_cal[0], y_cal[0], test_split)
-	parameters = { 'alpha':[0.1,1,5,10,30]}
+	parameters = { 'alpha':[0.1,0.5,1,5,10,20,30,35,40,45,50,55]}
 
 	modrr = Ridge(alpha=30)
 	clf = GridSearchCV(modrr, parameters)

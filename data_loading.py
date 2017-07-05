@@ -9,6 +9,7 @@ def load_news_data(path, stop_word_removal):
 	from nltk.tokenize import RegexpTokenizer
 	from progressbar import printProgressBar
 	from nltk.corpus import stopwords #stopwords removal
+	from nltk import word_tokenize
 
 	#load text data
 	newsdates = os.listdir(path)
@@ -34,6 +35,11 @@ def load_news_data(path, stop_word_removal):
 						file.close()
 						[title, text] = text.split('\n',1)
 						title = title[3:]
+
+						tokens = word_tokenize(title)
+						title = [nltk.Text(tokens)[:]]
+
+
 						[author, text] = text.split('\n',1)
 						author = author[7:]
 						[date, text] = text.split('\n',1)
@@ -46,7 +52,7 @@ def load_news_data(path, stop_word_removal):
 						except ValueError:
 							dummy = "no info"
 
-						text = text.replace("\n", "")
+						text = text.replace("\n", " ")
 						text = ' '.join(text.split())
 						
 
@@ -91,7 +97,6 @@ def load_SP_data(stock_names):
 
 	import numpy as np
 	import pandas as pd
-	#import pickle
 	import datetime
 	from progressbar import printProgressBar
 
