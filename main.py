@@ -11,7 +11,7 @@ from sklearn.linear_model import Ridge
 
 # 0. modifiable variables
 path_to_news_files = "./Data/ReutersNews106521"
-firms_used = 25
+firms_used = 2
 n_past = 100
 
 #traning splits
@@ -56,7 +56,7 @@ print(str(datetime.datetime.now())+': Successfully produce doc2vec model sign')
 
 
 # 5. single stock parameter calibration & get improved mu estimates
-mu_p_ts = np.empty((np.ceil(np.shape(y)[0]*test_split),0), float)
+mu_p_ts = np.empty((int(np.ceil(np.shape(y)[0]*test_split)),0), float)
 for i in firm_ind_u:
 	temp1 = np.transpose(np.matrix( lreturns[:,i]))
 	[x_cal, y_cal, x_dates] = stock_xy(test_split,fts_space,ws_space, mc_space,news_data,temp1,dates,x_fts, x_ws, x_mc,y[:,i],data_label_method_val,svm.SVC())
@@ -66,7 +66,7 @@ for i in firm_ind_u:
 
 
 # 7. single stock parameter calibration & get improved cov estimates
-cov_p_ts = np.zeros([np.ceil(np.shape(y)[0]*test_split),len(firm_ind_u),len(firm_ind_u)])
+cov_p_ts = np.zeros([int(np.ceil(np.shape(y)[0]*test_split)),len(firm_ind_u),len(firm_ind_u)])
 for i in range(len(firm_ind_u)):
 	for j in range(i+1):
 		temp1 = np.transpose(np.matrix( lreturns[:,[i,j]]))
