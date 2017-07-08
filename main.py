@@ -12,7 +12,7 @@ from sklearn.linear_model import Ridge
 # 0. modifiable variables
 path_to_news_files = "./Data/ReutersNews106521"
 firms_used = 30
-n_past = 700
+n_past = 70
 
 #traning splits
 test_split = 0.25
