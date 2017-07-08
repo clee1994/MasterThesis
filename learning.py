@@ -336,7 +336,7 @@ def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,be
 
 	alpha_r = [0.001,0.1,0.5,1,5,10,20,30,35,40,45,50,100,200]
 	gamma_r = [1e-3, 1e-4,0.01,0.1,1,2,10]
-	para2 = [{'kernel': ['rbf'], 'gamma': [1e-3, 1e-4], 'alpha': alpha_r},
+	para2 = [{'kernel': ['rbf'], 'gamma': gamma_r, 'alpha': alpha_r},
 			{'kernel': ['linear'], 'alpha': alpha_r}]
 
 	modrr = KernelRidge(alpha=30)
