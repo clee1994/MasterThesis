@@ -95,7 +95,7 @@ def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ht,ylm):
 	except:
 		pass
 
-	model = Doc2Vec(size=features, window=window, min_count=mcount, workers=4)
+	model = Doc2Vec(size=features, window=window, min_count=mcount, workers=1)
 
 	model.build_vocab(documents)
 
@@ -143,6 +143,7 @@ def bench_mark_cov(lreturns,dates_stocks,n_past,len_o):
 	ret_val = []
 	for i in range(np.shape(lreturns)[1]-(n_past+1)):
 		#try:
+
 		ret_val.append(np.cov(lreturns[0,i:(i+n_past)],lreturns[1,i:(i+n_past)])[0,1])
 		#except:
 		#	ret_val.append(np.cov(lreturns[0,i:],lreturns[1,i:])[0,1])
@@ -245,6 +246,8 @@ def stock_xy(test_split, fts_space,ws_space, mc_space, news_data,lreturns,dates,
 	# for j in range(firms_used):
 	# 	i = firm_ind_u[j]
 	loss_cali.append([])
+
+	#make it a grid search
 	for x in x_fts:
 		x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
 		y_train[y_train < 0] = 0
@@ -296,6 +299,7 @@ def stock_xy(test_split, fts_space,ws_space, mc_space, news_data,lreturns,dates,
 def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,benchm_f):
 	#ridge regression + kernel for every stock -> calibration
 	from sklearn.linear_model import Ridge
+	from sklearn.kernel_ridge import KernelRidge
 	from sklearn.model_selection import GridSearchCV
 	import numpy as np
 	from evaluation import plot_pred_true_b
@@ -318,10 +322,25 @@ def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,be
 
 	#3000 standard
 	#x_train, y_train, x_test, y_test = train_test_split(x_cal[0], y_cal[0], test_split)
-	parameters = { 'alpha':[0.1,0.5,1,5,10,20,30,35,40,45,50,55]}
+	#parameters = { 'alpha':[0.1,0.5,1,5,10,20,30,35,40,45,50,55]}
+	#parameters = { 'alpha':[0.1,0.5,1,5,10,20,30,35,40,45,50,55]}
 
-	modrr = Ridge(alpha=30)
-	clf = GridSearchCV(modrr, parameters)
+	#param_grid={"alpha":[0.01,0.1,0.5,1,5,10,20,30,35,40,45,50,55],
+				#"linear": [1e0, 0.1, 1e-2, 1e-3],
+	#			"gamma": np.logspace(-2, 2, 5),
+				#"rbf:": [1,3]
+	#			"kernel": [(l, p)
+    #                    for l in np.logspace(-2, 2, 10)
+    #                   for p in np.logspace(0, 2, 10)]
+	#			}
+
+	alpha_r = [0.001,0.1,0.5,1,5,10,20,30,35,40,45,50,100,200]
+	gamma_r = [1e-3, 1e-4,0.01,0.1,1,2,10]
+	para2 = [{'kernel': ['rbf'], 'gamma': [1e-3, 1e-4], 'alpha': alpha_r},
+			{'kernel': ['linear'], 'alpha': alpha_r}]
+
+	modrr = KernelRidge(alpha=30)
+	clf = GridSearchCV(modrr, para2)
 	#clf = KernelRidge(alpha=30, kernel="rbf",kernel_params =[.1,(1e-05, 100000.0)]) -> also not super useful
 	#clf = linear_model.Lasso(alpha = 0) -> not really usefull
 
@@ -329,8 +348,10 @@ def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,be
 	clf.fit(x_train, y_train)
 	mu_p_ts = clf.predict(x_test)
 
-	#if benchm_f == bench_mark_cov:
-	#	mu_p_ts[mu_p_ts < 0] = 0
+
+	if benchm_f == bench_mark_cov:
+		if  np.array_equal(lreturns[0,:], lreturns[1,:]):
+			mu_p_ts[mu_p_ts < 0] = 0
 	#print(mean_squared_error(y_test, y_test))
 
 	#print(np.shape(bench_y))
