@@ -18,7 +18,7 @@ def plot_pred_true(y,yhat):
 	   			ncol=2, mode="expand", borderaxespad=0.)
 	axarr[1].legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
 	   			ncol=2, mode="expand", borderaxespad=0.)
-	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'pred_true.png')
+	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'pred_true.png',bbox_inches='tight')
 	plt.close()
 	plt.close("all")
 
@@ -50,7 +50,7 @@ def plot_pred_true_b(y,yhat,benchm):
 				ncol=2, mode="expand", borderaxespad=0.)
 	axarr[1].legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
 				ncol=2, mode="expand", borderaxespad=0.)
-	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'pred_true.png')
+	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'pred_true.png',bbox_inches='tight')
 	plt.close()
 	plt.close("all")
 
@@ -178,6 +178,6 @@ def final_plots(arg_lines,label_list):
 	plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
 	           ncol=2, mode="expand", borderaxespad=0.)
 
-	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'port_performance.png')
+	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'port_performance.png',bbox_inches='tight')
 	plt.close()
 
