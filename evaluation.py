@@ -1,5 +1,9 @@
 #plotting
 def plot_pred_true(y,yhat):
+	from matplotlib import rc
+	rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
+	rc('text', usetex=True)
+
 	import matplotlib as mpl
 	mpl.use('Agg')
 	import matplotlib.pyplot as plt
@@ -16,14 +20,22 @@ def plot_pred_true(y,yhat):
 	axarr[1].plot(np.abs(np.subtract(yhat,y)),label="difference prediction and true")
 	axarr[0].legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
 	   			ncol=2, mode="expand", borderaxespad=0.)
+	axarr[0].xlabel('Time/Observations')
+	axarr[0].ylabel('Mean/Volatility')
 	axarr[1].legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
 	   			ncol=2, mode="expand", borderaxespad=0.)
+	axarr[1].xlabel('Time/Observations')
+	axarr[1].ylabel('Difference of true and estimated mean/volatility')
 	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'pred_true.png',bbox_inches='tight')
 	plt.close()
 	plt.close("all")
 
 #plotting
-def plot_pred_true_b(y,yhat,benchm):
+def plot_pred_true_b(y,yhat,benchm,v_m):
+	from matplotlib import rc
+	rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
+	rc('text', usetex=True)
+
 	import matplotlib as mpl
 	mpl.use('Agg')
 	import matplotlib.pyplot as plt
@@ -38,18 +50,22 @@ def plot_pred_true_b(y,yhat,benchm):
 	plt.figure()
 	plt.clf()
 	f, axarr = plt.subplots(2, sharex=True)
-	axarr[0].plot(y,label= "true y")
-	axarr[0].plot(yhat,label="predicted y")
-	axarr[0].plot(benchm,label="benchmark")
+	axarr[0].plot(y,label= "$y$")
+	axarr[0].plot(yhat,label="$\hat{y}_{doc2vec}$")
+	axarr[0].plot(benchm,label="$\hat{y}_{past\;obs.}$")
 	ts_temp1 = np.abs(np.subtract(yhat,y))
 	ts_temp2 = np.abs(np.subtract(benchm,y))
 	#axarr[0].text(0.5, 0.5, str(np.sum(np.abs(np.subtract(yhat,y)))), fontdict=font)
-	axarr[1].plot(ts_temp1,label="diff prediction ("+str(np.round(np.sum(ts_temp1),4))+")")
-	axarr[1].plot(ts_temp2,label="diff benchmark ("+str(np.round(np.sum(ts_temp2),4))+")")
+	axarr[1].plot(ts_temp1,label="$y - \hat{y}_{doc2vec}$ ($"+str(np.round(np.sum(ts_temp1),4))+"$)")
+	axarr[1].plot(ts_temp2,label="$y - \hat{y}_{past\;obs.}$ ($"+str(np.round(np.sum(ts_temp2),4))+"$)")
 	axarr[0].legend(bbox_to_anchor=(0., 1.05, 1., .102), loc=3,
 				ncol=2, mode="expand", borderaxespad=0.)
+	axarr[0].set_xlabel('Time/Observations')
+	axarr[0].set_ylabel(v_m)
 	axarr[1].legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
 				ncol=2, mode="expand", borderaxespad=0.)
+	axarr[1].set_xlabel('Time/Observations')
+	#axarr[1].set_ylabel('Difference to $y$')
 	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'pred_true.png',bbox_inches='tight')
 	plt.close()
 	plt.close("all")
@@ -164,6 +180,10 @@ def evaluate_portfolio(used_stocks,x_dates_test,lreturns,mu_ts,cov_ts,firm_ind,d
 
 
 def final_plots(arg_lines,label_list):
+	from matplotlib import rc
+	rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
+	rc('text', usetex=True)
+
 	import datetime
 	import matplotlib as mpl
 	mpl.use('Agg')
@@ -177,6 +197,8 @@ def final_plots(arg_lines,label_list):
 	#plt.plot(np.subtract(value_over_time,i_value_over_time), 'g', label='improved min var portfolio')
 	plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
 	           ncol=2, mode="expand", borderaxespad=0.)
+	plt.xlabel('Time/Observations')
+	plt.ylabel('Value/USD')
 
 	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'port_performance.png',bbox_inches='tight')
 	plt.close()

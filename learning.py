@@ -296,7 +296,7 @@ def stock_xy(test_split, fts_space,ws_space, mc_space, news_data,lreturns,dates,
 	return x_cal,y_cal,x_dates
 
 
-def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,benchm_f):
+def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,benchm_f,mu_var):
 	#ridge regression + kernel for every stock -> calibration
 	from sklearn.linear_model import Ridge
 	from sklearn.kernel_ridge import KernelRidge
@@ -356,7 +356,7 @@ def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,be
 
 	#print(np.shape(bench_y))
 
-	plot_pred_true_b(y_test,clf.predict(x_test),bench_y.flatten())
+	plot_pred_true_b(y_test,clf.predict(x_test),bench_y.flatten(), mu_var) #here we need somthing
 	#res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
 	res = np.array(clf.predict(x_test)).flatten()
 	temptt = np.mean(np.abs(np.subtract(y_test,res)))
