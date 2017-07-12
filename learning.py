@@ -317,7 +317,7 @@ def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,be
 
 
 
-	#benchmark_might estimates
+	#benchmark estimates
 	bench_y = benchm_f(lreturns,dates,n_past,len(y_test))
 
 
@@ -337,7 +337,7 @@ def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,be
 
 	
 
-	#2. produce estimates and plot
+	#2. produce estimates
 	clf = clf.fit(x_train, y_train)
 	mu_p_ts = clf.predict(x_test)
 	#set variance to zero if negativ / probably a bad trick
@@ -352,7 +352,3 @@ def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,be
 
 
 	return mu_p_ts
-
-
-
-
