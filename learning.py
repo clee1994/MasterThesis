@@ -296,72 +296,60 @@ def stock_xy(test_split, fts_space,ws_space, mc_space, news_data,lreturns,dates,
 	return x_cal,y_cal,x_dates
 
 
-def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,benchm_f,mu_var):
-	#ridge regression + kernel for every stock -> calibration
+def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,benchm_f,mu_var,show_plots):
 	from sklearn.linear_model import Ridge
 	from sklearn.kernel_ridge import KernelRidge
 	from sklearn.model_selection import GridSearchCV
 	import numpy as np
-	from evaluation import plot_pred_true_b
+	from evaluation import plot_pred_true_b, learning_plots
+	import multiprocessing
+	n_cpu = multiprocessing.cpu_count()
 
 
+	#get x and y
 	try:
 		y_cal = np.reshape(y_cal, [np.shape(y_cal)[0],np.shape(y_cal)[1]])
 	except:
 		pass
 
 	x_train, y_train, x_test, y_test = train_test_split(x_cal, y_cal, test_split)
-	#print(str(np.shape(y_train)))
 
-	#benchmark_might be changed
+
+
+
+	#benchmark_might estimates
 	bench_y = benchm_f(lreturns,dates,n_past,len(y_test))
 
-	loss_rm = []
-	#mu_p_ts = np.zeros((len(y_test),firms_used))
-	#for i in range(firms_used): 
 
-	#3000 standard
-	#x_train, y_train, x_test, y_test = train_test_split(x_cal[0], y_cal[0], test_split)
-	#parameters = { 'alpha':[0.1,0.5,1,5,10,20,30,35,40,45,50,55]}
-	#parameters = { 'alpha':[0.1,0.5,1,5,10,20,30,35,40,45,50,55]}
 
-	#param_grid={"alpha":[0.01,0.1,0.5,1,5,10,20,30,35,40,45,50,55],
-				#"linear": [1e0, 0.1, 1e-2, 1e-3],
-	#			"gamma": np.logspace(-2, 2, 5),
-				#"rbf:": [1,3]
-	#			"kernel": [(l, p)
-    #                    for l in np.logspace(-2, 2, 10)
-    #                   for p in np.logspace(0, 2, 10)]
-	#			}
+	#1. model selection with cross validation and grid search
+	alpha_range1 = [0.001,0.1,0.5,1,5,10,20,30,35,40,45,50,100,200]
+	alpha_range = [1,5,10,20,30,35,40,45,50,100,200]
+	gamma_range = [1e-4, 1e-3,0.01,0.1,1,2,10]
+	RR_parameters = [{'kernel': ['rbf'], 'gamma': gamma_range, 'alpha': alpha_range},
+			{'kernel': ['linear'], 'alpha': alpha_range1}]
 
-	alpha_r = [0.001,0.1,0.5,1,5,10,20,30,35,40,45,50,100,200]
-	gamma_r = [1e-3, 1e-4,0.01,0.1,1,2,10]
-	para2 = [{'kernel': ['rbf'], 'gamma': gamma_r, 'alpha': alpha_r},
-			{'kernel': ['linear'], 'alpha': alpha_r}]
+	RR_model = KernelRidge(alpha=30)
+	clf = GridSearchCV(RR_model, RR_parameters,scoring='neg_mean_squared_error',n_jobs=n_cpu)
+	clf = clf.fit(x_train, y_train)
+	grid_results = clf.cv_results_
 
-	modrr = KernelRidge(alpha=30)
-	clf = GridSearchCV(modrr, para2)
-	#clf = KernelRidge(alpha=30, kernel="rbf",kernel_params =[.1,(1e-05, 100000.0)]) -> also not super useful
-	#clf = linear_model.Lasso(alpha = 0) -> not really usefull
 
-	#print(cross_val_score(clf, x_cal[i], y_cal[i], cv=5))
-	clf.fit(x_train, y_train)
+	
+
+	#2. produce estimates and plot
+	clf = clf.fit(x_train, y_train)
 	mu_p_ts = clf.predict(x_test)
-
-
+	#set variance to zero if negativ / probably a bad trick
 	if benchm_f == bench_mark_cov:
 		if  np.array_equal(lreturns[0,:], lreturns[1,:]):
 			mu_p_ts[mu_p_ts < 0] = 0
-	#print(mean_squared_error(y_test, y_test))
 
-	#print(np.shape(bench_y))
+	#3. plots
+	if show_plots:
+		plot_pred_true_b(y_test,clf.predict(x_test),bench_y.flatten(), mu_var) 
+		learning_plots(grid_results,clf, x_cal, y_cal,n_cpu,alpha_range,gamma_range)
 
-	plot_pred_true_b(y_test,clf.predict(x_test),bench_y.flatten(), mu_var) #here we need somthing
-	#res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
-	res = np.array(clf.predict(x_test)).flatten()
-	temptt = np.mean(np.abs(np.subtract(y_test,res)))
-	loss_rm.append(temptt)
-	#print(temptt)
 
 	return mu_p_ts
 

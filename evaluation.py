@@ -203,3 +203,82 @@ def final_plots(arg_lines,label_list):
 	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'port_performance.png',bbox_inches='tight')
 	plt.close()
 
+
+def learning_plots(grid_results,clf, x_cal, y_cal,n_cpu, alpha_range,gamma_range):
+	#plot grid results
+	from matplotlib import rc
+	rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
+	rc('text', usetex=True)
+	import matplotlib as mpl
+	import datetime
+	mpl.use('Agg')
+	import matplotlib.pyplot as plt
+	from mpl_toolkits.mplot3d import Axes3D
+	from sklearn.model_selection import learning_curve
+	import numpy as np
+
+
+
+	index_linear = np.where(grid_results['param_kernel']=='linear')
+	val_train = np.array(grid_results['mean_train_score'])[index_linear]*-1
+	val_test = np.array(grid_results['mean_test_score'])[index_linear]*-1
+	plt.figure() 
+	plt.clf()
+	plt.plot(val_train, label="Train MSE")
+	plt.plot(val_test, label="Test MSE")
+	plt.xticks(range(len(val_train)),np.array(grid_results['param_alpha'])[index_linear])
+	plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,ncol=2, mode="expand", borderaxespad=0.)
+	plt.xlabel('Alpha')
+	plt.ylabel('MSE')
+
+	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'alpha_fitting.png',bbox_inches='tight')
+	plt.close()
+
+
+
+	index_linear = np.where(grid_results['param_kernel']=='rbf')
+
+	val_train = np.reshape(np.array(grid_results['mean_train_score'])[index_linear]*-1,[len(alpha_range),len(gamma_range)])
+	val_test = np.reshape(np.array(grid_results['mean_test_score'])[index_linear]*-1,[len(alpha_range),len(gamma_range)])
+	x_pval = np.reshape(np.array(grid_results['param_alpha'])[index_linear],[len(alpha_range),len(gamma_range)])
+	y_pval = np.reshape(np.array(grid_results['param_gamma'])[index_linear],[len(alpha_range),len(gamma_range)])
+	
+
+	
+	fig = plt.figure()
+	plt.clf()
+	ax = fig.add_subplot(111, projection='3d')
+	ax.plot_wireframe(x_pval, y_pval, val_test)
+
+
+	#plt.plot(val_train, label="Train MSE")
+	#plt.plot(val_test, label="Test MSE")
+	#plt.xticks(range(len(val_train)),np.array(grid_results['param_alpha'])[index_linear])
+	#plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,ncol=2, mode="expand", borderaxespad=0.)
+	ax.set_xlabel('Alpha')
+	ax.set_ylabel('Gamma')
+	ax.set_zlabel('MSE')
+
+	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'rbf_fitting.png',bbox_inches='tight')
+	plt.close()
+
+
+	
+
+	train_sizes, train_scores, test_scores = learning_curve(clf, x_cal, y_cal, cv=None, train_sizes=np.linspace(3, len(x_cal)*0.6, 100,dtype=int),n_jobs=n_cpu,scoring='neg_mean_squared_error')
+	train_scores = np.mean(train_scores,axis=1)
+	test_scores = np.mean(test_scores,axis=1)
+
+	
+	plt.figure() 
+	plt.clf()
+
+	plt.plot(train_sizes,train_scores*-1, label="Train MSE")
+	plt.plot(train_sizes,test_scores*-1, label="Test MSE")
+	#plt.xticks(range(len(train_scores)),train_sizes)
+	plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,ncol=2, mode="expand", borderaxespad=0.)
+	plt.xlabel('Size training set')
+	plt.ylabel('MSE')
+
+	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'learning_curve.png',bbox_inches='tight')
+	plt.close()
