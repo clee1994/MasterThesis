@@ -265,7 +265,7 @@ def learning_plots(grid_results,clf, x_cal, y_cal,n_cpu, alpha_range,gamma_range
 
 	
 
-	train_sizes, train_scores, test_scores = learning_curve(clf, x_cal, y_cal, cv=None, train_sizes=np.linspace(3, len(x_cal)*0.6, 100,dtype=int),n_jobs=n_cpu,scoring='neg_mean_squared_error')
+	train_sizes, train_scores, test_scores = learning_curve(clf, x_cal, y_cal, cv=None, train_sizes=np.linspace(3, len(x_cal)*0.6, 500,dtype=int),n_jobs=n_cpu,scoring='neg_mean_squared_error')
 	train_scores = np.mean(train_scores,axis=1)
 	test_scores = np.mean(test_scores,axis=1)
 

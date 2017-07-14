@@ -59,10 +59,10 @@ show_p = True
 mu_p_ts = np.empty((int(np.ceil(np.shape(y)[0]*test_split)),0), float)
 for i in firm_ind_u:
 	temp1 = np.transpose(np.matrix( lreturns[:,i]))
-	# if :
+	# if 0 == int(np.where(firm_ind_u==i)[0]):
 	# 	show_p = True
 	# else:
-	# 	show_p = True
+	# 	show_p = False
 
 	[x_cal, y_cal, x_dates] = stock_xy(test_split,fts_space,ws_space, mc_space,news_data,temp1,dates,x_fts, x_ws, x_mc,y[:,i],data_label_method_val,svm.SVC())
 	mu_p_ts = np.concatenate([mu_p_ts,mu_news_estimate(x_cal, y_cal, test_split, temp1, dates, n_past,i,bench_mark_mu, "Mean",show_p)],axis=1)
@@ -74,6 +74,11 @@ for i in firm_ind_u:
 cov_p_ts = np.zeros([int(np.ceil(np.shape(y)[0]*test_split)),len(firm_ind_u),len(firm_ind_u)])
 for i in range(len(firm_ind_u)):
 	for j in range(i+1):
+		# if ((0 == i) or (1 == i)) and (j == 0):
+		# 	print('here we register')
+		# 	show_p = True
+		# else:
+		# 	show_p = False
 		temp1 = np.transpose(np.matrix( lreturns[:,[i,j]]))
 		[_,y,_] = gen_xy_daily(news_data,temp1,dates,220,8,10,2,data_label_method_cov) 
 		[x_cal, y_cal, x_dates] = stock_xy(test_split,fts_space,ws_space, mc_space,news_data,temp1,dates,x_fts, x_ws, x_mc,y,data_label_method_cov,Ridge(alpha=0))

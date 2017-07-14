@@ -214,6 +214,7 @@ def sort_predictability(news_data,lreturns,dates,test_split):
 
 		#SVM
 		clf = svm.SVC()
+
 		clf.fit(x_train, y_train[:,i])
 		#res =  np.reshape(np.array(clf.predict(x_test)),[1,np.shape(x_test)[0]])
 		res =  np.array(clf.predict(x_test)).flatten()
@@ -302,8 +303,6 @@ def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,be
 	from sklearn.model_selection import GridSearchCV
 	import numpy as np
 	from evaluation import plot_pred_true_b, learning_plots
-	import multiprocessing
-	n_cpu = multiprocessing.cpu_count()
 
 
 	#get x and y
@@ -313,8 +312,6 @@ def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,be
 		pass
 
 	x_train, y_train, x_test, y_test = train_test_split(x_cal, y_cal, test_split)
-
-
 
 
 	#benchmark estimates
@@ -330,7 +327,7 @@ def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,be
 			{'kernel': ['linear'], 'alpha': alpha_range1}]
 
 	RR_model = KernelRidge(alpha=30)
-	clf = GridSearchCV(RR_model, RR_parameters,scoring='neg_mean_squared_error',n_jobs=n_cpu)
+	clf = GridSearchCV(RR_model, RR_parameters,scoring='neg_mean_squared_error',n_jobs=1)
 	clf = clf.fit(x_train, y_train)
 	grid_results = clf.cv_results_
 
@@ -338,7 +335,7 @@ def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,be
 	
 
 	#2. produce estimates
-	clf = clf.fit(x_train, y_train)
+	#clf = clf.fit(x_train, y_train)
 	mu_p_ts = clf.predict(x_test)
 	#set variance to zero if negativ / probably a bad trick
 	if benchm_f == bench_mark_cov:
@@ -348,7 +345,7 @@ def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,be
 	#3. plots
 	if show_plots:
 		plot_pred_true_b(y_test,clf.predict(x_test),bench_y.flatten(), mu_var) 
-		learning_plots(grid_results,clf, x_cal, y_cal,n_cpu,alpha_range,gamma_range)
+		learning_plots(grid_results,clf, x_cal, y_cal,1,alpha_range,gamma_range)
 
 
 	return mu_p_ts

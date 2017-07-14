@@ -52,25 +52,137 @@ def ret2prices(ret_series,base_value):
 
 
 #testing for new optimization functions
+import numpy as np
 
-# data_ts = np.random.rand(100,20)
+data_ts = np.random.rand(100,20)
 
-# mu = np.mean(data_ts,axis=0)
-# gamma = np.cov(np.transpose(data_ts))
+mu = np.mean(data_ts,axis=0)
+gamma = np.cov(np.transpose(data_ts))
 
 
-# mu_pp = list()
-# var_pp = list()
-# for i in (np.arange(100)/100):
-# 	mu_pp.append(i)
-# 	[w, var_p] = min_var_mu(mu,gamma,i)
-# 	var_pp.append(var_p)
+mu_pp = list()
+var_pp = list()
+for i in (np.arange(100)/100):
+	mu_pp.append(i)
+	[w, var_p] = min_var_mu(mu,gamma,i)
+	var_pp.append(var_p)
 
-# [w, mu_p, var_p] = min_var(mu, gamma)
+[w, mu_p, var_p] = min_var(mu, gamma)
 
-# import matplotlib.pyplot as plt
-# plt.figure()
-# plt.clf()
-# plt.plot(var_pp,mu_pp, 'ro')
-# plt.plot(var_p,mu_p, 'bo')
-# plt.show()
+import matplotlib.pyplot as plt
+plt.figure()
+plt.clf()
+plt.plot(var_pp,mu_pp, 'ro')
+plt.plot(var_p,mu_p, 'bo')
+plt.show()
+
+
+
+
+
+
+
+#split bregman
+
+#definiton
+tol = 10e-15
+
+#code
+data_ts = np.random.rand(100,20)
+data_ts = np.transpose(data_ts)
+
+[lambdap,rho] = bregman_parameter(data_ts, tol)
+[w, mu_p, var_p] = bregman(rho, lambdap, tol, data_ts)
+
+import matplotlib.pyplot as plt
+plt.figure()
+plt.clf()
+plt.plot(var_pp,mu_pp, 'ro')
+plt.plot(var_p,mu_p, 'bo')
+plt.show()
+
+
+
+
+
+
+def bregman_parameter(data_ts,tol):
+	lambdap_range = np.linspace(0,10,25)
+	rho_range = np.linspace(0,20,25)
+
+	var_p = list()
+
+	for i in lambdap_range:
+		[wt, mu_pt, var_pt] = bregman(8, i, tol, data_ts)
+		var_p.append(var_pt)
+
+	lambdap_f = lambdap_range[var_p.index(min(var_p))]
+	var_p = list()
+
+	for i in rho_range:
+		[w, mu_p, var_pt] = bregman(i, lambdap_f, tol, data_ts)
+		var_p.append(var_pt)
+	rho_f = rho_range[var_p.index(min(var_p))]
+
+	return lambdap_f, rho_f
+
+
+def shrinkage_operator(x,gamma):
+	return (x/np.abs(x)) * np.max([np.abs(x)-gamma,0])
+
+
+
+def bregman(rho, lambdap, tol,data_ts):
+	mu = np.mean(data_ts,axis=1)
+	gamma = np.cov(np.transpose(data_ts),rowvar=False)
+	len_s = len(mu)
+
+	K = 1000
+
+	#beta uncertainty -> for mean
+	bootstat = np.zeros([K,np.shape(data_ts)[0]])
+	for i in range(K):
+		bootstat[i,:] = np.mean(data_ts[:,np.random.randint(0,np.shape(data_ts)[1]-1, int(np.floor(np.shape(data_ts)[1]*0.9)))])
+
+	mu_err = np.abs(np.subtract(bootstat, np.reshape(np.mean(bootstat,axis=0),[1,len(data_ts)])))
+	beta = np.mean(mu_err, axis=0)
+
+
+	#alpha uncertainty -> for cov
+	bootstat = np.zeros([K,np.shape(data_ts)[0],np.shape(data_ts)[0]])
+	for i in range(K):
+		bootstat[i,:,:] = np.cov(data_ts[:,np.random.randint(0,np.shape(data_ts)[1]-1, int(np.floor(np.shape(data_ts)[1]*0.9)))])
+	cov_err = np.abs(np.subtract(bootstat, np.mean(bootstat,axis=0)))
+	alpha = np.mean(cov_err, axis=0)
+
+
+	B = np.multiply(np.identity(len(beta)),beta)
+
+	b = list()
+	b.append([])
+	b.append(np.zeros([len_s,1]))
+
+	d = list()
+	d.append([])
+	d.append(np.zeros([len_s,1]))
+
+	w = list()
+	w.append(-np.ones([len_s,1]))
+	w.append(np.zeros([len_s,1]))
+
+	R = np.add(np.multiply(rho, gamma) , alpha)
+
+
+	while np.linalg.norm(np.subtract(w[-1], w[-2])) > tol:
+		w.append( np.linalg.solve( np.add(R , np.dot(np.transpose(B), B )),  ( np.add(np.reshape(mu,[len_s,1]), np.multiply(lambdap, np.dot(np.transpose(B) ,np.subtract(d[-1],b[-1]) ))) )) )
+		d.append(np.zeros([len_s,1]))
+		b.append(np.zeros([len_s,1]))
+		for i in range(len_s):
+			d[-1][i] = shrinkage_operator((beta[i]*w[-1][i] +b[-2][i]), (1/lambdap))
+			b[-1][i] = b[-2][i] + beta[i] * w[-1][i] - d[-1][i]
+
+	mu_p = np.dot(np.transpose(w[-1]),mu)
+	var_p = np.dot(np.dot(np.transpose(w[-1]), gamma), (w[-1]))
+
+	return w[-1], mu_p, var_p
+
