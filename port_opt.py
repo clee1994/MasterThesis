@@ -80,18 +80,137 @@ plt.show()
 
 
 
+#cvxpy
+def cv_opt(mu, Sigma, e_mu):
+	from cvxpy import quad_form, Variable, sum_entries, Problem, Maximize
+	n = len(mu)
+	w = Variable(n)
+	#gamma = Parameter(sign='positive')
+	ret = mu.T*w 
+	risk = quad_form(w, Sigma)
+	if e_mu == None:
+		prob = Problem(Maximize(ret - risk), [sum_entries(w) == 1, w >= 0])
+	else:
+		prob = Problem(Maximize(ret - risk), [sum_entries(w) == 1, w >= 0, ret==e_mu])
+	prob.solve() 
+
+	return w.value, ret.value, risk.value
 
 
-#split bregman
+data_ts = np.random.rand(100,4)
+
+mu = np.mean(data_ts,axis=0)
+gamma = np.cov(np.transpose(data_ts))
+
+mu_pp = list()
+var_pp = list()
+for z in np.linspace(0.1,20,10):
+	mu_pp.append(float(z))
+	[w, mu_p, var_p] = cv_opt(mu,gamma,float(z))
+	var_pp.append(var_p)
+
+[w, mu_p, var_p] = opt_min(mu, gamma, None)
+
+import matplotlib.pyplot as plt
+plt.figure()
+plt.clf()
+plt.plot(np.array(var_pp).flatten(),mu_pp, 'ro')
+plt.plot(np.diag(gamma), mu, 'bo')
+plt.plot(var_p, mu_p, 'go')
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#cvxopt
+data_ts = np.random.rand(100,4)
+
+mu = np.mean(data_ts,axis=0)
+gamma = np.cov(np.transpose(data_ts))
+
+mu_pp = list()
+var_pp = list()
+for z in np.linspace(0.1,20,10):
+	mu_pp.append(float(z))
+	[w, mu_p, var_p] = opt_min(mu,gamma,float(z))
+	var_pp.append(var_p)
+
+[w, mu_p, var_p] = opt_min(mu, gamma, None)
+
+import matplotlib.pyplot as plt
+plt.figure()
+plt.clf()
+plt.plot(np.array(var_pp).flatten(),mu_pp, 'ro')
+plt.plot(np.diag(gamma), mu, 'bo')
+plt.plot(var_p, mu_p, 'go')
+plt.show()
+
+def opt_min(mu, gamma, e_mu):
+
+	from cvxopt import solvers
+	from cvxopt import matrix as opt_matrix
+	import numpy as np
+	solvers.options['show_progress'] = False
+	#solvers.options['maxiters'] = 5000
+	#solvers.options['abstol'] = 1e-15
+	#solvers.options['reltol'] = 1e-15
+	#solvers.options['feastol'] = 1e-15
+	#solvers.options['refinement'] = 10
+
+
+	mu = opt_matrix(mu)
+	gamma = opt_matrix(gamma)
+
+
+	n = len(mu)
+
+	G = opt_matrix(0.0, (n,n))
+	G[::n+1] = -1.0
+	h = opt_matrix(0.0, (n,1))
+	h[:] = 0.0
+	A = opt_matrix(1.0, (1,n))
+	b = opt_matrix(1.0)
+
+
+	#emu = 0.001
+
+	if e_mu != None:
+		xs = np.array(solvers.qp(e_mu*gamma, -mu, G, h, A, b, 'mosek')['x'])
+	else:
+		xs = np.array(solvers.qp(gamma, -mu, G, h, A, b, 'mosek')['x'])
+	mu_p = np.dot(np.transpose(xs),mu)
+	var_p = np.dot(np.dot(np.transpose(xs), gamma), (xs))
+
+	return xs, mu_p, var_p
+
+
+
+
+
+#split bregman -> problem
 
 #definiton
-tol = 10e-15
+tol = 0.0001
 
 #code
 data_ts = np.random.rand(100,20)
 data_ts = np.transpose(data_ts)
 
 [lambdap,rho] = bregman_parameter(data_ts, tol)
+tol = 0.0000001
 [w, mu_p, var_p] = bregman(rho, lambdap, tol, data_ts)
 
 import matplotlib.pyplot as plt
@@ -103,12 +222,9 @@ plt.show()
 
 
 
-
-
-
 def bregman_parameter(data_ts,tol):
-	lambdap_range = np.linspace(0,10,25)
-	rho_range = np.linspace(0,20,25)
+	lambdap_range = np.linspace(0,7,25)
+	rho_range = np.linspace(0.1,17.5,25)
 
 	var_p = list()
 
@@ -127,10 +243,11 @@ def bregman_parameter(data_ts,tol):
 	return lambdap_f, rho_f
 
 
+
+
+#faulty bregman
 def shrinkage_operator(x,gamma):
 	return (x/np.abs(x)) * np.max([np.abs(x)-gamma,0])
-
-
 
 def bregman(rho, lambdap, tol,data_ts):
 	mu = np.mean(data_ts,axis=1)
