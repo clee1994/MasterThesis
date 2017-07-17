@@ -111,8 +111,8 @@ def cov_gen_past(lreturns, dates_lr, x_dates_test, used_stocks_ind, n_past):
 	return mu
 
 
-def evaluate_portfolio(used_stocks,x_dates_test,lreturns,mu_ts,cov_ts,firm_ind,dates):
-	from port_opt import min_var_mu, min_var, ret2prices
+def evaluate_portfolio(used_stocks,x_dates_test,lreturns,mu_ts,cov_ts,firm_ind,dates, e_mu, glambda, h):
+	from port_opt import cv_opt, ret2prices
 	import datetime
 	import numpy as np
 
@@ -146,10 +146,11 @@ def evaluate_portfolio(used_stocks,x_dates_test,lreturns,mu_ts,cov_ts,firm_ind,d
 
 		gamma = cov_ts[i]#np.cov(lreturns[(ind_d-n_past):ind_d, firm_ind],rowvar=False)
 
-		[w, mu_p, var_p] = min_var(mu, gamma)
+		[w, mu_p, var_p] = cv_opt(mu, gamma, e_mu, glambda, h)
 		#[i_w, i_mu_p, i_var_p] = min_var(improved_mu, gamma)
 		#the plus here, also not really sure
-		realized_mu.append(np.dot(w,lreturns[ind_d+1,firm_ind]))
+
+		realized_mu.append(np.dot(np.transpose(w),lreturns[ind_d+1,firm_ind]))
 		#i_realized_mu.append(np.dot(i_w,lreturns[ind_d,firm_ind]))
 
 
@@ -204,7 +205,7 @@ def final_plots(arg_lines,label_list):
 	plt.close()
 
 
-def learning_plots(grid_results,clf, x_cal, y_cal,n_cpu, alpha_range,gamma_range):
+def learning_plots(grid_results,clf, x_cal, y_cal,n_cpu, alpha_range,gamma_range,show_p):
 	#plot grid results
 	from matplotlib import rc
 	rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
@@ -219,20 +220,20 @@ def learning_plots(grid_results,clf, x_cal, y_cal,n_cpu, alpha_range,gamma_range
 
 
 
-	index_linear = np.where(grid_results['param_kernel']=='linear')
-	val_train = np.array(grid_results['mean_train_score'])[index_linear]*-1
-	val_test = np.array(grid_results['mean_test_score'])[index_linear]*-1
-	plt.figure() 
-	plt.clf()
-	plt.plot(val_train, label="Train MSE")
-	plt.plot(val_test, label="Test MSE")
-	plt.xticks(range(len(val_train)),np.array(grid_results['param_alpha'])[index_linear])
-	plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,ncol=2, mode="expand", borderaxespad=0.)
-	plt.xlabel('Alpha')
-	plt.ylabel('MSE')
+	# index_linear = np.where(grid_results['param_kernel']=='linear')
+	# val_train = np.array(grid_results['mean_train_score'])[index_linear]*-1
+	# val_test = np.array(grid_results['mean_test_score'])[index_linear]*-1
+	# plt.figure() 
+	# plt.clf()
+	# plt.plot(val_train, label="Train MSE")
+	# plt.plot(val_test, label="Test MSE")
+	# plt.xticks(range(len(val_train)),np.array(grid_results['param_alpha'])[index_linear])
+	# plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,ncol=2, mode="expand", borderaxespad=0.)
+	# plt.xlabel('Alpha')
+	# plt.ylabel('MSE')
 
-	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'alpha_fitting.png',bbox_inches='tight')
-	plt.close()
+	# plt.savefig('Output/pics/'+str(datetime.datetime.now())+'alpha_fitting.png',bbox_inches='tight')
+	# plt.close()
 
 
 
@@ -248,7 +249,9 @@ def learning_plots(grid_results,clf, x_cal, y_cal,n_cpu, alpha_range,gamma_range
 	fig = plt.figure()
 	plt.clf()
 	ax = fig.add_subplot(111, projection='3d')
-	ax.plot_wireframe(x_pval, y_pval, val_test)
+
+	xpt, ypt = np.meshgrid(np.arange(0,np.shape(x_pval)[1],1),np.arange(0,np.shape(x_pval)[0],1))
+	ax.plot_wireframe(xpt, ypt, val_test)
 
 
 	#plt.plot(val_train, label="Train MSE")
@@ -257,6 +260,7 @@ def learning_plots(grid_results,clf, x_cal, y_cal,n_cpu, alpha_range,gamma_range
 	#plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,ncol=2, mode="expand", borderaxespad=0.)
 	ax.set_xlabel('Alpha')
 	ax.set_ylabel('Gamma')
+	#ax.yaxis.set_scale('log')
 	ax.set_zlabel('MSE')
 
 	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'rbf_fitting.png',bbox_inches='tight')
@@ -264,21 +268,21 @@ def learning_plots(grid_results,clf, x_cal, y_cal,n_cpu, alpha_range,gamma_range
 
 
 	
+	if show_p:
+		train_sizes, train_scores, test_scores = learning_curve(clf, x_cal, y_cal, cv=None, train_sizes=np.linspace(3, len(x_cal)*0.6, 500,dtype=int),n_jobs=n_cpu,scoring='neg_mean_squared_error')
+		train_scores = np.mean(train_scores,axis=1)
+		test_scores = np.mean(test_scores,axis=1)
 
-	train_sizes, train_scores, test_scores = learning_curve(clf, x_cal, y_cal, cv=None, train_sizes=np.linspace(3, len(x_cal)*0.6, 500,dtype=int),n_jobs=n_cpu,scoring='neg_mean_squared_error')
-	train_scores = np.mean(train_scores,axis=1)
-	test_scores = np.mean(test_scores,axis=1)
+		
+		plt.figure() 
+		plt.clf()
 
-	
-	plt.figure() 
-	plt.clf()
+		plt.plot(train_sizes,train_scores*-1, label="Train MSE")
+		plt.plot(train_sizes,test_scores*-1, label="Test MSE")
+		#plt.xticks(range(len(train_scores)),train_sizes)
+		plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,ncol=2, mode="expand", borderaxespad=0.)
+		plt.xlabel('Size training set')
+		plt.ylabel('MSE')
 
-	plt.plot(train_sizes,train_scores*-1, label="Train MSE")
-	plt.plot(train_sizes,test_scores*-1, label="Test MSE")
-	#plt.xticks(range(len(train_scores)),train_sizes)
-	plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,ncol=2, mode="expand", borderaxespad=0.)
-	plt.xlabel('Size training set')
-	plt.ylabel('MSE')
-
-	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'learning_curve.png',bbox_inches='tight')
-	plt.close()
+		plt.savefig('Output/pics/'+str(datetime.datetime.now())+'learning_curve.png',bbox_inches='tight')
+		plt.close()

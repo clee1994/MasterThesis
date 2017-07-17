@@ -12,7 +12,7 @@ from sklearn.linear_model import Ridge
 # 0. modifiable variables
 path_to_news_files = "./Data_small/ReutersNews106521"
 firms_used = 2
-n_past = 60
+n_past = 100
 
 #traning splits
 test_split = 0.25
@@ -53,17 +53,12 @@ print(str(datetime.datetime.now())+': Successfully sorted')
 gc.collect()
 print(str(datetime.datetime.now())+': Successfully produce doc2vec model sign')
 
-show_p = True
+show_p = False
 
 # 5. single stock parameter calibration & get improved mu estimates
 mu_p_ts = np.empty((int(np.ceil(np.shape(y)[0]*test_split)),0), float)
 for i in firm_ind_u:
 	temp1 = np.transpose(np.matrix( lreturns[:,i]))
-	# if 0 == int(np.where(firm_ind_u==i)[0]):
-	# 	show_p = True
-	# else:
-	# 	show_p = False
-
 	[x_cal, y_cal, x_dates] = stock_xy(test_split,fts_space,ws_space, mc_space,news_data,temp1,dates,x_fts, x_ws, x_mc,y[:,i],data_label_method_val,svm.SVC())
 	mu_p_ts = np.concatenate([mu_p_ts,mu_news_estimate(x_cal, y_cal, test_split, temp1, dates, n_past,i,bench_mark_mu, "Mean",show_p)],axis=1)
 	print(str(datetime.datetime.now())+': Successfully produced mu_p_ts for '+names[i])
@@ -74,11 +69,6 @@ for i in firm_ind_u:
 cov_p_ts = np.zeros([int(np.ceil(np.shape(y)[0]*test_split)),len(firm_ind_u),len(firm_ind_u)])
 for i in range(len(firm_ind_u)):
 	for j in range(i+1):
-		# if ((0 == i) or (1 == i)) and (j == 0):
-		# 	print('here we register')
-		# 	show_p = True
-		# else:
-		# 	show_p = False
 		temp1 = np.transpose(np.matrix( lreturns[:,[i,j]]))
 		[_,y,_] = gen_xy_daily(news_data,temp1,dates,220,8,10,2,data_label_method_cov) 
 		[x_cal, y_cal, x_dates] = stock_xy(test_split,fts_space,ws_space, mc_space,news_data,temp1,dates,x_fts, x_ws, x_mc,y,data_label_method_cov,Ridge(alpha=0))
@@ -99,10 +89,10 @@ pcov_p_ts = cov_gen_past(lreturns, dates, x_dates[(split_point+1):], firm_ind_u[
 
 
 
-
 # 7. build portfolios based on both
-[_,first_line] = evaluate_portfolio(names[firm_ind_u],x_dates[(split_point+1):],lreturns,pmu_p_ts,pcov_p_ts,firm_ind_u,dates)
-[_,second_line] = evaluate_portfolio(names[firm_ind_u],x_dates[(split_point+1):],lreturns,mu_p_ts,cov_p_ts,firm_ind_u,dates)
+[_,first_line] = evaluate_portfolio(names[firm_ind_u],x_dates[(split_point+1):],lreturns,pmu_p_ts,pcov_p_ts,firm_ind_u,dates,None, None, -1)
+[_,second_line] = evaluate_portfolio(names[firm_ind_u],x_dates[(split_point+1):],lreturns,mu_p_ts,cov_p_ts,firm_ind_u,dates,None, None, -1)
+[_,third_line] = evaluate_portfolio(names[firm_ind_u],x_dates[(split_point+1):],lreturns,pmu_p_ts,pcov_p_ts,firm_ind_u,dates,None, 0.5, -1)
 sp500 = pure_SP(x_dates[(split_point+1):])
 
 #del dates, names, lreturns, firm_ind_u, x_dates, mu_p_ts, pmu_p_ts, pcov_p_ts, split_point
@@ -110,6 +100,6 @@ gc.collect
 
 
 # 8. plotting the final results
-final_plots([first_line,second_line,sp500],[r'min. var. portfolio (past obs.)', r'min. var. portfolio (doc2vec)',r'SP500 raw performance'])
+final_plots([first_line,second_line,third_line,sp500],[r'min. var. portfolio (past obs.)', r'min. var. portfolio (doc2vec)',r'min. var. (doc2vec, l1)',r'SP500 raw performance'])
 
 

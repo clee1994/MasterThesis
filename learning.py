@@ -320,11 +320,11 @@ def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,be
 
 
 	#1. model selection with cross validation and grid search
-	alpha_range1 = [0.001,0.1,0.5,1,5,10,20,30,35,40,45,50,100,200]
-	alpha_range = [1,5,10,20,30,35,40,45,50,100,200]
-	gamma_range = [1e-4, 1e-3,0.01,0.1,1,2,10]
-	RR_parameters = [{'kernel': ['rbf'], 'gamma': gamma_range, 'alpha': alpha_range},
-			{'kernel': ['linear'], 'alpha': alpha_range1}]
+	alpha_range1 = np.linspace(0.01,10, 10)
+	alpha_range = np.linspace(0.01,30, 10)
+	gamma_range = np.geomspace(1e-4,3,7)
+	RR_parameters = [{'kernel': ['rbf'], 'gamma': gamma_range, 'alpha': alpha_range}]
+			#{'kernel': ['linear'], 'alpha': alpha_range1}]
 
 	RR_model = KernelRidge(alpha=30)
 	clf = GridSearchCV(RR_model, RR_parameters,scoring='neg_mean_squared_error',n_jobs=1)
@@ -343,9 +343,8 @@ def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,be
 			mu_p_ts[mu_p_ts < 0] = 0
 
 	#3. plots
-	if show_plots:
-		plot_pred_true_b(y_test,clf.predict(x_test),bench_y.flatten(), mu_var) 
-		learning_plots(grid_results,clf, x_cal, y_cal,1,alpha_range,gamma_range)
+	plot_pred_true_b(y_test,clf.predict(x_test),bench_y.flatten(), mu_var) 
+	learning_plots(grid_results,clf, x_cal, y_cal,1,alpha_range,gamma_range,show_plots)
 
 
 	return mu_p_ts
