@@ -89,27 +89,51 @@ def cv_opt(mu, Sigma, e_mu):
 	ret = mu.T*w 
 	risk = quad_form(w, Sigma)
 	if e_mu == None:
-		prob = Problem(Maximize(ret - risk), [sum_entries(w) == 1, w >= 0])
+		prob = Problem(Maximize(ret - risk ), [sum_entries(w) == 1, w >= -1])
 	else:
-		prob = Problem(Maximize(ret - risk), [sum_entries(w) == 1, w >= 0, ret==e_mu])
+		prob = Problem(Maximize(ret - risk), [sum_entries(w) == 1, w >= -1, ret==e_mu])
+	prob.solve() 
+
+	return w.value, ret.value, risk.value
+
+def cv_opt_l1(mu, Sigma, e_mu, glambda):
+	from cvxpy import quad_form, Variable, sum_entries, Problem, Maximize
+	n = len(mu)
+	w = Variable(n)
+	#gamma = Parameter(sign='positive')
+	ret = mu.T*w 
+	risk = quad_form(w, Sigma)
+	if e_mu == None:
+		prob = Problem(Maximize(ret - risk - glambda*norm(w,1) ), [sum_entries(w) == 1, w >= -1])
+	else:
+		prob = Problem(Maximize(ret - risk - glambda*norm(w,1)), [sum_entries(w) == 1, w >= -1, ret==e_mu])
 	prob.solve() 
 
 	return w.value, ret.value, risk.value
 
 
-data_ts = np.random.rand(100,4)
+data_ts = np.random.rand(100,20)
 
 mu = np.mean(data_ts,axis=0)
 gamma = np.cov(np.transpose(data_ts))
 
 mu_pp = list()
 var_pp = list()
-for z in np.linspace(0.1,20,10):
+for z in np.linspace(0.4,0.5,50):
 	mu_pp.append(float(z))
 	[w, mu_p, var_p] = cv_opt(mu,gamma,float(z))
 	var_pp.append(var_p)
 
-[w, mu_p, var_p] = opt_min(mu, gamma, None)
+[w, mu_p, var_p] = cv_opt(mu, gamma, None)
+
+mu_pp1 = list()
+var_pp1 = list()
+for z in np.linspace(0.4,0.5,50):
+	mu_pp1.append(float(z))
+	[w1, mu_p, var_p] = cv_opt_l1(mu,gamma,float(z), 0.5)
+	var_pp1.append(var_p)
+
+[w1, mu_p1, var_p1] = cv_opt_l1(mu, gamma, None,0.5)
 
 import matplotlib.pyplot as plt
 plt.figure()
@@ -117,8 +141,17 @@ plt.clf()
 plt.plot(np.array(var_pp).flatten(),mu_pp, 'ro')
 plt.plot(np.diag(gamma), mu, 'bo')
 plt.plot(var_p, mu_p, 'go')
+plt.plot(np.array(var_pp1).flatten(),mu_pp1, 'rx')
+plt.plot(var_p1, mu_p1, 'gx')
 plt.show()
 
+plt.figure()
+plt.bar(w)
+plt.show()
+
+plt.figure()
+plt.bar(w1)
+plt.show()
 
 
 
