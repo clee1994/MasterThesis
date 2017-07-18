@@ -10,21 +10,21 @@ from sklearn.linear_model import Ridge
 
 
 # 0. modifiable variables
-path_to_news_files = "./Data_small/ReutersNews106521"
-firms_used = 2
+path_to_news_files = "./Data/ReutersNews106521"
+firms_used = 30
 n_past = 100
 
 #traning splits
 test_split = 0.25
 
 #doc2vec spaces
-fts_space = np.linspace(180,440,4,dtype=int)
-ws_space = np.linspace(4,18,4,dtype=int)
-mc_space = np.linspace(0,35,4,dtype=int)
+#fts_space = np.linspace(180,440,4,dtype=int)
+#ws_space = np.linspace(4,18,4,dtype=int)
+#mc_space = np.linspace(0,35,4,dtype=int)
 
-#fts_space = np.linspace(150,650,16,dtype=int)
-#ws_space = np.linspace(2,25,16,dtype=int)
-#mc_space = np.linspace(0,50,16,dtype=int)
+fts_space = np.linspace(150,650,8,dtype=int)
+ws_space = np.linspace(2,25,8,dtype=int)
+mc_space = np.linspace(0,50,8,dtype=int)
 
 
 
@@ -100,7 +100,7 @@ gc.collect()
 sp500 = pure_SP(x_dates[(split_point+1):])
 
 del dates, names, lreturns, firm_ind_u, x_dates, mu_p_ts, pmu_p_ts, pcov_p_ts, split_point
-gc.collect
+gc.collect()
 
 
 # 8. plotting the final results
