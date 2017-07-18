@@ -10,21 +10,21 @@ from sklearn.linear_model import Ridge
 
 
 # 0. modifiable variables
-path_to_news_files = "./Data/ReutersNews106521"
-firms_used = 30
+path_to_news_files = "./Data_small/ReutersNews106521"
+firms_used = 2
 n_past = 100
 
 #traning splits
 test_split = 0.25
 
 #doc2vec spaces
-#fts_space = np.linspace(180,440,4,dtype=int)
-#ws_space = np.linspace(4,18,4,dtype=int)
-#mc_space = np.linspace(0,35,4,dtype=int)
+fts_space = np.linspace(180,440,4,dtype=int)
+ws_space = np.linspace(4,18,4,dtype=int)
+mc_space = np.linspace(0,35,4,dtype=int)
 
-fts_space = np.linspace(150,650,16,dtype=int)
-ws_space = np.linspace(2,25,16,dtype=int)
-mc_space = np.linspace(0,50,16,dtype=int)
+#fts_space = np.linspace(150,650,16,dtype=int)
+#ws_space = np.linspace(2,25,16,dtype=int)
+#mc_space = np.linspace(0,50,16,dtype=int)
 
 
 
@@ -61,6 +61,8 @@ for i in firm_ind_u:
 	temp1 = np.transpose(np.matrix( lreturns[:,i]))
 	[x_cal, y_cal, x_dates] = stock_xy(test_split,fts_space,ws_space, mc_space,news_data,temp1,dates,x_fts, x_ws, x_mc,y[:,i],data_label_method_val,svm.SVC())
 	mu_p_ts = np.concatenate([mu_p_ts,mu_news_estimate(x_cal, y_cal, test_split, temp1, dates, n_past,i,bench_mark_mu, "Mean",show_p)],axis=1)
+	del x_cal, y_cal, x_dates, temp1
+	gc.collect()
 	print(str(datetime.datetime.now())+': Successfully produced mu_p_ts for '+names[i])
 
 
@@ -74,9 +76,11 @@ for i in range(len(firm_ind_u)):
 		[x_cal, y_cal, x_dates] = stock_xy(test_split,fts_space,ws_space, mc_space,news_data,temp1,dates,x_fts, x_ws, x_mc,y,data_label_method_cov,Ridge(alpha=0))
 		cov_p_ts[:,i,j] = mu_news_estimate(x_cal, y_cal, test_split, temp1, dates, n_past,i,bench_mark_cov, "Covariance", show_p)
 		cov_p_ts[:,j,i] = cov_p_ts[:,i,j]
+		del x_cal, y_cal, temp1, y
+		gc.collect()
 		print(str(datetime.datetime.now())+': Successfully produced co_p_ts for '+names[firm_ind_u[i]]+' and '+names[firm_ind_u[j]])
 
-#del x_cal, y_cal,news_data, x_fts, x_ws, x_mc, y
+del news_data, x_fts, x_ws, x_mc
 gc.collect()
 
 
@@ -85,7 +89,7 @@ gc.collect()
 split_point = int(np.floor(np.shape(x_dates)[0]*(1-test_split)))
 pmu_p_ts = mu_gen_past(lreturns, dates, x_dates[(split_point+1):], firm_ind_u[0:firms_used], n_past)
 pcov_p_ts = cov_gen_past(lreturns, dates, x_dates[(split_point+1):], firm_ind_u[0:firms_used], n_past)
-
+gc.collect()
 
 
 
@@ -95,7 +99,7 @@ pcov_p_ts = cov_gen_past(lreturns, dates, x_dates[(split_point+1):], firm_ind_u[
 [_,third_line] = evaluate_portfolio(names[firm_ind_u],x_dates[(split_point+1):],lreturns,pmu_p_ts,pcov_p_ts,firm_ind_u,dates,None, 0.5, -1)
 sp500 = pure_SP(x_dates[(split_point+1):])
 
-#del dates, names, lreturns, firm_ind_u, x_dates, mu_p_ts, pmu_p_ts, pcov_p_ts, split_point
+del dates, names, lreturns, firm_ind_u, x_dates, mu_p_ts, pmu_p_ts, pcov_p_ts, split_point
 gc.collect
 
 
