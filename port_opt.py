@@ -24,18 +24,18 @@ def cv_opt(mu, Sigma, e_mu, glambda, h):
 	ret = mu.T*w 
 
 
-	try:
+	if is_pos_def(Sigma):
 		risk = quad_form(w, Sigma)
-	except:
-		for i in np.linspace(0.01,1.5,150):
+	else:
+		for i in np.linspace(0.01,5,500):
 			test = shrunk_covariance(Sigma, shrinkage=i)
 			if is_pos_def(test):
 				Sigma = test
 				break
-		try:
-			risk = quad_form(w, Sigma)
-		except:
+		risk = quad_form(w, Sigma)
+		if not is_pos_def(Sigma):
 			print('Here you got a serious problem')
+			print(Sigma)
 
 	if glambda == None:
 		if e_mu == None:
