@@ -95,6 +95,7 @@ def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ht,ylm):
 	except:
 		pass
 
+
 	model = Doc2Vec(size=features, window=window, min_count=mcount, workers=1)
 
 	model.build_vocab(documents)

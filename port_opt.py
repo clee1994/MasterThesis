@@ -10,11 +10,11 @@ def ret2prices(ret_series,base_value):
 	return prices
 
 
-
-
+def is_pos_def(x):
+	import numpy as np
+	return np.all(np.linalg.eigvals(x) > 0)
 
 #cvxpy
-
 def cv_opt(mu, Sigma, e_mu, glambda, h):
 	from cvxpy import quad_form, Variable, sum_entries, Problem, Maximize, norm
 	from sklearn.covariance import shrunk_covariance
@@ -22,11 +22,21 @@ def cv_opt(mu, Sigma, e_mu, glambda, h):
 	w = Variable(n)
 	#gamma = Parameter(sign='positive')
 	ret = mu.T*w 
+
+
 	try:
 		risk = quad_form(w, Sigma)
 	except:
-		Sigma = shrunk_covariance(Sigma, shrinkage=0.1)
-		risk = quad_form(w, Sigma)
+		for i in np.linspace(0.01,1,100):
+			test = shrunk_covariance(Sigma, shrinkage=i)
+			if is_pos_def(test):
+				Sigma = test
+				break
+		try:
+			risk = quad_form(w, Sigma)
+		except:
+			print('Here you got a serious problem')
+			
 	if glambda == None:
 		if e_mu == None:
 			prob = Problem(Maximize(ret - risk), [sum_entries(w) == 1, w >= h])
