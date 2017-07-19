@@ -27,7 +27,7 @@ def cv_opt(mu, Sigma, e_mu, glambda, h):
 	try:
 		risk = quad_form(w, Sigma)
 	except:
-		for i in np.linspace(0.01,1,100):
+		for i in np.linspace(0.01,1.5,150):
 			test = shrunk_covariance(Sigma, shrinkage=i)
 			if is_pos_def(test):
 				Sigma = test
@@ -36,7 +36,7 @@ def cv_opt(mu, Sigma, e_mu, glambda, h):
 			risk = quad_form(w, Sigma)
 		except:
 			print('Here you got a serious problem')
-			
+
 	if glambda == None:
 		if e_mu == None:
 			prob = Problem(Maximize(ret - risk), [sum_entries(w) == 1, w >= h])
