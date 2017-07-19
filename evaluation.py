@@ -146,6 +146,7 @@ def evaluate_portfolio(used_stocks,x_dates_test,lreturns,mu_ts,cov_ts,firm_ind,d
 
 		gamma = cov_ts[i]#np.cov(lreturns[(ind_d-n_past):ind_d, firm_ind],rowvar=False)
 
+		print(i)
 		[w, mu_p, var_p] = cv_opt(mu, gamma, e_mu, glambda, h)
 		#[i_w, i_mu_p, i_var_p] = min_var(improved_mu, gamma)
 		#the plus here, also not really sure

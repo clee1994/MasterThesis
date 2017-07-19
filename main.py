@@ -11,20 +11,20 @@ from sklearn.linear_model import Ridge
 
 # 0. modifiable variables
 path_to_news_files = "./Data/ReutersNews106521"
-firms_used = 30
+firms_used = 3
 n_past = 100
 
 #traning splits
 test_split = 0.25
 
 #doc2vec spaces
-#fts_space = np.linspace(180,440,4,dtype=int)
-#ws_space = np.linspace(4,18,4,dtype=int)
-#mc_space = np.linspace(0,35,4,dtype=int)
+fts_space = np.linspace(150,650,4,dtype=int)
+ws_space = np.linspace(2,25,4,dtype=int)
+mc_space = np.linspace(0,50,4,dtype=int)
 
-fts_space = np.linspace(150,650,8,dtype=int)
-ws_space = np.linspace(2,25,8,dtype=int)
-mc_space = np.linspace(0,50,8,dtype=int)
+#fts_space = np.linspace(150,650,8,dtype=int)
+#ws_space = np.linspace(2,25,8,dtype=int)
+#mc_space = np.linspace(0,50,8,dtype=int)
 
 
 
@@ -96,7 +96,7 @@ gc.collect()
 # 7. build portfolios based on both
 [_,first_line] = evaluate_portfolio(names[firm_ind_u],x_dates[(split_point+1):],lreturns,pmu_p_ts,pcov_p_ts,firm_ind_u,dates,None, None, -1)
 [_,second_line] = evaluate_portfolio(names[firm_ind_u],x_dates[(split_point+1):],lreturns,mu_p_ts,cov_p_ts,firm_ind_u,dates,None, None, -1)
-[_,third_line] = evaluate_portfolio(names[firm_ind_u],x_dates[(split_point+1):],lreturns,pmu_p_ts,pcov_p_ts,firm_ind_u,dates,None, 0.5, -1)
+[_,third_line] = evaluate_portfolio(names[firm_ind_u],x_dates[(split_point+1):],lreturns,mu_p_ts,cov_p_ts,firm_ind_u,dates,None, 0.5, -1)
 sp500 = pure_SP(x_dates[(split_point+1):])
 
 del dates, names, lreturns, firm_ind_u, x_dates, mu_p_ts, pmu_p_ts, pcov_p_ts, split_point
