@@ -18,6 +18,7 @@ def is_pos_def(x):
 def cv_opt(mu, Sigma, e_mu, glambda, h):
 	from cvxpy import quad_form, Variable, sum_entries, Problem, Maximize, norm
 	from sklearn.covariance import shrunk_covariance
+	import numpy as np
 	n = len(mu)
 	w = Variable(n)
 	#gamma = Parameter(sign='positive')

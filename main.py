@@ -10,7 +10,7 @@ from sklearn.linear_model import Ridge
 
 
 # 0. modifiable variables
-path_to_news_files = "./Data/ReutersNews106521"
+path_to_news_files = "./Data_small/ReutersNews106521"
 firms_used = 3
 n_past = 100
 

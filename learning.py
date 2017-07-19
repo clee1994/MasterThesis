@@ -324,6 +324,7 @@ def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,be
 	alpha_range1 = np.linspace(0.01,10, 10)
 	alpha_range = np.linspace(0.01,30, 10)
 	gamma_range = np.geomspace(1e-2,5,7)
+	#http://scikit-learn.org/stable/modules/classes.html#module-sklearn.metrics.pairwise -> kernels
 	RR_parameters = [{'kernel': ['rbf'], 'gamma': gamma_range, 'alpha': alpha_range}]
 			#{'kernel': ['linear'], 'alpha': alpha_range1}]
 
