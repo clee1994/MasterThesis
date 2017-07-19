@@ -11,20 +11,20 @@ from sklearn.linear_model import Ridge
 
 # 0. modifiable variables
 path_to_news_files = "./Data/ReutersNews106521"
-firms_used = 3
-n_past = 100
+firms_used = 30
+n_past = 80
 
 #traning splits
 test_split = 0.25
 
 #doc2vec spaces
-fts_space = np.linspace(150,650,4,dtype=int)
-ws_space = np.linspace(2,25,4,dtype=int)
-mc_space = np.linspace(0,50,4,dtype=int)
+#fts_space = np.linspace(150,650,4,dtype=int)
+#ws_space = np.linspace(2,25,4,dtype=int)
+#mc_space = np.linspace(0,50,4,dtype=int)
 
-#fts_space = np.linspace(150,650,8,dtype=int)
-#ws_space = np.linspace(2,25,8,dtype=int)
-#mc_space = np.linspace(0,50,8,dtype=int)
+fts_space = np.linspace(150,650,8,dtype=int)
+ws_space = np.linspace(2,25,8,dtype=int)
+mc_space = np.linspace(0,50,8,dtype=int)
 
 
 
