@@ -1,1 +1,0 @@
-stocks_used = ["MMM"]

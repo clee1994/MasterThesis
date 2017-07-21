@@ -1,30 +1,30 @@
-from data_loading import *
-from learning import * 
-from evaluation import *
-from stocks.stocks_big import stocks_used
-import numpy as np
+import learning
+
+
 from sklearn import svm
-import datetime 
-import gc
 from sklearn.linear_model import Ridge
 
 
+import datetime, pickle, gc
+import numpy as np
+
+
 # 0. modifiable variables
-path_to_news_files = "./Data/ReutersNews106521"
-firms_used = 30
+path_to_news_files = "./Data_small/ReutersNews106521"
+firms_used = 2
 n_past = 80
 
 #traning splits
 test_split = 0.25
 
 #doc2vec spaces
-#fts_space = np.linspace(150,650,4,dtype=int)
-#ws_space = np.linspace(2,25,4,dtype=int)
-#mc_space = np.linspace(0,50,4,dtype=int)
+fts_space = np.linspace(150,650,4,dtype=int)
+ws_space = np.linspace(2,25,4,dtype=int)
+mc_space = np.linspace(0,50,4,dtype=int)
 
-fts_space = np.linspace(150,650,8,dtype=int)
-ws_space = np.linspace(2,25,8,dtype=int)
-mc_space = np.linspace(0,50,8,dtype=int)
+#fts_space = np.linspace(150,650,8,dtype=int)
+#ws_space = np.linspace(2,25,8,dtype=int)
+#mc_space = np.linspace(0,50,8,dtype=int)
 
 
 
@@ -32,12 +32,14 @@ mc_space = np.linspace(0,50,8,dtype=int)
 
 # 1. load and preprocess data
 print(str(datetime.datetime.now())+': Start reading in news:')
-[news_data, _] = load_news_data(path_to_news_files,False)
+#[news_data, _] = load_news_data(path_to_news_files,False)
+news_data = pickle.load(open( "Data/Reuters.p", "rb" ) )
 gc.collect()
 print(str(datetime.datetime.now())+': Successfully read all news')
 
 print(str(datetime.datetime.now())+': Start reading in SP500 data:')
-[_, dates, names, lreturns] = load_SP_data(stocks_used)
+#[_, dates, names, lreturns] = load_SP_data(stocks_used)
+[_, dates, names, lreturns] = pickle.load(open( "Data/SP500.p", "rb" ) )
 gc.collect()
 print(str(datetime.datetime.now())+': Successfully read all data')
 
