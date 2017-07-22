@@ -1,4 +1,5 @@
 
+
 def ret2prices(ret_series,base_value):
 	import numpy as np
 
@@ -49,6 +50,8 @@ def cv_opt(mu, Sigma, e_mu, glambda, h):
 		else:
 			prob = Problem(Maximize(ret - risk - glambda*norm(w,1)), [sum_entries(w) == 1, w >= h, ret==e_mu])
 	prob.solve() 
+
+	import pdb; pdb.set_trace()  # breakpoint 949be21b //
 
 	return w.value, ret.value, risk.value
 
