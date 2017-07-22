@@ -4,6 +4,8 @@ Data_small/
 temp.py
 Output/pics/*
 Output/tables/*
+!Output/pics/.gitkeep 
+!Output/tables/.gitkeep 
 pickle_data/
 temp2.py
 word2vec_models.py
