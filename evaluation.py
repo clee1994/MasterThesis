@@ -15,15 +15,15 @@ def plot_pred_true(y,yhat):
 	plt.figure()
 	plt.clf()
 	f, axarr = plt.subplots(2, sharex=True)
-	axarr[0].plot(y,label= "true y")
-	axarr[0].plot(yhat,label="predicted y")
-	axarr[1].plot(np.abs(np.subtract(yhat,y)),label="difference prediction and true")
+	axarr[0].plot(y,label= "true y",linewidth=0.8)
+	axarr[0].plot(yhat,label="predicted y",linewidth=0.8)
+	axarr[1].plot(np.abs(np.subtract(yhat,y)),label="difference prediction and true",linewidth=0.8)
 	axarr[0].legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
-	   			ncol=2, mode="expand", borderaxespad=0.)
+	   			ncol=2, mode="expand", borderaxespad=0.,shadow=None,framealpha=1)
 	axarr[0].xlabel('Time/Observations')
 	axarr[0].ylabel('Mean/Volatility')
 	axarr[1].legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
-	   			ncol=2, mode="expand", borderaxespad=0.)
+	   			ncol=2, mode="expand", borderaxespad=0.,shadow=None,framealpha=1)
 	axarr[1].xlabel('Time/Observations')
 	axarr[1].ylabel('Difference of true and estimated mean/volatility')
 	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'pred_true.png',bbox_inches='tight')
@@ -50,20 +50,20 @@ def plot_pred_true_b(y,yhat,benchm,v_m):
 	plt.figure()
 	plt.clf()
 	f, axarr = plt.subplots(2, sharex=True)
-	axarr[0].plot(y,label= "$y$")
-	axarr[0].plot(yhat,label="$\hat{y}_{doc2vec}$")
-	axarr[0].plot(benchm,label="$\hat{y}_{past\;obs.}$")
+	axarr[0].plot(y,label= "$y$",linewidth=0.8)
+	axarr[0].plot(yhat,label="$\hat{y}_{doc2vec}$",linewidth=0.8)
+	axarr[0].plot(benchm,label="$\hat{y}_{past\;obs.}$",linewidth=0.8)
 	ts_temp1 = np.abs(np.subtract(yhat,y))
 	ts_temp2 = np.abs(np.subtract(benchm,y))
 	#axarr[0].text(0.5, 0.5, str(np.sum(np.abs(np.subtract(yhat,y)))), fontdict=font)
-	axarr[1].plot(ts_temp1,label="$y - \hat{y}_{doc2vec}$ ($"+str(np.round(np.sum(ts_temp1),4))+"$)")
-	axarr[1].plot(ts_temp2,label="$y - \hat{y}_{past\;obs.}$ ($"+str(np.round(np.sum(ts_temp2),4))+"$)")
+	axarr[1].plot(ts_temp1,label="$y - \hat{y}_{doc2vec}$ ($"+str(np.round(np.sum(ts_temp1),4))+"$)",linewidth=0.8)
+	axarr[1].plot(ts_temp2,label="$y - \hat{y}_{past\;obs.}$ ($"+str(np.round(np.sum(ts_temp2),4))+"$)",linewidth=0.8)
 	axarr[0].legend(bbox_to_anchor=(0., 1.05, 1., .102), loc=3,
-				ncol=2, mode="expand", borderaxespad=0.)
+				ncol=2, mode="expand", borderaxespad=0.,shadow=None,framealpha=1)
 	axarr[0].set_xlabel('Time/Observations')
 	axarr[0].set_ylabel(v_m)
 	axarr[1].legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
-				ncol=2, mode="expand", borderaxespad=0.)
+				ncol=2, mode="expand", borderaxespad=0.,shadow=None,framealpha=1)
 	axarr[1].set_xlabel('Time/Observations')
 	#axarr[1].set_ylabel('Difference to $y$')
 	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'pred_true.png',bbox_inches='tight')
@@ -72,7 +72,7 @@ def plot_pred_true_b(y,yhat,benchm,v_m):
 
 #evalute portfolio construction
 
-def mu_gen_past(lreturns, dates_lr, x_dates_test, used_stocks_ind, n_past):
+def mu_gen_past1(lreturns, dates_lr, x_dates_test, used_stocks_ind, n_past):
 	import numpy as np
 	import datetime
 
@@ -85,8 +85,7 @@ def mu_gen_past(lreturns, dates_lr, x_dates_test, used_stocks_ind, n_past):
 		except:
 			temp1 = min(dates_lr, key=lambda x: abs(x - cur_d))
 			ind_d = list(dates_lr).index(temp1)
-
-		mu.append(np.mean(lreturns[(ind_d-(n_past+1)):(ind_d-1),used_stocks_ind],axis=0))
+		mu.append(np.nanmean(lreturns[(ind_d-(n_past+1)):(ind_d-1),used_stocks_ind],axis=0))
 
 	mu = np.array(mu)
 	return mu
@@ -192,12 +191,12 @@ def final_plots(arg_lines,label_list):
 	plt.figure() 
 	plt.clf()
 	for i in range(len(arg_lines)):
-		plt.plot(arg_lines[i], label=label_list[i])
+		plt.plot(arg_lines[i], label=label_list[i],linewidth=0.8)
 	#plt.plot(second_line , 'b', label='improved min var portfolio')
 
 	#plt.plot(np.subtract(value_over_time,i_value_over_time), 'g', label='improved min var portfolio')
 	plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
-	           ncol=2, mode="expand", borderaxespad=0.)
+	           ncol=2, mode="expand", borderaxespad=0.,shadow=None,framealpha=1)
 	plt.xlabel('Time/Observations')
 	plt.ylabel('Value/USD')
 
@@ -277,12 +276,37 @@ def learning_plots(grid_results,clf, x_cal, y_cal,n_cpu, alpha_range,gamma_range
 		plt.figure() 
 		plt.clf()
 
-		plt.plot(train_sizes,train_scores*-1, label="Train MSE")
-		plt.plot(train_sizes,test_scores*-1, label="Test MSE")
+		plt.plot(train_sizes,train_scores*-1, label="Train MSE",linewidth=0.8)
+		plt.plot(train_sizes,test_scores*-1, label="Test MSE",linewidth=0.8)
 		#plt.xticks(range(len(train_scores)),train_sizes)
-		plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,ncol=2, mode="expand", borderaxespad=0.)
+		plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,ncol=2, mode="expand", borderaxespad=0.,shadow=None,framealpha=1)
 		plt.xlabel('Size training set')
 		plt.ylabel('MSE')
 
 		plt.savefig('Output/pics/'+str(datetime.datetime.now())+'learning_curve.png',bbox_inches='tight')
 		plt.close()
+
+def pure_SP(x_dates):
+	import pandas as pd
+	import numpy as np
+	import datetime
+	from port_opt import ret2prices
+
+	raw_data = pd.read_csv('./Data/pureSP500.csv', sep=',',header=None,low_memory=False)
+
+	prices = raw_data.values[1:,5].astype(float)
+	dates = np.array(raw_data.values[1:,0],dtype='datetime64')
+	lreturns = np.diff(np.log(prices),n=1, axis=0)
+
+	ret = []
+	for i in range(len(x_dates)):
+		temp = x_dates[i].tolist()
+		cur_d = np.datetime64(datetime.date(temp.year, temp.month, temp.day))
+		try:
+			ind_d = list(dates).index(cur_d)
+		except:
+			temp1 = min(dates, key=lambda x: abs(x - cur_d))
+			ind_d = list(dates).index(temp1)
+		ret.append(lreturns[ind_d])
+
+	return np.array(ret2prices(ret,100))

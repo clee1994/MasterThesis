@@ -68,8 +68,9 @@ def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ht,ylm):
 
 
 		temp_d = []
-		temp = i[4].tolist()
-		cur_d = np.datetime64(datetime.date(temp.year, temp.month, temp.day))
+
+		#temp = i[4].tolist()
+		cur_d = np.datetime64(i[0])
 
 		#y
 		if cur_d == prev_d:
@@ -85,9 +86,8 @@ def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ht,ylm):
 			y.append(ylm(lreturns, cur_d,dates_stocks))
 
 		#x and skip last sentence / headlines... no last sentence only one
-		for j in range(len(i[ht])):
-			for hj in i[ht][j]:
-				 words.append(hj)
+		for hj in i[1]:
+			words.append(hj)
 	
 	try:
 		documents.append(TaggedDocument(words,tags=str(cur_d)))
@@ -98,15 +98,15 @@ def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ht,ylm):
 
 	model = Doc2Vec(size=features, window=window, min_count=mcount, workers=1)
 
+	#tag goes into vocab too.... reconsider
 	model.build_vocab(documents)
 
 	model.train(documents,total_examples=model.corpus_count, epochs=model.iter)
 
-
 	for i in documents:
 		x.append(model.infer_vector(i[0]))
 
-	return [np.array(x), np.array(y),np.array(x_dates)]
+	return [np.array(x), np.array(y), np.array(x_dates)]
 
 
 
@@ -215,17 +215,21 @@ def sort_predictability(news_data,lreturns,dates,test_split):
 
 		#SVM
 		clf = svm.SVC()
+		ind_mask = np.invert(np.isnan(y_train[:,i]))
 
-		clf.fit(x_train, y_train[:,i])
-		#res =  np.reshape(np.array(clf.predict(x_test)),[1,np.shape(x_test)[0]])
-		res =  np.array(clf.predict(x_test)).flatten()
-		temptt = (np.sum(np.abs(np.subtract(y_test[:,i],res)))/np.shape(y_test[:,i])[0])
-		#print(temptt)
-		loss_ar_svm.append(temptt)
+		if np.sum(ind_mask) > 0:
+			clf.fit(x_train[ind_mask,:], y_train[ind_mask,i])
+			#res =  np.reshape(np.array(clf.predict(x_test)),[1,np.shape(x_test)[0]])
+			res =  np.array(clf.predict(x_test)).flatten()
+			temptt = (np.sum(np.abs(np.subtract(y_test[:,i],res)))/np.shape(y_test[:,i])[0])
+			#print(temptt)
+			loss_ar_svm.append(temptt)
+		else:
+			loss_ar_svm.append(1)
 
 
 	npal = np.array(loss_ar_svm)
-	firm_ind_u = np.argsort(npal)
+	firm_ind_u = np.argsort(npal[npal!=1])
 
 	#optional information
 	#names = np.array(names) 
@@ -233,6 +237,22 @@ def sort_predictability(news_data,lreturns,dates,test_split):
 	#names[firm_ind_u[0:firms_used]]
 
 	return firm_ind_u
+
+def inside_sxy(x, y, test_split, clf_v):
+	import numpy as np
+
+	x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
+	y_train[y_train < 0] = 0
+	y_test[y_test < 0] = 0
+	#clf = clf_v
+
+
+	ind_mask = np.invert(np.isnan(y_train))
+
+	clf_v.fit(x_train[ind_mask,:], y_train[ind_mask])
+	#res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
+	res = np.array(clf_v.predict(x_test)).flatten()
+	return(np.sum(np.abs(np.subtract(y_test,res)))/np.shape(y_test)[0])
 
 
 def stock_xy(test_split, fts_space,ws_space, mc_space, news_data,lreturns,dates,x_fts, x_ws, x_mc,y,m_eval,clf_v):
@@ -250,38 +270,15 @@ def stock_xy(test_split, fts_space,ws_space, mc_space, news_data,lreturns,dates,
 	loss_cali.append([])
 
 	#make it a grid search
+
 	for x in x_fts:
-		x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
-		y_train[y_train < 0] = 0
-		y_test[y_test < 0] = 0
-		clf = clf_v
-		clf.fit(x_train, y_train)
-		#res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
-		res = np.array(clf.predict(x_test)).flatten()
-		temptt = (np.sum(np.abs(np.subtract(y_test,res)))/np.shape(y_test)[0])
-		loss_cali[0].append(temptt)
+		loss_cali[0].append(inside_sxy(x, y, test_split, clf_v))
 
 	for x in x_ws:
-		x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
-		y_train[y_train < 0] = 0
-		y_test[y_test < 0] = 0
-		clf = clf_v
-		clf.fit(x_train, y_train)
-		#res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
-		res = np.array(clf.predict(x_test)).flatten()
-		temptt = (np.sum(np.abs(np.subtract(y_test,res)))/np.shape(y_test)[0])
-		loss_cali[0].append(temptt)
+		loss_cali[0].append(inside_sxy(x, y, test_split, clf_v))
 
 	for x in x_mc:
-		x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
-		y_train[y_train < 0] = 0
-		y_test[y_test < 0] = 0
-		clf = clf_v
-		clf.fit(x_train, y_train)
-		#res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
-		res = np.array(clf.predict(x_test)).flatten()
-		temptt = (np.sum(np.abs(np.subtract(y_test,res)))/np.shape(y_test)[0])
-		loss_cali[0].append(temptt)
+		loss_cali[0].append(inside_sxy(x, y, test_split, clf_v))
 
 
 	#for j in range(firms_used):
@@ -296,6 +293,8 @@ def stock_xy(test_split, fts_space,ws_space, mc_space, news_data,lreturns,dates,
 	[x_cal,y_cal,x_dates] = gen_xy_daily(news_data,lreturns,dates,fts_op,ws_op,mc_op,2,m_eval)
 
 	return x_cal,y_cal,x_dates
+
+
 
 
 def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,benchm_f,mu_var,show_plots):
@@ -330,10 +329,15 @@ def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,be
 
 	RR_model = KernelRidge(alpha=30)
 	clf = GridSearchCV(RR_model, RR_parameters,scoring='neg_mean_squared_error',n_jobs=1)
-	clf = clf.fit(x_train, y_train)
+
+	#remove nan
+	#ind_mask = np.invert(np.isnan(y_train[i]))
+
+	ind_mask = np.invert(np.isnan(y_train))
+	ind_mask = np.reshape(ind_mask,[len(y_train),1])
+
+	clf = clf.fit(x_train[ind_mask[:,0],:], y_train[ind_mask[:,0]])
 	grid_results = clf.cv_results_
-
-
 	
 
 	#2. produce estimates

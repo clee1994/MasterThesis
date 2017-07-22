@@ -1,16 +1,15 @@
-import learning
 
+from evaluation import *
+from learning import *
 
 from sklearn import svm
 from sklearn.linear_model import Ridge
-
 
 import datetime, pickle, gc
 import numpy as np
 
 
 # 0. modifiable variables
-path_to_news_files = "./Data_small/ReutersNews106521"
 firms_used = 2
 n_past = 80
 
@@ -28,21 +27,16 @@ mc_space = np.linspace(0,50,4,dtype=int)
 
 
 
-
-
 # 1. load and preprocess data
 print(str(datetime.datetime.now())+': Start reading in news:')
-#[news_data, _] = load_news_data(path_to_news_files,False)
 news_data = pickle.load(open( "Data/Reuters.p", "rb" ) )
 gc.collect()
 print(str(datetime.datetime.now())+': Successfully read all news')
 
 print(str(datetime.datetime.now())+': Start reading in SP500 data:')
-#[_, dates, names, lreturns] = load_SP_data(stocks_used)
 [_, dates, names, lreturns] = pickle.load(open( "Data/SP500.p", "rb" ) )
 gc.collect()
 print(str(datetime.datetime.now())+': Successfully read all data')
-
 
 
 # 3. select stocks
@@ -89,10 +83,9 @@ gc.collect()
 
 # 6. standard past observation past mu and cov
 split_point = int(np.floor(np.shape(x_dates)[0]*(1-test_split)))
-pmu_p_ts = mu_gen_past(lreturns, dates, x_dates[(split_point+1):], firm_ind_u[0:firms_used], n_past)
+pmu_p_ts = mu_gen_past1(lreturns, dates, x_dates[(split_point+1):], firm_ind_u[0:firms_used], n_past)
 pcov_p_ts = cov_gen_past(lreturns, dates, x_dates[(split_point+1):], firm_ind_u[0:firms_used], n_past)
 gc.collect()
-
 
 
 # 7. build portfolios based on both
