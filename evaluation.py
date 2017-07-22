@@ -19,13 +19,14 @@ def plot_pred_true(y,yhat):
 	axarr[0].plot(yhat,label="predicted y",linewidth=0.8)
 	axarr[1].plot(np.abs(np.subtract(yhat,y)),label="difference prediction and true",linewidth=0.8)
 	axarr[0].legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
-	   			ncol=2, mode="expand", borderaxespad=0.,shadow=None,framealpha=1)
+	   			ncol=2, mode="expand", borderaxespad=0.,shadow=None,framealpha=1,frameon=False)
 	axarr[0].xlabel('Time/Observations')
 	axarr[0].ylabel('Mean/Volatility')
 	axarr[1].legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
-	   			ncol=2, mode="expand", borderaxespad=0.,shadow=None,framealpha=1)
+	   			ncol=2, mode="expand", borderaxespad=0.,shadow=None,framealpha=1,frameon=False)
 	axarr[1].xlabel('Time/Observations')
 	axarr[1].ylabel('Difference of true and estimated mean/volatility')
+	plt.tight_layout()
 	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'pred_true.png',bbox_inches='tight')
 	plt.close()
 	plt.close("all")
@@ -59,12 +60,13 @@ def plot_pred_true_b(y,yhat,benchm,v_m):
 	axarr[1].plot(ts_temp1,label="$y - \hat{y}_{doc2vec}$ ($"+str(np.round(np.sum(ts_temp1),4))+"$)",linewidth=0.8)
 	axarr[1].plot(ts_temp2,label="$y - \hat{y}_{past\;obs.}$ ($"+str(np.round(np.sum(ts_temp2),4))+"$)",linewidth=0.8)
 	axarr[0].legend(bbox_to_anchor=(0., 1.05, 1., .102), loc=3,
-				ncol=2, mode="expand", borderaxespad=0.,shadow=None,framealpha=1)
+				ncol=2, mode="expand", borderaxespad=0.,shadow=None,framealpha=1, frameon=False)
 	axarr[0].set_xlabel('Time/Observations')
 	axarr[0].set_ylabel(v_m)
 	axarr[1].legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
-				ncol=2, mode="expand", borderaxespad=0.,shadow=None,framealpha=1)
+				ncol=2, mode="expand", borderaxespad=0.,shadow=None,framealpha=1, frameon=False)
 	axarr[1].set_xlabel('Time/Observations')
+	plt.tight_layout()
 	#axarr[1].set_ylabel('Difference to $y$')
 	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'pred_true.png',bbox_inches='tight')
 	plt.close()
@@ -199,7 +201,7 @@ def final_plots(arg_lines,label_list):
 	           ncol=2, mode="expand", borderaxespad=0.,shadow=None,framealpha=1)
 	plt.xlabel('Time/Observations')
 	plt.ylabel('Value/USD')
-
+	plt.tight_layout()
 	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'port_performance.png',bbox_inches='tight')
 	plt.close()
 
@@ -261,7 +263,7 @@ def learning_plots(grid_results,clf, x_cal, y_cal,n_cpu, alpha_range,gamma_range
 	ax.set_ylabel('Gamma')
 	#ax.yaxis.set_scale('log')
 	ax.set_zlabel('MSE')
-
+	plt.tight_layout()
 	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'rbf_fitting.png',bbox_inches='tight')
 	plt.close()
 
@@ -279,10 +281,10 @@ def learning_plots(grid_results,clf, x_cal, y_cal,n_cpu, alpha_range,gamma_range
 		plt.plot(train_sizes,train_scores*-1, label="Train MSE",linewidth=0.8)
 		plt.plot(train_sizes,test_scores*-1, label="Test MSE",linewidth=0.8)
 		#plt.xticks(range(len(train_scores)),train_sizes)
-		plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,ncol=2, mode="expand", borderaxespad=0.,shadow=None,framealpha=1)
+		plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,ncol=2, mode="expand", borderaxespad=0.,shadow=None,framealpha=1,frameon=False)
 		plt.xlabel('Size training set')
 		plt.ylabel('MSE')
-
+		plt.tight_layout()
 		plt.savefig('Output/pics/'+str(datetime.datetime.now())+'learning_curve.png',bbox_inches='tight')
 		plt.close()
 
