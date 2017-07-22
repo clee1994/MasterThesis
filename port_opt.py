@@ -51,8 +51,17 @@ def cv_opt(mu, Sigma, e_mu, glambda, h):
 			prob = Problem(Maximize(ret - risk - glambda*norm(w,1)), [sum_entries(w) == 1, w >= h, ret==e_mu])
 	prob.solve() 
 
-	import pdb; pdb.set_trace()  # breakpoint 949be21b //
 
-	return w.value, ret.value, risk.value
+	try:
+		rw = w.value
+		rr = ret.value
+		rri = risk.value
+	except:
+		rw = np.empty((len(mu)))
+		rw[:] = np.nan
+		rr = np.nan
+		rri = np.nan
+
+	return rw, rr, rri
 
 
