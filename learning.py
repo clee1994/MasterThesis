@@ -297,7 +297,7 @@ def stock_xy(test_split, fts_space,ws_space, mc_space, news_data,lreturns,dates,
 
 
 
-def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,benchm_f,mu_var,show_plots):
+def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,benchm_f,mu_var,t_text,show_plots):
 	from sklearn.linear_model import Ridge
 	from sklearn.kernel_ridge import KernelRidge
 	from sklearn.model_selection import GridSearchCV
@@ -349,7 +349,7 @@ def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,be
 			mu_p_ts[mu_p_ts < 0] = 0
 
 	#3. plots
-	plot_pred_true_b(y_test,clf.predict(x_test),bench_y.flatten(), mu_var) 
+	plot_pred_true_b(y_test,clf.predict(x_test),bench_y.flatten(), mu_var, t_text) 
 	learning_plots(grid_results,clf, x_cal, y_cal,1,alpha_range,gamma_range,show_plots)
 
 

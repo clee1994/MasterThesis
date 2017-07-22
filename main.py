@@ -56,7 +56,7 @@ mu_p_ts = np.empty((int(np.ceil(np.shape(y)[0]*test_split)),0), float)
 for i in firm_ind_u:
 	temp1 = np.transpose(np.matrix( lreturns[:,i]))
 	[x_cal, y_cal, x_dates] = stock_xy(test_split,fts_space,ws_space, mc_space,news_data,temp1,dates,x_fts, x_ws, x_mc,y[:,i],data_label_method_val,svm.SVC())
-	mu_p_ts = np.concatenate([mu_p_ts,mu_news_estimate(x_cal, y_cal, test_split, temp1, dates, n_past,i,bench_mark_mu, "Mean",show_p)],axis=1)
+	mu_p_ts = np.concatenate([mu_p_ts,mu_news_estimate(x_cal, y_cal, test_split, temp1, dates, n_past,i,bench_mark_mu, "Mean",names[i],show_p)],axis=1)
 	del x_cal, y_cal, x_dates, temp1
 	gc.collect()
 	print(str(datetime.datetime.now())+': Successfully produced mu_p_ts for '+names[i])
@@ -72,9 +72,11 @@ for i in range(len(firm_ind_u)):
 		[x_cal, y_cal, x_dates] = stock_xy(test_split,fts_space,ws_space, mc_space,news_data,temp1,dates,x_fts, x_ws, x_mc,y,data_label_method_cov,Ridge(alpha=0))
 		if i == j:
 			label_text = "Variance"
+			l2_test = names[i]
 		else:
 			label_text = "Covariance"
-		cov_p_ts[:,i,j] = mu_news_estimate(x_cal, y_cal, test_split, temp1, dates, n_past,i,bench_mark_cov, label_text, show_p)
+			l2_test = names[i] + " and " + names[j]
+		cov_p_ts[:,i,j] = mu_news_estimate(x_cal, y_cal, test_split, temp1, dates, n_past,i,bench_mark_cov, label_text, l2_test ,show_p)
 		cov_p_ts[:,j,i] = cov_p_ts[:,i,j]
 		del x_cal, y_cal, temp1, y
 		gc.collect()
