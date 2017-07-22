@@ -2,7 +2,8 @@ Data/
 __pycache__
 Data_small/
 temp.py
-Output/
+Output/pics/*
+Output/tables/*
 pickle_data/
 temp2.py
 word2vec_models.py

@@ -70,7 +70,11 @@ for i in range(len(firm_ind_u)):
 		temp1 = np.transpose(np.matrix( lreturns[:,[i,j]]))
 		[_,y,_] = gen_xy_daily(news_data,temp1,dates,220,8,10,2,data_label_method_cov) 
 		[x_cal, y_cal, x_dates] = stock_xy(test_split,fts_space,ws_space, mc_space,news_data,temp1,dates,x_fts, x_ws, x_mc,y,data_label_method_cov,Ridge(alpha=0))
-		cov_p_ts[:,i,j] = mu_news_estimate(x_cal, y_cal, test_split, temp1, dates, n_past,i,bench_mark_cov, "Covariance", show_p)
+		if i == j:
+			label_text = "Variance"
+		else:
+			label_text = "Covariance"
+		cov_p_ts[:,i,j] = mu_news_estimate(x_cal, y_cal, test_split, temp1, dates, n_past,i,bench_mark_cov, label_text, show_p)
 		cov_p_ts[:,j,i] = cov_p_ts[:,i,j]
 		del x_cal, y_cal, temp1, y
 		gc.collect()
