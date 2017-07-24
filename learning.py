@@ -41,7 +41,7 @@ def data_label_method_cov(lreturns, cur_d,dates_stocks):
 		ret_val = np.cov(lreturns[0,indt-n:],lreturns[1,indt-n:])[0,1]
 	return ret_val
 
-def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ht,ylm):
+def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ylm,dm_opt, tables=False, dmm=0, dmc=0):
 	import datetime
 	import numpy as np
 	from progressbar import printProgressBar
@@ -54,6 +54,7 @@ def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ht,ylm):
 	x = []
 	words = []
 	x_dates = []
+	doc_c = 0
 
 	#progressbar
 	prog_st = 0
@@ -78,7 +79,8 @@ def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ht,ylm):
 		else:
 			#text/x
 			if prev_d != np.datetime64(datetime.date(1, 1, 1)):
-				documents.append(TaggedDocument(words,str(cur_d)))
+				documents.append(TaggedDocument(words,str(doc_c)))
+				doc_c = doc_c + 1
 				x_dates.append(cur_d)
 				words = []
 			prev_d = cur_d
@@ -90,21 +92,92 @@ def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ht,ylm):
 			words.append(hj)
 	
 	try:
-		documents.append(TaggedDocument(words,tags=str(cur_d)))
+		documents.append(TaggedDocument(words,tags=str(doc_c)))
 		x_dates.append(cur_d)
 	except:
 		pass
 
 
-	model = Doc2Vec(size=features, window=window, min_count=mcount, workers=1)
+	#maybe also dm = 0 -> different methode
+	#iter -> number of epochs 
+	#way more models then here -> think about extending
+	model = Doc2Vec(dm = dm_opt, size=features, window=window, min_count=mcount, workers=4, dbow_words=1,dm_mean=dmm,dm_concat=dmc)
 
 	#tag goes into vocab too.... reconsider
 	model.build_vocab(documents)
 
-	model.train(documents,total_examples=model.corpus_count, epochs=model.iter)
+	model.train(documents,total_examples=model.corpus_count, epochs=10)
 
 	for i in documents:
 		x.append(model.infer_vector(i[0]))
+
+
+	#evaluation
+	
+	if tables:
+
+		doc_id = np.random.randint(model.docvecs.count)
+		sims = model.docvecs.most_similar(doc_id, topn=model.docvecs.count)
+		target = ' '.join(documents[doc_id].words)
+		closest = ' '.join(documents[int(sims[0][0])].words)
+		least = ' '.join(documents[int(sims[len(sims) - 1][0])].words)
+
+		chars_pl = 65
+
+
+
+		f = open('Output/tables/'+str(datetime.datetime.now())+'target.tex', 'w')
+		f.write('"'+ target[0:(chars_pl-1)] + '\n')
+
+		for i in range(9):
+			f.write(target[(i+1)*(chars_pl-1):(i+2)*(chars_pl-1)] + '\n')
+		f.write('... \n')
+
+		for i in np.arange(9,0,-1):
+			f.write(target[-(i+2)*chars_pl:-(i+1)*chars_pl] + '\n')
+		f.write(target[-chars_pl:-1]+'"\n')
+		f.write('Date: '+ str(x_dates[doc_id].astype('M8[D]')) + '\n')
+		f.write('Number of characters: ' + str(len(target)) + '\n')
+		f.close() 
+
+
+		f = open('Output/tables/'+str(datetime.datetime.now())+'closest.tex', 'w')
+		f.write('"'+ closest[0:(chars_pl-1)]+ '\n')
+
+		for i in range(9):
+			f.write(closest[(i+1)*(chars_pl-1):(i+2)*(chars_pl-1)] + '\n')
+		f.write('... \n')
+
+		for i in np.arange(9,0,-1):
+			f.write(closest[-(i+2)*chars_pl:-(i+1)*chars_pl] + '\n')
+		f.write(closest[-chars_pl:-1]+'"\n')
+		f.write('Date: '+ str(x_dates[int(sims[0][0])].astype('M8[D]')) + '\n')
+		f.write('Number of characters: ' + str(len(closest)) + '\n')
+		f.close() 
+
+		f = open('Output/tables/'+str(datetime.datetime.now())+'least.tex', 'w')
+		f.write('"'+ least[0:(chars_pl-1)]+ '\n')
+
+		for i in range(9):
+			f.write(least[(i+1)*(chars_pl-1):(i+2)*(chars_pl-1)] + '\n')
+		f.write('... \n')
+
+		for i in np.arange(9,0,-1):
+			f.write(least[-(i+2)*chars_pl:-(i+1)*chars_pl] + '\n')
+		f.write(least[-chars_pl:-1]+'"\n')
+		f.write('Date: '+ str(x_dates[int(sims[len(sims) - 1][0])].astype('M8[D]')) + '\n')
+		f.write('Number of characters: ' + str(len(least)) + '\n')
+		f.close()
+
+		#words -> actually not of relevance but cool to see
+		import random
+		exword = random.choice(model.wv.index2word)
+		similars_words = str(model.most_similar(exword, topn=20)).replace('), ',')\n')
+
+		f = open('Output/tables/'+str(datetime.datetime.now())+'wordss.tex', 'w')
+		f.write('"'+exword + '"\n')
+		f.write(similars_words)
+		f.close() 
 
 	return [np.array(x), np.array(y), np.array(x_dates)]
 
@@ -155,7 +228,7 @@ def bench_mark_cov(lreturns,dates_stocks,n_past,len_o):
 	return ret_val[ind_len-len_o:ind_len]
 
 
-
+#modify the standard values... according to something
 def produce_doc2vecmodels_sign(fts_space,ws_space,mc_space,lreturns,dates,test_split,news_data):
 	import datetime
 	import numpy as np
@@ -165,39 +238,67 @@ def produce_doc2vecmodels_sign(fts_space,ws_space,mc_space,lreturns,dates,test_s
 	x_fts = []
 	#parameter calibration with SVM
 	for fts in fts_space:
-		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,fts,8,10,2,data_label_method_sign)
+		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,fts,8,10,data_label_method_sign,1)
 		x_fts.append(x)
-		x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
-		y_train[y_train < 0] = 0
-		y_test[y_test < 0] = 0
+		#x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
+		# y_train[y_train < 0] = 0
+		# y_test[y_test < 0] = 0
 		
 	x_ws = []
 	for fts in ws_space:
-		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,350,fts,10,2,data_label_method_sign)
+		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,350,fts,10,data_label_method_sign,1)
 		x_ws.append(x)
-		x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
-		y_train[y_train < 0] = 0
-		y_test[y_test < 0] = 0
 		
 
 	x_mc = []
 	for fts in mc_space:
-		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,350,8,fts,2,data_label_method_sign)
+		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,350,8,fts,data_label_method_sign, 1)
 		x_mc.append(x)
-		x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
-		y_train[y_train < 0] = 0
-		y_test[y_test < 0] = 0
+
+	x_dm = []
+	for xdmc in [0,1]:
+		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,350,8,10,data_label_method_sign, 1)
+		x_dm.append(x)
+
+	x_dmm = []
+	for dmm in [0,1]:
+		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,350,8,10,data_label_method_sign, 1,dmm=dmm)
+		x_dmm.append(x)
+
+	x_dmc = []
+	for dmc in [0,1]:
+		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,350,8,10,data_label_method_sign, 1,dmc=dmc)
+		x_dmc.append(x)
+
 
 	#import pickle
 	#pickle.dump([x_fts, x_ws, x_mc,y], open( "Data/diffx", "wb" ) )
 
-	return x_fts, x_ws, x_mc, y
+	return x_fts, x_ws, x_mc, y, x_dm, x_dmm, x_dmc
 		
+def make_pred_sort_table(firm_ind_u, loss, names, uss):
+	import numpy as np
 
-def sort_predictability(news_data,lreturns,dates,test_split):
+	f = open('Output/tables/pred_sort.tex', 'w')
+	f.write('\\begin{tabular}{ r | l }\n')
+	f.write('Stock Ticker & Loss \\\\ \n ')
+	f.write('\hline \n')
+	if uss > 10:
+		uss = 10
+	for i in range(uss):
+		f.write(names[firm_ind_u[i]]+' & '+ "{:.4f}".format((loss[i]))+' \\\\ \n ')
+	f.write('\hline \n')
+	f.write('\hline \n')
+	f.write('Mean & '+ "{:.4f}".format(np.mean(loss[:]))+' \\\\ \n ')
+	f.write('\\end{tabular}')
+	f.close() 
+
+
+def sort_predictability(news_data,lreturns,dates,test_split,names,uss):
 	import datetime
 	import numpy as np
-	[x,y,_] = gen_xy_daily(news_data,lreturns,dates,340,8,21,2,data_label_method_sign)
+	#hard coded values... review
+	[x,y,_] = gen_xy_daily(news_data,lreturns,dates,340,8,21,data_label_method_sign,1)
 	x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
 
 
@@ -231,6 +332,8 @@ def sort_predictability(news_data,lreturns,dates,test_split):
 	npal = np.array(loss_ar_svm)
 	firm_ind_u = np.argsort(npal[npal!=1])
 
+	make_pred_sort_table(firm_ind_u, npal[np.argsort(npal[npal!=1])], names, uss )
+
 	#optional information
 	#names = np.array(names) 
 	#npal[firm_ind_u[0:firms_used]]
@@ -246,7 +349,6 @@ def inside_sxy(x, y, test_split, clf_v):
 	y_test[y_test < 0] = 0
 	#clf = clf_v
 
-
 	ind_mask = np.invert(np.isnan(y_train))
 
 	clf_v.fit(x_train[ind_mask,:], y_train[ind_mask])
@@ -254,8 +356,35 @@ def inside_sxy(x, y, test_split, clf_v):
 	res = np.array(clf_v.predict(x_test)).flatten()
 	return(np.sum(np.abs(np.subtract(y_test,res)))/np.shape(y_test)[0])
 
+def doc2vec_table(lpara1,lop1, lpara2, lop2, lpara3, lop3,dm_w, dmm_w, dmc_w,opt_loss, fts_op, ws_op, mc_op, dm_op, dmm_op, dmc_op):
+	import numpy as np
+	import datetime
 
-def stock_xy(test_split, fts_space,ws_space, mc_space, news_data,lreturns,dates,x_fts, x_ws, x_mc,y,m_eval,clf_v):
+	#keep in mind the fixed values -> maybe modify them
+	f = open('Output/tables/'+str(datetime.datetime.now())+'ddoc2vec.tex', 'w')
+	f.write('\\begin{tabular}{ r r r r r r | l }\n')
+	f.write('Method & Dim. feature vec. & Window & Min. count & Sum/mean & concatenation & Loss \\\\ \n ')
+	f.write('\hline \n')
+	for i in range(3):
+		f.write('PV-DM & '+ str(lpara1[i]) +' & 8 & 10 & sum & Off & '+ "{:.4f}".format((lop1[i]))+' \\\\ \n ')
+	for i in range(3):
+		f.write('PV-DM & '+'350 & '+ str(lpara2[i]) +' & 10 &sum & Off & '+ "{:.4f}".format((lop2[i]))+' \\\\ \n ')
+	for i in range(3):
+		f.write('PV-DM & '+'350 & 8 & '+str(lpara3[i]) +' &sum & Off & '+ "{:.4f}".format((lop3[i]))+' \\\\ \n ')
+
+	f.write('PV-DBOW & '+'350 & 8 & 10 &sum & Off & '+ "{:.4f}".format((dm_w))+' \\\\ \n ')
+	f.write('PV-DM & '+'350 & 8 & 10 &mean & Off & '+ "{:.4f}".format((dmm_w))+' \\\\ \n ')
+	f.write('PV-DM & '+'350 & 8 & 10 &mean & On & '+ "{:.4f}".format((dmc_w))+' \\\\ \n ')
+	#final line -> best
+	f.write('\hline \n')
+	f.write('\hline \n')
+
+	f.write(('PV-DM & ' if dm_op else 'PV-DBOW & ') + str(fts_op) + ' & ' + str(ws_op) + ' & ' + str(mc_op) + ' & ' + ('mean & ' if dmm_op else 'sum & ') + ('Off & ' if dmm_op else 'On & ') + "{:.4f}".format((opt_loss))+' \\\\ \n ')
+	f.write('\\end{tabular}')
+	f.close() 
+
+
+def stock_xy(test_split, fts_space,ws_space, mc_space, news_data,lreturns,dates,x_fts, x_ws, x_mc,y,m_eval,clf_v,x_dm, x_dmm, x_dmc, tables = False):
 	#single stock parameter calibration
 	#import pickle
 	import numpy as np
@@ -270,39 +399,43 @@ def stock_xy(test_split, fts_space,ws_space, mc_space, news_data,lreturns,dates,
 	loss_cali.append([])
 
 	#make it a grid search
-
-	for x in x_fts:
+	for x in x_fts + x_ws + x_mc + x_dm + x_dmm + x_dmc:
 		loss_cali[0].append(inside_sxy(x, y, test_split, clf_v))
 
-	for x in x_ws:
-		loss_cali[0].append(inside_sxy(x, y, test_split, clf_v))
-
-	for x in x_mc:
-		loss_cali[0].append(inside_sxy(x, y, test_split, clf_v))
-
-
-	#for j in range(firms_used):
-	#i = firm_ind_u[j]
-	#build the right x data for y
 	
-	fts_w, xws_w, xmc_w = np.split(np.array(loss_cali[0]),3)
+	fts_w, xws_w, xmc_w = np.split(np.array(loss_cali[0])[:-6],3)
+	dm_w, dmm_w, dmc_w = np.split(np.array(loss_cali[0])[-6:],3)
 	fts_op = fts_space[np.argmin(fts_w)]
 	ws_op = ws_space[np.argmin(xws_w)]
 	mc_op = mc_space[np.argmin(xmc_w)]
-	#print(str(fts_op)+" "+str(ws_op)+" "+str(mc_op)+" ")
-	[x_cal,y_cal,x_dates] = gen_xy_daily(news_data,lreturns,dates,fts_op,ws_op,mc_op,2,m_eval)
+	dm_op = fts_space[np.argmin(dm_w)]
+	dmm_op = ws_space[np.argmin(dmm_w)]
+	dmc_op = mc_space[np.argmin(dmc_w)]
+
+
+	[x_cal,y_cal,x_dates] = gen_xy_daily(news_data,lreturns,dates,fts_op,ws_op,mc_op,m_eval,dm_op,tables, dmm=dmm_op, dmc=dmc_op)
+
+	opt_loss = inside_sxy(x_cal, y, test_split, clf_v)
+	if tables:
+		doc2vec_table(fts_space[np.argsort(fts_w)[:3]], np.sort(fts_w)[:3],
+			ws_space[np.argsort(xws_w)[:3]], np.sort(xws_w)[:3],
+			mc_space[np.argsort(xmc_w)[:3]], np.sort(xmc_w)[:3], 
+			dm_w[1], dmm_w[1], dmc_w[1],opt_loss, fts_op, ws_op, mc_op, dm_op, dmm_op, dmc_op)
+
+	
 
 	return x_cal,y_cal,x_dates
 
 
 
 
-def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,benchm_f,mu_var,t_text,show_plots):
+def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,benchm_f,mu_var,t_text,show_plots,tables):
 	from sklearn.linear_model import Ridge
 	from sklearn.kernel_ridge import KernelRidge
 	from sklearn.model_selection import GridSearchCV
 	import numpy as np
 	from evaluation import plot_pred_true_b, learning_plots
+	import datetime
 
 
 	#get x and y
@@ -320,12 +453,12 @@ def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,be
 
 
 	#1. model selection with cross validation and grid search
-	alpha_range1 = np.linspace(0.01,10, 10)
-	alpha_range = np.geomspace(1e-8,40, 12)
+	alpha_range1 = np.geomspace(0.1,80, 12)
+	#alpha_range = np.geomspace(1e-8,40, 12)
 	gamma_range = np.geomspace(1e-2,12,10)
 	#http://scikit-learn.org/stable/modules/classes.html#module-sklearn.metrics.pairwise -> kernels
-	RR_parameters = [{'kernel': ['rbf'], 'gamma': gamma_range, 'alpha': alpha_range}]
-			#{'kernel': ['linear'], 'alpha': alpha_range1}]
+	RR_parameters = [{'kernel': ['rbf'], 'gamma': gamma_range, 'alpha': alpha_range1},
+					{'kernel': ['linear'], 'alpha': alpha_range1}]
 
 	RR_model = KernelRidge(alpha=30)
 	clf = GridSearchCV(RR_model, RR_parameters,scoring='neg_mean_squared_error',n_jobs=1)
@@ -350,7 +483,56 @@ def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,be
 
 	#3. plots
 	plot_pred_true_b(y_test,clf.predict(x_test),bench_y.flatten(), mu_var, t_text) 
-	learning_plots(grid_results,clf, x_cal, y_cal,1,alpha_range,gamma_range,show_plots)
+	#learning_plots(grid_results,clf, x_cal, y_cal,1,alpha_range,gamma_range,show_plots)
+
+	if tables:
+		learning_curve_plots(grid_results,clf, x_cal, y_cal,1,alpha_range,gamma_range,show_plots)
+		ind_m = np.argsort(np.abs(clf.cv_results_['mean_test_score']))[1:10]
+
+		f = open('Output/tables/'+str(datetime.datetime.now())+'grdisearch.tex', 'w')
+		f.write('\\begin{tabular}{ r r r | l }\n')
+		f.write('Gamma & Alpha & Kernel & Loss \\\\ \n ')
+		f.write('\hline \n')
+		for i in ind_m:
+			loss_v = "{:.4f}".format((np.abs(clf.cv_results_['mean_test_score'][i])))
+			#gamma
+			try:
+				gamma_v = "{:.4f}".format((clf.cv_results_['params'][i]['gamma']))
+			except:
+				gamma_v = '-'
+			#alpha
+			try:
+				alpha_v = "{:.4f}".format((clf.cv_results_['params'][i]['alpha']))
+			except:
+				alpha_v = '-'
+			#kernel
+			try:
+				kernel_v = clf.cv_results_['params'][i]['kernel']
+			except: 
+				kernel_v = '-'
+			f.write(gamma_v + ' & ' + alpha_v + ' & '+kernel_v+' & '+loss_v+'\\\\ \n ')
+		f.write('\hline \n')
+		f.write('\hline \n')
+		try:
+			gamma_v = "{:.4f}".format((clf.best_params_['gamma']))
+		except:
+			gamma_v = '-'
+		#alpha
+		try:
+			alpha_v = "{:.4f}".format((clf.best_params_['alpha']))
+		except:
+			alpha_v = '-'
+		#kernel
+		try:
+			kernel_v = clf.best_params_['kernel']
+		except: 
+			kernel_v = '-'
+		f.write(gamma_v + ' & ' + alpha_v + ' & '+kernel_v+' & '+"{:.4f}".format((np.abs(clf.cv_results_['mean_test_score'][np.argsort(np.abs(clf.cv_results_['mean_test_score']))[0]])))+'\\\\ \n ')
+		f.write('\\end{tabular}')
+		f.close() 
+
+
+
 
 
 	return mu_p_ts
