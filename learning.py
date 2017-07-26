@@ -434,7 +434,7 @@ def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,be
 	from sklearn.kernel_ridge import KernelRidge
 	from sklearn.model_selection import GridSearchCV
 	import numpy as np
-	from evaluation import plot_pred_true_b, learning_plots
+	from evaluation import plot_pred_true_b, learning_curve_plots
 	import datetime
 
 
@@ -486,7 +486,7 @@ def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,be
 	#learning_plots(grid_results,clf, x_cal, y_cal,1,alpha_range,gamma_range,show_plots)
 
 	if tables:
-		learning_curve_plots(grid_results,clf, x_cal, y_cal,1,alpha_range,gamma_range,show_plots)
+		learning_curve_plots(grid_results,clf, x_cal, y_cal,1,alpha_range1,gamma_range,show_plots)
 		ind_m = np.argsort(np.abs(clf.cv_results_['mean_test_score']))[1:10]
 
 		f = open('Output/tables/'+str(datetime.datetime.now())+'grdisearch.tex', 'w')
