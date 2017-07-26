@@ -29,12 +29,12 @@ mc_space = np.linspace(0,50,4,dtype=int)
 
 # 1. load and preprocess data
 print(str(datetime.datetime.now())+': Start reading in news:')
-news_data = pickle.load(open( "Data/Reuters.p", "rb" ) )
+news_data = pickle.load(open( "/home/ucabjss/Data/Reuters.p", "rb" ) )
 gc.collect()
 print(str(datetime.datetime.now())+': Successfully read all news')
 
 print(str(datetime.datetime.now())+': Start reading in SP500 data:')
-[_, dates, names, lreturns] = pickle.load(open( "Data/SP500.p", "rb" ) )
+[_, dates, names, lreturns] = pickle.load(open( "/home/ucabjss/Data/SP500.p", "rb" ) )
 gc.collect()
 print(str(datetime.datetime.now())+': Successfully read all data')
 
@@ -103,7 +103,7 @@ del news_data, x_fts, x_ws, x_mc
 gc.collect()
 
 
-pickle.dump((mu_p_ts,cov_p_ts,firm_ind_u), open( "Output/data_mu_cov.p", "wb" ) )
+pickle.dump((mu_p_ts,cov_p_ts,firm_ind_u), open( "data_mu_cov.p", "wb" ) )
 
 # 6. standard past observation past mu and cov
 split_point = int(np.floor(np.shape(x_dates)[0]*(1-test_split)))
@@ -128,7 +128,7 @@ final_plots([first_line,second_line,third_line,sp500],[r'min. var. portfolio (pa
 #return plots
 final_plots_s([r1,r2,r3,r4],[r'past obs.', r'doc2vec',r'doc2vec, l1',r'SP500'])
 
-pickle.dump((first_line,second_line,third_line,sp500,r1,r2,r3,r4), open( "Output/datal.p", "wb" ) )
+pickle.dump((first_line,second_line,third_line,sp500,r1,r2,r3,r4), open( "datal.p", "wb" ) )
 
 #portfolio metrics tabel
 # mean / variance / alpha / beta / VaR95 / sharpe ratio / Treynor / Jensen / 

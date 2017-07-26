@@ -126,7 +126,7 @@ def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ylm,dm_opt, t
 
 
 
-		f = open('Output/tables/'+str(datetime.datetime.now())+'target.tex', 'w')
+		f = open(str(datetime.datetime.now())+'target.tex', 'w')
 		f.write('"'+ target[0:(chars_pl-1)] + '\n')
 
 		for i in range(9):
@@ -279,7 +279,7 @@ def produce_doc2vecmodels_sign(fts_space,ws_space,mc_space,lreturns,dates,test_s
 def make_pred_sort_table(firm_ind_u, loss, names, uss):
 	import numpy as np
 
-	f = open('Output/tables/pred_sort.tex', 'w')
+	f = open('pred_sort.tex', 'w')
 	f.write('\\begin{tabular}{ r | l }\n')
 	f.write('Stock Ticker & Loss \\\\ \n ')
 	f.write('\hline \n')
@@ -361,7 +361,7 @@ def doc2vec_table(lpara1,lop1, lpara2, lop2, lpara3, lop3,dm_w, dmm_w, dmc_w,opt
 	import datetime
 
 	#keep in mind the fixed values -> maybe modify them
-	f = open('Output/tables/'+str(datetime.datetime.now())+'ddoc2vec.tex', 'w')
+	f = open(str(datetime.datetime.now())+'ddoc2vec.tex', 'w')
 	f.write('\\begin{tabular}{ r r r r r r | l }\n')
 	f.write('Method & Dim. feature vec. & Window & Min. count & Sum/mean & concatenation & Loss \\\\ \n ')
 	f.write('\hline \n')
@@ -489,7 +489,7 @@ def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,be
 		learning_curve_plots(grid_results,clf, x_cal, y_cal,1,alpha_range1,gamma_range,show_plots)
 		ind_m = np.argsort(np.abs(clf.cv_results_['mean_test_score']))[1:10]
 
-		f = open('Output/tables/'+str(datetime.datetime.now())+'grdisearch.tex', 'w')
+		f = open(str(datetime.datetime.now())+'grdisearch.tex', 'w')
 		f.write('\\begin{tabular}{ r r r | l }\n')
 		f.write('Gamma & Alpha & Kernel & Loss \\\\ \n ')
 		f.write('\hline \n')

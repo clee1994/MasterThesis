@@ -65,7 +65,7 @@ def plot_pred_true_b(y,yhat,benchm,v_m,t_text):
 	plt.ylabel(v_m)
 	
 	#axarr[1].set_ylabel('Difference to $y$')
-	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'pred_true.png',bbox_inches='tight',dpi=310)
+	plt.savefig(str(datetime.datetime.now())+'pred_true.png',bbox_inches='tight',dpi=310)
 	plt.close()
 	plt.close("all")
 
@@ -80,7 +80,7 @@ def plot_pred_true_b(y,yhat,benchm,v_m,t_text):
 	test34.get_frame().set_edgecolor('black')
 	plt.xlabel('Time/Observations')
 	plt.ylabel('Difference')
-	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'pred_true_d.png',bbox_inches='tight',dpi=310)
+	plt.savefig(str(datetime.datetime.now())+'pred_true_d.png',bbox_inches='tight',dpi=310)
 	plt.close()
 	plt.close("all")
 #evalute portfolio construction
@@ -213,7 +213,7 @@ def final_plots(arg_lines,label_list):
 	test34.get_frame().set_edgecolor('black')
 	plt.xlabel('Time/Observations')
 	plt.ylabel('Value/USD')
-	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'port_performance.png',bbox_inches='tight',dpi=310)
+	plt.savefig(str(datetime.datetime.now())+'port_performance.png',bbox_inches='tight',dpi=310)
 	plt.close()
 
 def final_plots_s(arg_lines,label_list):
@@ -239,7 +239,7 @@ def final_plots_s(arg_lines,label_list):
 	#test34.get_frame().set_edgecolor('black')
 	plt.xlabel('Time/Observations')
 	#plt.ylabel('Return')
-	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'port_performance_ret.png',bbox_inches='tight',dpi=310)
+	plt.savefig(str(datetime.datetime.now())+'port_performance_ret.png',bbox_inches='tight',dpi=310)
 	plt.close()
 
 
@@ -270,7 +270,7 @@ def fitting_plots(grid_results,clf, x_cal, y_cal,n_cpu, alpha_range,gamma_range,
 	plt.xlabel('Alpha')
 	plt.ylabel('MSE')
 
-	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'alpha_fitting.png',bbox_inches='tight')
+	plt.savefig(str(datetime.datetime.now())+'alpha_fitting.png',bbox_inches='tight')
 	plt.close()
 
 
@@ -301,7 +301,7 @@ def fitting_plots(grid_results,clf, x_cal, y_cal,n_cpu, alpha_range,gamma_range,
 	#ax.yaxis.set_scale('log')
 	ax.set_zlabel('MSE')
 
-	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'rbf_fitting.png',bbox_inches='tight',dpi=310)
+	plt.savefig(str(datetime.datetime.now())+'rbf_fitting.png',bbox_inches='tight',dpi=310)
 	plt.close()
 
 
@@ -335,7 +335,7 @@ def learning_curve_plots(grid_results,clf, x_cal, y_cal,n_cpu, alpha_range,gamma
 	plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,ncol=2, mode="expand", borderaxespad=0.,shadow=None,framealpha=1)
 	plt.xlabel('Size training set')
 	plt.ylabel('MSE')
-	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'learning_curve.png',bbox_inches='tight',dpi=310)
+	plt.savefig(str(datetime.datetime.now())+'learning_curve.png',bbox_inches='tight',dpi=310)
 	plt.close()
 
 
@@ -345,7 +345,7 @@ def pure_SP(x_dates):
 	import datetime
 	from port_opt import ret2prices
 
-	raw_data = pd.read_csv('./Data/pureSP500.csv', sep=',',header=None,low_memory=False)
+	raw_data = pd.read_csv('/home/ucabjss/Data/pureSP500.csv', sep=',',header=None,low_memory=False)
 
 	prices = raw_data.values[1:,5].astype(float)
 	dates = np.array(raw_data.values[1:,0],dtype='datetime64')
