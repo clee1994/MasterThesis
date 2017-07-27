@@ -133,6 +133,29 @@ final_plots_s([r1,r2,r3,r4],[r'past obs.', r'doc2vec',r'doc2vec, l1',r'SP500'])
 
 pickle.dump((first_line,second_line,third_line,sp500,r1,r2,r3,r4), open( "datal.p", "wb" ) )
 
+
+f = open('Output/tables/'+str(datetime.datetime.now())+'performance.tex', 'w')
+f.write('\\begin{tabular}{ l | r r r r r r r}\n')
+f.write(' & Mean & Variance & Beta & Alpha & Sharpe Ratio & Treynor Ratio & V@R 95 \%  \\\\ \n ')
+f.write('\hline \n')
+
+rets = [r1,r2,r3]
+labels = [r'past obs.', r'doc2vec',r'doc2vec, l1']
+m_mu = np.mean(r4)
+m_sigma = np.var(r4)
+r_f = 0.004
+for i in range(3):
+	mu = np.mean(rets[i]) 
+	sigma = np.var(rets[i])
+	beta = np.cov(rets[i],r4)[0,1]/np.var(r4)
+	alpha = mu - r_f - beta*(m_mu - r_f)
+	sharpe = (mu-r_f)/sigma
+	treynor = (mu-r_f)/beta
+	var95 = np.percentile(rets[i], 5)
+	f.write(labels[i] + ' & '+"{:.4f}".format(mu)+' & '+"{:.4f}".format(sigma)+' & '+"{:.4f}".format(beta)+' & '+ "{:.4f}".format(alpha) +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\ \n ')
+
+f.write('\\end{tabular}')
+f.close() 
 #portfolio metrics tabel
 # mean / variance / alpha / beta / VaR95 / sharpe ratio / Treynor / Jensen / 
 
