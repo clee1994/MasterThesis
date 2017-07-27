@@ -44,7 +44,6 @@ def data_label_method_cov(lreturns, cur_d,dates_stocks):
 def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ylm,dm_opt, tables=False, dmm=0, dmc=0):
 	import datetime
 	import numpy as np
-	from progressbar import printProgressBar
 	from gensim.models.doc2vec import TaggedDocument
 	from gensim.models import Doc2Vec
 
@@ -56,17 +55,17 @@ def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ylm,dm_opt, t
 	x_dates = []
 	doc_c = 0
 
-	#progressbar
-	prog_st = 0
-	l = len(news) 
-	printProgressBar(prog_st, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
-
+	
+	print('Progress: [', end='', flush=True)
+	prog_c = 0
+	bp = 0
 
 	prev_d = np.datetime64(datetime.date(1, 1, 1))
 	for i in news:
-		prog_st += 1
-		printProgressBar(prog_st, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
-
+		prog_c += 1
+		if bp < np.sum((prog_c/len(news)) >  np.linspace(1/30,1,30)):
+			print('=', end='', flush=True)
+			bp += 1
 
 		temp_d = []
 
@@ -97,6 +96,7 @@ def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ylm,dm_opt, t
 	except:
 		pass
 
+	print('] Done')
 
 	#maybe also dm = 0 -> different methode
 	#iter -> number of epochs 
@@ -126,7 +126,7 @@ def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ylm,dm_opt, t
 
 
 
-		f = open(str(datetime.datetime.now())+'target.tex', 'w')
+		f = open('Output/tables/'+str(datetime.datetime.now())+'target.tex', 'w')
 		f.write('"'+ target[0:(chars_pl-1)] + '\n')
 
 		for i in range(9):
@@ -279,7 +279,7 @@ def produce_doc2vecmodels_sign(fts_space,ws_space,mc_space,lreturns,dates,test_s
 def make_pred_sort_table(firm_ind_u, loss, names, uss):
 	import numpy as np
 
-	f = open('pred_sort.tex', 'w')
+	f = open('Output/tables/pred_sort.tex', 'w')
 	f.write('\\begin{tabular}{ r | l }\n')
 	f.write('Stock Ticker & Loss \\\\ \n ')
 	f.write('\hline \n')
@@ -361,7 +361,7 @@ def doc2vec_table(lpara1,lop1, lpara2, lop2, lpara3, lop3,dm_w, dmm_w, dmc_w,opt
 	import datetime
 
 	#keep in mind the fixed values -> maybe modify them
-	f = open(str(datetime.datetime.now())+'ddoc2vec.tex', 'w')
+	f = open('Output/tables/'+str(datetime.datetime.now())+'ddoc2vec.tex', 'w')
 	f.write('\\begin{tabular}{ r r r r r r | l }\n')
 	f.write('Method & Dim. feature vec. & Window & Min. count & Sum/mean & concatenation & Loss \\\\ \n ')
 	f.write('\hline \n')
@@ -461,7 +461,7 @@ def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,be
 					{'kernel': ['linear'], 'alpha': alpha_range1}]
 
 	RR_model = KernelRidge(alpha=30)
-	clf = GridSearchCV(RR_model, RR_parameters,scoring='neg_mean_squared_error',n_jobs=1)
+	clf = GridSearchCV(RR_model, RR_parameters,scoring='neg_mean_squared_error',n_jobs=4)
 
 	#remove nan
 	#ind_mask = np.invert(np.isnan(y_train[i]))
@@ -489,7 +489,7 @@ def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,be
 		learning_curve_plots(grid_results,clf, x_cal, y_cal,1,alpha_range1,gamma_range,show_plots)
 		ind_m = np.argsort(np.abs(clf.cv_results_['mean_test_score']))[1:10]
 
-		f = open(str(datetime.datetime.now())+'grdisearch.tex', 'w')
+		f = open('Output/tables/'+str(datetime.datetime.now())+'grdisearch.tex', 'w')
 		f.write('\\begin{tabular}{ r r r | l }\n')
 		f.write('Gamma & Alpha & Kernel & Loss \\\\ \n ')
 		f.write('\hline \n')

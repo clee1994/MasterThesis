@@ -13,6 +13,9 @@ import numpy as np
 firms_used = 2
 n_past = 80
 
+#path = 'Data/'
+path = '/home/ucabjss/Data/'
+
 #traning splits
 test_split = 0.25
 
@@ -29,12 +32,12 @@ mc_space = np.linspace(0,50,4,dtype=int)
 
 # 1. load and preprocess data
 print(str(datetime.datetime.now())+': Start reading in news:')
-news_data = pickle.load(open( "/home/ucabjss/Data/Reuters.p", "rb" ) )
+news_data = pickle.load(open(path+ "Reuters.p", "rb" ) )
 gc.collect()
 print(str(datetime.datetime.now())+': Successfully read all news')
 
 print(str(datetime.datetime.now())+': Start reading in SP500 data:')
-[_, dates, names, lreturns] = pickle.load(open( "/home/ucabjss/Data/SP500.p", "rb" ) )
+[_, dates, names, lreturns] = pickle.load(open(path + "SP500.p", "rb" ) )
 gc.collect()
 print(str(datetime.datetime.now())+': Successfully read all data')
 
@@ -116,7 +119,7 @@ gc.collect()
 [r1,first_line] = evaluate_portfolio(names[firm_ind_u],x_dates[(split_point+1):],lreturns,pmu_p_ts,pcov_p_ts,firm_ind_u,dates,None, None, -1)
 [r2,second_line] = evaluate_portfolio(names[firm_ind_u],x_dates[(split_point+1):],lreturns,mu_p_ts,cov_p_ts,firm_ind_u,dates,None, None, -1)
 [r3,third_line] = evaluate_portfolio(names[firm_ind_u],x_dates[(split_point+1):],lreturns,mu_p_ts,cov_p_ts,firm_ind_u,dates,None, 0.5, -1)
-[r4,sp500] = pure_SP(x_dates[(split_point+1):])
+[r4,sp500] = pure_SP(x_dates[(split_point+1):],path)
 
 del dates, names, lreturns, firm_ind_u, x_dates, mu_p_ts, pmu_p_ts, pcov_p_ts, split_point
 gc.collect()
