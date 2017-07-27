@@ -531,8 +531,4 @@ def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,be
 		f.write('\\end{tabular}')
 		f.close() 
 
-
-
-
-
 	return mu_p_ts

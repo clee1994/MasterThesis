@@ -17,7 +17,7 @@ n_past = 80
 path = '/home/ucabjss/Data/'
 
 #traning splits
-test_split = 0.25
+test_split = 0.20
 
 #doc2vec spaces
 fts_space = np.linspace(150,650,4,dtype=int)
@@ -143,7 +143,7 @@ rets = [r1,r2,r3]
 labels = [r'past obs.', r'doc2vec',r'doc2vec, l1']
 m_mu = np.mean(r4)
 m_sigma = np.var(r4)
-r_f = 0.004
+r_f = 0.00004
 for i in range(3):
 	mu = np.mean(rets[i]) 
 	sigma = np.var(rets[i])

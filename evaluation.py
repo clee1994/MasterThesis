@@ -226,7 +226,7 @@ def final_plots_s(arg_lines,label_list):
 	import matplotlib as mpl
 	mpl.use('Agg')
 	import matplotlib.pyplot as plt
-	
+
 	plt.figure() 
 	plt.clf()
 	f, axarr = plt.subplots(len(arg_lines), sharex=True)
@@ -245,66 +245,66 @@ def final_plots_s(arg_lines,label_list):
 	plt.close()
 
 
-def fitting_plots(grid_results,clf, x_cal, y_cal,n_cpu, alpha_range,gamma_range,show_p):
-	#plot grid results
-	from matplotlib import rc
-	rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
-	rc('text', usetex=True)
-	import matplotlib as mpl
-	import datetime
-	mpl.use('Agg')
-	import matplotlib.pyplot as plt
-	#from mpl_toolkits.mplot3d import Axes3D
-	from sklearn.model_selection import learning_curve
-	import numpy as np
+# def fitting_plots(grid_results,clf, x_cal, y_cal,n_cpu, alpha_range,gamma_range,show_p):
+# 	#plot grid results
+# 	from matplotlib import rc
+# 	rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
+# 	rc('text', usetex=True)
+# 	import matplotlib as mpl
+# 	import datetime
+# 	mpl.use('Agg')
+# 	import matplotlib.pyplot as plt
+# 	#from mpl_toolkits.mplot3d import Axes3D
+# 	from sklearn.model_selection import learning_curve
+# 	import numpy as np
 
 
 
-	index_linear = np.where(grid_results['param_kernel']=='linear')
-	val_train = np.array(grid_results['mean_train_score'])[index_linear]*-1
-	val_test = np.array(grid_results['mean_test_score'])[index_linear]*-1
-	plt.figure() 
-	plt.clf()
-	plt.plot(val_train, label="Train MSE")
-	plt.plot(val_test, label="Test MSE")
-	plt.xticks(range(len(val_train)),np.array(grid_results['param_alpha'])[index_linear])
-	plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,ncol=2, mode="expand", borderaxespad=0.)
-	plt.xlabel('Alpha')
-	plt.ylabel('MSE')
+# 	index_linear = np.where(grid_results['param_kernel']=='linear')
+# 	val_train = np.array(grid_results['mean_train_score'])[index_linear]*-1
+# 	val_test = np.array(grid_results['mean_test_score'])[index_linear]*-1
+# 	plt.figure() 
+# 	plt.clf()
+# 	plt.plot(val_train, label="Train MSE")
+# 	plt.plot(val_test, label="Test MSE")
+# 	plt.xticks(range(len(val_train)),np.array(grid_results['param_alpha'])[index_linear])
+# 	plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,ncol=2, mode="expand", borderaxespad=0.)
+# 	plt.xlabel('Alpha')
+# 	plt.ylabel('MSE')
 
-	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'alpha_fitting.png',bbox_inches='tight')
-	plt.close()
+# 	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'alpha_fitting.png',bbox_inches='tight')
+# 	plt.close()
 
 
 
-	index_linear = np.where(grid_results['param_kernel']=='rbf')
+# 	index_linear = np.where(grid_results['param_kernel']=='rbf')
 
-	val_train = np.reshape(np.array(grid_results['mean_train_score'])[index_linear]*-1,[len(alpha_range),len(gamma_range)])
-	val_test = np.reshape(np.array(grid_results['mean_test_score'])[index_linear]*-1,[len(alpha_range),len(gamma_range)])
-	x_pval = np.reshape(np.array(grid_results['param_alpha'])[index_linear],[len(alpha_range),len(gamma_range)])
-	y_pval = np.reshape(np.array(grid_results['param_gamma'])[index_linear],[len(alpha_range),len(gamma_range)])
+# 	val_train = np.reshape(np.array(grid_results['mean_train_score'])[index_linear]*-1,[len(alpha_range),len(gamma_range)])
+# 	val_test = np.reshape(np.array(grid_results['mean_test_score'])[index_linear]*-1,[len(alpha_range),len(gamma_range)])
+# 	x_pval = np.reshape(np.array(grid_results['param_alpha'])[index_linear],[len(alpha_range),len(gamma_range)])
+# 	y_pval = np.reshape(np.array(grid_results['param_gamma'])[index_linear],[len(alpha_range),len(gamma_range)])
 	
 
 	
-	fig = plt.figure()
-	plt.clf()
-	ax = fig.add_subplot(111, projection='3d')
+# 	fig = plt.figure()
+# 	plt.clf()
+# 	ax = fig.add_subplot(111, projection='3d')
 
-	xpt, ypt = np.meshgrid(np.arange(0,np.shape(x_pval)[1],1),np.arange(0,np.shape(x_pval)[0],1))
-	ax.plot_wireframe(xpt, ypt, val_test)
+# 	xpt, ypt = np.meshgrid(np.arange(0,np.shape(x_pval)[1],1),np.arange(0,np.shape(x_pval)[0],1))
+# 	ax.plot_wireframe(xpt, ypt, val_test)
 
 
-	#plt.plot(val_train, label="Train MSE")
-	#plt.plot(val_test, label="Test MSE")
-	#plt.xticks(range(len(val_train)),np.array(grid_results['param_alpha'])[index_linear])
-	#plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,ncol=2, mode="expand", borderaxespad=0.)
-	ax.set_xlabel('Alpha')
-	ax.set_ylabel('Gamma')
-	#ax.yaxis.set_scale('log')
-	ax.set_zlabel('MSE')
+# 	#plt.plot(val_train, label="Train MSE")
+# 	#plt.plot(val_test, label="Test MSE")
+# 	#plt.xticks(range(len(val_train)),np.array(grid_results['param_alpha'])[index_linear])
+# 	#plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,ncol=2, mode="expand", borderaxespad=0.)
+# 	ax.set_xlabel('Alpha')
+# 	ax.set_ylabel('Gamma')
+# 	#ax.yaxis.set_scale('log')
+# 	ax.set_zlabel('MSE')
 
-	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'rbf_fitting.png',bbox_inches='tight',dpi=310)
-	plt.close()
+# 	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'rbf_fitting.png',bbox_inches='tight',dpi=310)
+# 	plt.close()
 
 
 
@@ -334,7 +334,11 @@ def learning_curve_plots(grid_results,clf, x_cal, y_cal,n_cpu, alpha_range,gamma
 	plt.plot(train_sizes,train_scores*-1, label="Train MSE",linewidth=0.8)
 	plt.plot(train_sizes,test_scores*-1, label="Test MSE",linewidth=0.8)
 	#plt.xticks(range(len(train_scores)),train_sizes)
-	plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,ncol=2, mode="expand", borderaxespad=0.,shadow=None,framealpha=1)
+	#plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,ncol=2, mode="expand", borderaxespad=0.,shadow=None,framealpha=1)
+	
+	test34 = plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
+	           ncol=2, mode="expand", borderaxespad=0.,shadow=None,framealpha=1,fancybox=False)
+	test34.get_frame().set_edgecolor('black')
 	plt.xlabel('Size training set')
 	plt.ylabel('MSE')
 	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'learning_curve.png',bbox_inches='tight',dpi=310)
