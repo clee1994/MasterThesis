@@ -201,6 +201,7 @@ def final_plots(arg_lines,label_list):
 	import matplotlib as mpl
 	mpl.use('Agg')
 	import matplotlib.pyplot as plt
+
 	plt.figure() 
 	plt.clf()
 	for i in range(len(arg_lines)):
@@ -225,6 +226,7 @@ def final_plots_s(arg_lines,label_list):
 	import matplotlib as mpl
 	mpl.use('Agg')
 	import matplotlib.pyplot as plt
+	
 	plt.figure() 
 	plt.clf()
 	f, axarr = plt.subplots(len(arg_lines), sharex=True)
@@ -252,7 +254,7 @@ def fitting_plots(grid_results,clf, x_cal, y_cal,n_cpu, alpha_range,gamma_range,
 	import datetime
 	mpl.use('Agg')
 	import matplotlib.pyplot as plt
-	from mpl_toolkits.mplot3d import Axes3D
+	#from mpl_toolkits.mplot3d import Axes3D
 	from sklearn.model_selection import learning_curve
 	import numpy as np
 
@@ -315,7 +317,7 @@ def learning_curve_plots(grid_results,clf, x_cal, y_cal,n_cpu, alpha_range,gamma
 	import datetime
 	mpl.use('Agg')
 	import matplotlib.pyplot as plt
-	from mpl_toolkits.mplot3d import Axes3D
+	#from mpl_toolkits.mplot3d import Axes3D
 	from sklearn.model_selection import learning_curve
 	import numpy as np
 
@@ -346,7 +348,7 @@ def pure_SP(x_dates, path):
 	from port_opt import ret2prices
 
 	#/home/ucabjss
-	raw_data = pd.read_csv(path+'pureSP500.csv', sep=',',header=None,low_memory=False)
+	raw_data = pd.read_csv(path + 'pureSP500.csv', sep=',',header=None,low_memory=False)
 
 	prices = raw_data.values[1:,5].astype(float)
 	dates = np.array(raw_data.values[1:,0],dtype='datetime64')
