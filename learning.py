@@ -289,7 +289,7 @@ def make_pred_sort_table(firm_ind_u, loss, names, uss):
 		f.write(names[firm_ind_u[i]]+' & '+ "{:.4f}".format((loss[i]))+' \\\\ \n ')
 	f.write('\hline \n')
 	f.write('\hline \n')
-	f.write('Mean & '+ "{:.4f}".format(np.mean(loss[:]))+' \\\\ \n ')
+	f.write('Mean & '+ "{:.4f}".format(np.nanmean(loss[:]))+' \\\\ \n ')
 	f.write('\\end{tabular}')
 	f.close() 
 
