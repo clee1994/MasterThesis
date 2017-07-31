@@ -461,7 +461,7 @@ def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,be
 					{'kernel': ['linear'], 'alpha': alpha_range1}]
 
 	RR_model = KernelRidge(alpha=30)
-	clf = GridSearchCV(RR_model, RR_parameters,scoring='neg_mean_squared_error',n_jobs=4)
+	clf = GridSearchCV(RR_model, RR_parameters,scoring='neg_mean_squared_error')
 
 	#remove nan
 	#ind_mask = np.invert(np.isnan(y_train[i]))
