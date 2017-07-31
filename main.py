@@ -78,91 +78,93 @@ for i in firm_ind_u:
 	if i == firm_ind_u[0]:
 		stables = False
 
-
-# 7. single stock parameter calibration & get improved cov estimates
-cov_p_ts = np.zeros([int(np.ceil(np.shape(y)[0]*test_split)),len(firm_ind_u),len(firm_ind_u)])
-for i in range(len(firm_ind_u)):
-	for j in range(i+1):
-		if (i == j) and (i == 0):
-			stables = True
-		if (i == 0) and (j == 1):
-			stables = True
-		temp1 = np.transpose(np.matrix( lreturns[:,[i,j]]))
-		[_,y,_] = gen_xy_daily(news_data,temp1,dates,220,8,10,data_label_method_cov,1) 
-		[x_cal, y_cal, x_dates] = stock_xy(test_split,fts_space,ws_space, mc_space,news_data,temp1,dates,x_fts, x_ws, x_mc,y,data_label_method_cov,Ridge(alpha=0),x_dm, x_dmm, x_dmc, tables= stables)
-		if i == j:
-			label_text = "Variance"
-			l2_test = names[i]
-		else:
-			label_text = "Covariance"
-			l2_test = names[i] + " and " + names[j]
-		cov_p_ts[:,i,j] = mu_news_estimate(x_cal, y_cal, test_split, temp1, dates, n_past,i,bench_mark_cov, label_text, l2_test ,show_p,stables)
-		cov_p_ts[:,j,i] = cov_p_ts[:,i,j]
-		del x_cal, y_cal, temp1, y
-		gc.collect()
-		print(str(datetime.datetime.now())+': Successfully produced co_p_ts for '+names[firm_ind_u[i]]+' and '+names[firm_ind_u[j]])
-		if (i == j) and (i == 0):
-			stables = False
-		if (i == 0) and (j == 1):
-			stables = False
-
-del news_data, x_fts, x_ws, x_mc
-gc.collect()
+pickle.dump((mu_p_ts, firm_ind_u), open( "Output/data_mu.p", "wb" ) )
 
 
-pickle.dump((mu_p_ts,cov_p_ts,firm_ind_u), open( "Output/data_mu_cov.p", "wb" ) )
+# # 7. single stock parameter calibration & get improved cov estimates
+# cov_p_ts = np.zeros([int(np.ceil(np.shape(y)[0]*test_split)),len(firm_ind_u),len(firm_ind_u)])
+# for i in range(len(firm_ind_u)):
+# 	for j in range(i+1):
+# 		if (i == j) and (i == 0):
+# 			stables = True
+# 		if (i == 0) and (j == 1):
+# 			stables = True
+# 		temp1 = np.transpose(np.matrix( lreturns[:,[i,j]]))
+# 		[_,y,_] = gen_xy_daily(news_data,temp1,dates,220,8,10,data_label_method_cov,1) 
+# 		[x_cal, y_cal, x_dates] = stock_xy(test_split,fts_space,ws_space, mc_space,news_data,temp1,dates,x_fts, x_ws, x_mc,y,data_label_method_cov,Ridge(alpha=0),x_dm, x_dmm, x_dmc, tables= stables)
+# 		if i == j:
+# 			label_text = "Variance"
+# 			l2_test = names[i]
+# 		else:
+# 			label_text = "Covariance"
+# 			l2_test = names[i] + " and " + names[j]
+# 		cov_p_ts[:,i,j] = mu_news_estimate(x_cal, y_cal, test_split, temp1, dates, n_past,i,bench_mark_cov, label_text, l2_test ,show_p,stables)
+# 		cov_p_ts[:,j,i] = cov_p_ts[:,i,j]
+# 		del x_cal, y_cal, temp1, y
+# 		gc.collect()
+# 		print(str(datetime.datetime.now())+': Successfully produced co_p_ts for '+names[firm_ind_u[i]]+' and '+names[firm_ind_u[j]])
+# 		if (i == j) and (i == 0):
+# 			stables = False
+# 		if (i == 0) and (j == 1):
+# 			stables = False
 
-# 6. standard past observation past mu and cov
-split_point = int(np.floor(np.shape(x_dates)[0]*(1-test_split)))
-pmu_p_ts = mu_gen_past1(lreturns, dates, x_dates[(split_point+1):], firm_ind_u[0:firms_used], n_past)
-pcov_p_ts = cov_gen_past(lreturns, dates, x_dates[(split_point+1):], firm_ind_u[0:firms_used], n_past)
-gc.collect()
+# del news_data, x_fts, x_ws, x_mc
+# gc.collect()
 
 
-# 7. build portfolios based on both
-[r1,first_line] = evaluate_portfolio(names[firm_ind_u],x_dates[(split_point+1):],lreturns,pmu_p_ts,pcov_p_ts,firm_ind_u,dates,None, None, -1)
-[r2,second_line] = evaluate_portfolio(names[firm_ind_u],x_dates[(split_point+1):],lreturns,mu_p_ts,cov_p_ts,firm_ind_u,dates,None, None, -1)
-[r3,third_line] = evaluate_portfolio(names[firm_ind_u],x_dates[(split_point+1):],lreturns,mu_p_ts,cov_p_ts,firm_ind_u,dates,None, 0.5, -1)
-[r4,sp500] = pure_SP(x_dates[(split_point+1):],path)
+# pickle.dump((mu_p_ts,cov_p_ts,firm_ind_u), open( "Output/data_mu_cov.p", "wb" ) )
 
-del dates, names, lreturns, firm_ind_u, x_dates, mu_p_ts, pmu_p_ts, pcov_p_ts, split_point
-gc.collect()
-
-
-# 8. plotting the final results
-final_plots([first_line,second_line,third_line,sp500],[r'min. var. portfolio (past obs.)', r'min. var. portfolio (doc2vec)',r'min. var. (doc2vec, l1)',r'SP500 raw performance'])
-
-#return plots
-final_plots_s([r1,r2,r3,r4],[r'past obs.', r'doc2vec',r'doc2vec, l1',r'SP500'])
-
-pickle.dump((first_line,second_line,third_line,sp500,r1,r2,r3,r4), open( "Output/datal.p", "wb" ) )
+# # 6. standard past observation past mu and cov
+# split_point = int(np.floor(np.shape(x_dates)[0]*(1-test_split)))
+# pmu_p_ts = mu_gen_past1(lreturns, dates, x_dates[(split_point+1):], firm_ind_u[0:firms_used], n_past)
+# pcov_p_ts = cov_gen_past(lreturns, dates, x_dates[(split_point+1):], firm_ind_u[0:firms_used], n_past)
+# gc.collect()
 
 
-f = open('Output/tables/'+str(datetime.datetime.now())+'performance.tex', 'w')
-f.write('\\begin{tabular}{ l | r r r r r r r}\n')
-f.write(' & Mean & Variance & Beta & Alpha & Sharpe Ratio & Treynor Ratio & V@R 95 \%  \\\\ \n ')
-f.write('\hline \n')
+# # 7. build portfolios based on both
+# [r1,first_line] = evaluate_portfolio(names[firm_ind_u],x_dates[(split_point+1):],lreturns,pmu_p_ts,pcov_p_ts,firm_ind_u,dates,None, None, -1)
+# [r2,second_line] = evaluate_portfolio(names[firm_ind_u],x_dates[(split_point+1):],lreturns,mu_p_ts,cov_p_ts,firm_ind_u,dates,None, None, -1)
+# [r3,third_line] = evaluate_portfolio(names[firm_ind_u],x_dates[(split_point+1):],lreturns,mu_p_ts,cov_p_ts,firm_ind_u,dates,None, 0.5, -1)
+# [r4,sp500] = pure_SP(x_dates[(split_point+1):],path)
 
-rets = [r1,r2,r3]
-labels = [r'past obs.', r'doc2vec',r'doc2vec, l1']
-m_mu = np.mean(r4)
-m_sigma = np.var(r4)
-r_f = 0.00004
-for i in range(3):
-	mu = np.mean(rets[i]) 
-	sigma = np.var(rets[i])
-	beta = np.cov(rets[i],r4)[0,1]/np.var(r4)
-	alpha = mu - r_f - beta*(m_mu - r_f)
-	sharpe = (mu-r_f)/sigma
-	treynor = (mu-r_f)/beta
-	var95 = np.percentile(rets[i], 5)
-	f.write(labels[i] + ' & '+"{:.4f}".format(mu)+' & '+"{:.4f}".format(sigma)+' & '+"{:.4f}".format(beta)+' & '+ "{:.4f}".format(alpha) +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\ \n ')
+# del dates, names, lreturns, firm_ind_u, x_dates, mu_p_ts, pmu_p_ts, pcov_p_ts, split_point
+# gc.collect()
 
-f.write('\\end{tabular}')
-f.close() 
-#portfolio metrics tabel
-# mean / variance / alpha / beta / VaR95 / sharpe ratio / Treynor / Jensen / 
 
-#assuming some risk free rate
+# # 8. plotting the final results
+# final_plots([first_line,second_line,third_line,sp500],[r'min. var. portfolio (past obs.)', r'min. var. portfolio (doc2vec)',r'min. var. (doc2vec, l1)',r'SP500 raw performance'])
+
+# #return plots
+# final_plots_s([r1,r2,r3,r4],[r'past obs.', r'doc2vec',r'doc2vec, l1',r'SP500'])
+
+# pickle.dump((first_line,second_line,third_line,sp500,r1,r2,r3,r4), open( "Output/datal.p", "wb" ) )
+
+
+# f = open('Output/tables/'+str(datetime.datetime.now())+'performance.tex', 'w')
+# f.write('\\begin{tabular}{ l | r r r r r r r}\n')
+# f.write(' & Mean & Variance & Beta & Alpha & Sharpe Ratio & Treynor Ratio & V@R 95 \%  \\\\ \n ')
+# f.write('\hline \n')
+
+# rets = [r1,r2,r3]
+# labels = [r'past obs.', r'doc2vec',r'doc2vec, l1']
+# m_mu = np.mean(r4)
+# m_sigma = np.var(r4)
+# r_f = 0.00004
+# for i in range(3):
+# 	mu = np.mean(rets[i]) 
+# 	sigma = np.var(rets[i])
+# 	beta = np.cov(rets[i],r4)[0,1]/np.var(r4)
+# 	alpha = mu - r_f - beta*(m_mu - r_f)
+# 	sharpe = (mu-r_f)/sigma
+# 	treynor = (mu-r_f)/beta
+# 	var95 = np.percentile(rets[i], 5)
+# 	f.write(labels[i] + ' & '+"{:.4f}".format(mu)+' & '+"{:.4f}".format(sigma)+' & '+"{:.4f}".format(beta)+' & '+ "{:.4f}".format(alpha) +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\ \n ')
+
+# f.write('\\end{tabular}')
+# f.close() 
+# #portfolio metrics tabel
+# # mean / variance / alpha / beta / VaR95 / sharpe ratio / Treynor / Jensen / 
+
+# #assuming some risk free rate
 
 
