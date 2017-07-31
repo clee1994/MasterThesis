@@ -62,54 +62,56 @@ mc_space = np.linspace(0,50,4,dtype=int)
 [x_fts, x_ws, x_mc, y, x_dm, x_dmm, x_dmc, firm_ind_u, dates, names, lreturns, news_data] = pickle.load( open( path + "first_intermediate.p", "rb" ) )
 firm_ind_u = firm_ind_u[0:firms_used]
 
-show_p = False
-stables = False
-# 5. single stock parameter calibration & get improved mu estimates
-mu_p_ts = np.empty((int(np.ceil(np.shape(y)[0]*test_split)),0), float)
-for i in firm_ind_u:
-	if i == firm_ind_u[0]:
-		stables = True
-	temp1 = np.transpose(np.matrix( lreturns[:,i]))
-	[x_cal, y_cal, x_dates] = stock_xy(test_split,fts_space,ws_space, mc_space,news_data,temp1,dates,x_fts, x_ws, x_mc,y[:,i],data_label_method_val,svm.SVC(),x_dm, x_dmm, x_dmc,tables=stables)
-	mu_p_ts = np.concatenate([mu_p_ts,mu_news_estimate(x_cal, y_cal, test_split, temp1, dates, n_past,i,bench_mark_mu, "Mean",names[i],show_p,stables)],axis=1)
-	del x_cal, y_cal, x_dates, temp1
-	gc.collect()
-	print(str(datetime.datetime.now())+': Successfully produced mu_p_ts for '+names[i])
-	if i == firm_ind_u[0]:
-		stables = False
+# show_p = False
+# stables = False
+# # 5. single stock parameter calibration & get improved mu estimates
+# mu_p_ts = np.empty((int(np.ceil(np.shape(y)[0]*test_split)),0), float)
+# for i in firm_ind_u:
+# 	if i == firm_ind_u[0]:
+# 		stables = True
+# 	temp1 = np.transpose(np.matrix( lreturns[:,i]))
+# 	[x_cal, y_cal, x_dates] = stock_xy(test_split,fts_space,ws_space, mc_space,news_data,temp1,dates,x_fts, x_ws, x_mc,y[:,i],data_label_method_val,svm.SVC(),x_dm, x_dmm, x_dmc,tables=stables)
+# 	mu_p_ts = np.concatenate([mu_p_ts,mu_news_estimate(x_cal, y_cal, test_split, temp1, dates, n_past,i,bench_mark_mu, "Mean",names[i],show_p,stables)],axis=1)
+# 	del x_cal, y_cal, x_dates, temp1
+# 	gc.collect()
+# 	print(str(datetime.datetime.now())+': Successfully produced mu_p_ts for '+names[i])
+# 	if i == firm_ind_u[0]:
+# 		stables = False
 
-pickle.dump((mu_p_ts, firm_ind_u), open( "Output/data_mu.p", "wb" ) )
+# pickle.dump((mu_p_ts, firm_ind_u), open( "Output/data_mu.p", "wb" ) )
 
 
-# # 7. single stock parameter calibration & get improved cov estimates
-# cov_p_ts = np.zeros([int(np.ceil(np.shape(y)[0]*test_split)),len(firm_ind_u),len(firm_ind_u)])
-# for i in range(len(firm_ind_u)):
-# 	for j in range(i+1):
-# 		if (i == j) and (i == 0):
-# 			stables = True
-# 		if (i == 0) and (j == 1):
-# 			stables = True
-# 		temp1 = np.transpose(np.matrix( lreturns[:,[i,j]]))
-# 		[_,y,_] = gen_xy_daily(news_data,temp1,dates,220,8,10,data_label_method_cov,1) 
-# 		[x_cal, y_cal, x_dates] = stock_xy(test_split,fts_space,ws_space, mc_space,news_data,temp1,dates,x_fts, x_ws, x_mc,y,data_label_method_cov,Ridge(alpha=0),x_dm, x_dmm, x_dmc, tables= stables)
-# 		if i == j:
-# 			label_text = "Variance"
-# 			l2_test = names[i]
-# 		else:
-# 			label_text = "Covariance"
-# 			l2_test = names[i] + " and " + names[j]
-# 		cov_p_ts[:,i,j] = mu_news_estimate(x_cal, y_cal, test_split, temp1, dates, n_past,i,bench_mark_cov, label_text, l2_test ,show_p,stables)
-# 		cov_p_ts[:,j,i] = cov_p_ts[:,i,j]
-# 		del x_cal, y_cal, temp1, y
-# 		gc.collect()
-# 		print(str(datetime.datetime.now())+': Successfully produced co_p_ts for '+names[firm_ind_u[i]]+' and '+names[firm_ind_u[j]])
-# 		if (i == j) and (i == 0):
-# 			stables = False
-# 		if (i == 0) and (j == 1):
-# 			stables = False
+# 7. single stock parameter calibration & get improved cov estimates
+cov_p_ts = np.zeros([int(np.ceil(np.shape(y)[0]*test_split)),len(firm_ind_u),len(firm_ind_u)])
+for i in range(len(firm_ind_u)):
+	for j in range(i+1):
+		if (i == j) and (i == 0):
+			stables = True
+		if (i == 0) and (j == 1):
+			stables = True
+		temp1 = np.transpose(np.matrix( lreturns[:,[i,j]]))
+		[_,y,_] = gen_xy_daily(news_data,temp1,dates,220,8,10,data_label_method_cov,1) 
+		[x_cal, y_cal, x_dates] = stock_xy(test_split,fts_space,ws_space, mc_space,news_data,temp1,dates,x_fts, x_ws, x_mc,y,data_label_method_cov,Ridge(alpha=0),x_dm, x_dmm, x_dmc, tables= stables)
+		if i == j:
+			label_text = "Variance"
+			l2_test = names[i]
+		else:
+			label_text = "Covariance"
+			l2_test = names[i] + " and " + names[j]
+		cov_p_ts[:,i,j] = mu_news_estimate(x_cal, y_cal, test_split, temp1, dates, n_past,i,bench_mark_cov, label_text, l2_test ,show_p,stables)
+		cov_p_ts[:,j,i] = cov_p_ts[:,i,j]
+		del x_cal, y_cal, temp1, y
+		gc.collect()
+		print(str(datetime.datetime.now())+': Successfully produced co_p_ts for '+names[firm_ind_u[i]]+' and '+names[firm_ind_u[j]])
+		if (i == j) and (i == 0):
+			stables = False
+		if (i == 0) and (j == 1):
+			stables = False
 
-# del news_data, x_fts, x_ws, x_mc
-# gc.collect()
+del news_data, x_fts, x_ws, x_mc
+gc.collect()
+
+pickle.dump((cov_p_ts, firm_ind_u), open( "Output/data_cov.p", "wb" ) )
 
 
 # pickle.dump((mu_p_ts,cov_p_ts,firm_ind_u), open( "Output/data_mu_cov.p", "wb" ) )
