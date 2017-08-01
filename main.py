@@ -10,163 +10,144 @@ import numpy as np
 
 
 # 0. modifiable variables
-firms_used = 2
+firms_used = 5
 n_past = 80
 
-#path = 'Data/'
-path = '/home/ucabjss/Data/'
+path = 'Data/'
+#path = '/home/ucabjss/Data/'
 
 #traning splits
 test_split = 0.20
 
-#doc2vec spaces
-fts_space = np.linspace(150,650,4,dtype=int)
-ws_space = np.linspace(2,25,4,dtype=int)
-mc_space = np.linspace(0,50,4,dtype=int)
-
-#fts_space = np.linspace(150,650,8,dtype=int)
-#ws_space = np.linspace(2,25,8,dtype=int)
-#mc_space = np.linspace(0,50,8,dtype=int)
 
 
 
-# # 1. load and preprocess data
-# print(str(datetime.datetime.now())+': Start reading in news:')
-# news_data = pickle.load(open(path+ "Reuters.p", "rb" ) )
-# gc.collect()
-# print(str(datetime.datetime.now())+': Successfully read all news')
 
-# print(str(datetime.datetime.now())+': Start reading in SP500 data:')
-# [_, dates, names, lreturns] = pickle.load(open(path + "SP500.p", "rb" ) )
-# gc.collect()
-# print(str(datetime.datetime.now())+': Successfully read all data')
+# 1. load and preprocess data
+print(str(datetime.datetime.now())+': Start reading in news:')
+news_data = pickle.load(open(path+ "Reuters.p", "rb" ) )
+print(str(datetime.datetime.now())+': Successfully read all news')
 
-
-# # 3. produce possible doc2vec models
-# [x_fts, x_ws, x_mc, y, x_dm, x_dmm, x_dmc] = produce_doc2vecmodels_sign(fts_space,ws_space,mc_space,lreturns,dates,test_split,news_data)
-# gc.collect()
-# print(str(datetime.datetime.now())+': Successfully produce doc2vec model sign')
+print(str(datetime.datetime.now())+': Start reading in SP500 data:')
+[_, dates_prices, names, lreturns] = pickle.load(open(path + "SP500.p", "rb" ) )
+print(str(datetime.datetime.now())+': Successfully read all data')
 
 
-# # 4. select stocks
 
-# #cherry picking
-# firm_ind_u = sort_predictability(news_data,lreturns,dates,test_split,names,firms_used)[0:firms_used]
-# print(str(datetime.datetime.now())+': Successfully sorted')
+# 4. select stocks
 
-# #random
-# #firm_ind_u = random.sample(range(len(names)-1), firms_used)
+#cherry picking
+firm_ind_u = sort_predictability(news_data,lreturns,dates_prices,test_split,names,firms_used)[0:firms_used]
+print(str(datetime.datetime.now())+': Successfully sorted')
 
-# pickle.dump((x_fts, x_ws, x_mc, y, x_dm, x_dmm, x_dmc, firm_ind_u, dates, names, lreturns, news_data), open( "Output/first_intermediate.p", "wb" ) )
-
-[x_fts, x_ws, x_mc, y, x_dm, x_dmm, x_dmc, firm_ind_u, dates, names, lreturns, news_data] = pickle.load( open( path + "first_intermediate.p", "rb" ) )
-firm_ind_u = firm_ind_u[0:firms_used]
-
-# show_p = False
-# stables = False
-# # 5. single stock parameter calibration & get improved mu estimates
-# mu_p_ts = np.empty((int(np.ceil(np.shape(y)[0]*test_split)),0), float)
-# for i in firm_ind_u:
-# 	if i == firm_ind_u[0]:
-# 		stables = True
-# 	temp1 = np.transpose(np.matrix( lreturns[:,i]))
-# 	[x_cal, y_cal, x_dates] = stock_xy(test_split,fts_space,ws_space, mc_space,news_data,temp1,dates,x_fts, x_ws, x_mc,y[:,i],data_label_method_val,svm.SVC(),x_dm, x_dmm, x_dmc,tables=stables)
-# 	mu_p_ts = np.concatenate([mu_p_ts,mu_news_estimate(x_cal, y_cal, test_split, temp1, dates, n_past,i,bench_mark_mu, "Mean",names[i],show_p,stables)],axis=1)
-# 	del x_cal, y_cal, x_dates, temp1
-# 	gc.collect()
-# 	print(str(datetime.datetime.now())+': Successfully produced mu_p_ts for '+names[i])
-# 	if i == firm_ind_u[0]:
-# 		stables = False
-
-# pickle.dump((mu_p_ts, firm_ind_u), open( "Output/data_mu.p", "wb" ) )
+#random -> validation, maybe multiple times?
+#firm_ind_u = random.sample(range(len(names)-1), firms_used)
 
 
-# 7. single stock parameter calibration & get improved cov estimates
-cov_p_ts = np.zeros([int(np.ceil(np.shape(y)[0]*test_split)),len(firm_ind_u),len(firm_ind_u)])
-for i in range(len(firm_ind_u)):
-	for j in range(i+1):
-		if (i == j) and (i == 0):
-			stables = True
-		if (i == 0) and (j == 1):
-			stables = True
-		temp1 = np.transpose(np.matrix( lreturns[:,[i,j]]))
-		[_,y,_] = gen_xy_daily(news_data,temp1,dates,220,8,10,data_label_method_cov,1) 
-		[x_cal, y_cal, x_dates] = stock_xy(test_split,fts_space,ws_space, mc_space,news_data,temp1,dates,x_fts, x_ws, x_mc,y,data_label_method_cov,Ridge(alpha=0),x_dm, x_dmm, x_dmc, tables= stables)
-		if i == j:
-			label_text = "Variance"
-			l2_test = names[i]
+
+# 3. doc2vec model calibration
+[x_doc2vec, dates_news] = calibrate_doc2vec(np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)),dates_prices,test_split,news_data)
+print(str(datetime.datetime.now())+': Successfully calibrated doc2vec model sign')
+
+# 4. tfidf
+
+#create corpus
+def tfidf_vector(n_gram, ):
+	import numpy as np
+	from sklearn.feature_extraction.text import TfidfVectorizer
+	import datetime
+
+	corpus = []
+	temp_word = ""
+	x_dates = []
+	prev_d = np.datetime64(datetime.date(1, 1, 1))
+
+	for i in news_data:
+		cur_d = np.datetime64(i[0])
+
+		#y
+		if cur_d == prev_d:
+			prev_d = cur_d
 		else:
-			label_text = "Covariance"
-			l2_test = names[i] + " and " + names[j]
-		cov_p_ts[:,i,j] = mu_news_estimate(x_cal, y_cal, test_split, temp1, dates, n_past,i,bench_mark_cov, label_text, l2_test ,show_p,stables)
-		cov_p_ts[:,j,i] = cov_p_ts[:,i,j]
-		del x_cal, y_cal, temp1, y
-		gc.collect()
-		print(str(datetime.datetime.now())+': Successfully produced co_p_ts for '+names[firm_ind_u[i]]+' and '+names[firm_ind_u[j]])
-		if (i == j) and (i == 0):
-			stables = False
-		if (i == 0) and (j == 1):
-			stables = False
+			if prev_d != np.datetime64(datetime.date(1, 1, 1)):
+				#documents.append(TaggedDocument(words,str(doc_c)))
+				#doc_c = doc_c + 1
+				corpus.append(temp_word)
+				temp_word = ""
+			x_dates.append(cur_d)
+			prev_d = cur_d
+		for hj in i[1]:
+			temp_word = temp_word + hj + " "
+			#words.append(hj)
+	corpus.append(temp_word)
 
-del news_data, x_fts, x_ws, x_mc
+	
+	vectorizer = TfidfVectorizer(analyzer='word',ngram_range=(1,n_gram),stop_words='english',min_df=3,max_features=800)
+	return vectorizer.fit_transform(corpus).toarray(), x_dates
+
+
+# unigram
+
+# bigrams
+
+# trigrams
+
+
+# produce doc2vec ridgeregression -> mu_p_ts
+[mu_p_ts, cov_p_ts] = produce_mu_cov(x_calibrated,test_split,lreturns, dates_prices, dates_news, n_past, names, firm_ind_u)
+
+
+
+
+# 6. standard past observation past mu and cov
+split_point = int(np.floor(np.shape(x_calibrated)[0]*(1-test_split)))
+pmu_p_ts = mu_gen_past1(lreturns, dates_prices, dates_news[(split_point+1):], firm_ind_u[0:firms_used], n_past)
+pcov_p_ts = cov_gen_past(lreturns, dates_prices, dates_news[(split_point+1):], firm_ind_u[0:firms_used], n_past)
 gc.collect()
 
-pickle.dump((cov_p_ts, firm_ind_u), open( "Output/data_cov.p", "wb" ) )
+
+# 7. build portfolios based on both
+[r1,first_line] = evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,pmu_p_ts,pcov_p_ts,firm_ind_u,dates_prices,None, None, -1)
+[r2,second_line] = evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,mu_p_ts,cov_p_ts,firm_ind_u,dates_prices,None, None, -1)
+[r3,third_line] = evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,mu_p_ts,cov_p_ts,firm_ind_u,dates_prices,None, 0.5, -1)
+[r4,sp500] = pure_SP(dates_news[(split_point+1):],path)
+
+#del dates, names, lreturns, firm_ind_u, x_dates, mu_p_ts, pmu_p_ts, pcov_p_ts, split_point
+gc.collect()
 
 
-# pickle.dump((mu_p_ts,cov_p_ts,firm_ind_u), open( "Output/data_mu_cov.p", "wb" ) )
+# 8. plotting the final results
+final_plots([first_line,second_line,third_line,sp500],[r'min. var. portfolio (past obs.)', r'min. var. portfolio (doc2vec)',r'min. var. (doc2vec, l1)',r'SP500 raw performance'])
 
-# # 6. standard past observation past mu and cov
-# split_point = int(np.floor(np.shape(x_dates)[0]*(1-test_split)))
-# pmu_p_ts = mu_gen_past1(lreturns, dates, x_dates[(split_point+1):], firm_ind_u[0:firms_used], n_past)
-# pcov_p_ts = cov_gen_past(lreturns, dates, x_dates[(split_point+1):], firm_ind_u[0:firms_used], n_past)
-# gc.collect()
+#return plots
+final_plots_s([r1,r2,r3,r4],[r'past obs.', r'doc2vec',r'doc2vec, l1',r'SP500'])
 
-
-# # 7. build portfolios based on both
-# [r1,first_line] = evaluate_portfolio(names[firm_ind_u],x_dates[(split_point+1):],lreturns,pmu_p_ts,pcov_p_ts,firm_ind_u,dates,None, None, -1)
-# [r2,second_line] = evaluate_portfolio(names[firm_ind_u],x_dates[(split_point+1):],lreturns,mu_p_ts,cov_p_ts,firm_ind_u,dates,None, None, -1)
-# [r3,third_line] = evaluate_portfolio(names[firm_ind_u],x_dates[(split_point+1):],lreturns,mu_p_ts,cov_p_ts,firm_ind_u,dates,None, 0.5, -1)
-# [r4,sp500] = pure_SP(x_dates[(split_point+1):],path)
-
-# del dates, names, lreturns, firm_ind_u, x_dates, mu_p_ts, pmu_p_ts, pcov_p_ts, split_point
-# gc.collect()
+pickle.dump((first_line,second_line,third_line,sp500,r1,r2,r3,r4), open( "Output/datal.p", "wb" ) )
 
 
-# # 8. plotting the final results
-# final_plots([first_line,second_line,third_line,sp500],[r'min. var. portfolio (past obs.)', r'min. var. portfolio (doc2vec)',r'min. var. (doc2vec, l1)',r'SP500 raw performance'])
+f = open('Output/tables/'+str(datetime.datetime.now())+'performance.tex', 'w')
+f.write('\\begin{tabular}{ l | r r r r r r r}\n')
+f.write(' & Mean & Variance & Beta & Alpha & Sharpe Ratio & Treynor Ratio & V@R 95 \%  \\\\ \n ')
+f.write('\hline \n')
 
-# #return plots
-# final_plots_s([r1,r2,r3,r4],[r'past obs.', r'doc2vec',r'doc2vec, l1',r'SP500'])
+rets = [r1,r2,r3]
+labels = [r'past obs.', r'doc2vec',r'doc2vec, l1']
+m_mu = np.mean(r4)
+m_sigma = np.var(r4)
+r_f = 0.00004
+for i in range(3):
+	mu = np.mean(rets[i]) 
+	sigma = np.var(rets[i])
+	beta = np.cov(rets[i],r4)[0,1]/np.var(r4)
+	alpha = mu - r_f - beta*(m_mu - r_f)
+	sharpe = (mu-r_f)/sigma
+	treynor = (mu-r_f)/beta
+	var95 = np.percentile(rets[i], 5)
+	f.write(labels[i] + ' & '+"{:.4f}".format(mu)+' & '+"{:.4f}".format(sigma)+' & '+"{:.4f}".format(beta)+' & '+ "{:.4f}".format(alpha) +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\ \n ')
 
-# pickle.dump((first_line,second_line,third_line,sp500,r1,r2,r3,r4), open( "Output/datal.p", "wb" ) )
+f.write('\\end{tabular}')
+f.close() 
 
-
-# f = open('Output/tables/'+str(datetime.datetime.now())+'performance.tex', 'w')
-# f.write('\\begin{tabular}{ l | r r r r r r r}\n')
-# f.write(' & Mean & Variance & Beta & Alpha & Sharpe Ratio & Treynor Ratio & V@R 95 \%  \\\\ \n ')
-# f.write('\hline \n')
-
-# rets = [r1,r2,r3]
-# labels = [r'past obs.', r'doc2vec',r'doc2vec, l1']
-# m_mu = np.mean(r4)
-# m_sigma = np.var(r4)
-# r_f = 0.00004
-# for i in range(3):
-# 	mu = np.mean(rets[i]) 
-# 	sigma = np.var(rets[i])
-# 	beta = np.cov(rets[i],r4)[0,1]/np.var(r4)
-# 	alpha = mu - r_f - beta*(m_mu - r_f)
-# 	sharpe = (mu-r_f)/sigma
-# 	treynor = (mu-r_f)/beta
-# 	var95 = np.percentile(rets[i], 5)
-# 	f.write(labels[i] + ' & '+"{:.4f}".format(mu)+' & '+"{:.4f}".format(sigma)+' & '+"{:.4f}".format(beta)+' & '+ "{:.4f}".format(alpha) +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\ \n ')
-
-# f.write('\\end{tabular}')
-# f.close() 
-# #portfolio metrics tabel
-# # mean / variance / alpha / beta / VaR95 / sharpe ratio / Treynor / Jensen / 
-
-# #assuming some risk free rate
+#assuming some risk free rate
 
 

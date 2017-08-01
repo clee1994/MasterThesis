@@ -352,6 +352,8 @@ def pure_SP(x_dates, path):
 	from port_opt import ret2prices
 
 	#/home/ucabjss
+
+
 	raw_data = pd.read_csv(path + 'pureSP500.csv', sep=',',header=None,low_memory=False)
 
 	prices = raw_data.values[1:,5].astype(float)
@@ -370,3 +372,5 @@ def pure_SP(x_dates, path):
 		ret.append(lreturns[ind_d])
 
 	return ret,np.array(ret2prices(ret,100))
+
+
