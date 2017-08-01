@@ -722,6 +722,7 @@ def produce_mu_cov(x, test_split, lreturns, dates_prices, dates_news, n_past, na
 def tfidf_vector(n_gram, news_data):
 	import numpy as np
 	from sklearn.feature_extraction.text import TfidfVectorizer
+	from sklearn.feature_extraction.text import CountVectorizer
 	import datetime
 
 	corpus = []
@@ -749,6 +750,7 @@ def tfidf_vector(n_gram, news_data):
 	corpus.append(temp_word)
 
 	
-	vectorizer = TfidfVectorizer(analyzer='word',ngram_range=(1,n_gram),stop_words='english',min_df=3,max_features=800)
-	return vectorizer.fit_transform(corpus).toarray(), x_dates
+	vectorizerCount = CountVectorizer(analyzer='word',ngram_range=(1,n_gram),stop_words='english',min_df=3,max_features=800)
+	vectorizerTFIDF = TfidfVectorizer(analyzer='word',ngram_range=(1,n_gram),stop_words='english',min_df=3,max_features=800)
+	return vectorizerCount.fit_transform(corpus).toarray(), vectorizerTFIDF.fit_transform(corpus).toarray(), x_dates
 

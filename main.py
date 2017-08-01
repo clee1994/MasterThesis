@@ -51,16 +51,14 @@ print(str(datetime.datetime.now())+': Successfully calibrated doc2vec model sign
 
 # 4. tfidf
 
-
-
 # unigram
-x_unigram = tfidf_vector(1, news_data)
+[x_unigram_count, x_unigram_tfidf, dates_news] = tfidf_vector(1, news_data)
 
 # bigrams
-x_unigram = tfidf_vector(2, news_data)
+[x_bigram_count, x_bigram_tfidf, dates_news] = tfidf_vector(2, news_data)
 
 # trigrams
-x_unigram = tfidf_vector(3, news_data)
+[x_trigram_count, x_trigram_tfidf, dates_news] = tfidf_vector(3, news_data)
 
 
 # produce doc2vec ridgeregression -> mu_p_ts
