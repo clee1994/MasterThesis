@@ -51,46 +51,16 @@ print(str(datetime.datetime.now())+': Successfully calibrated doc2vec model sign
 
 # 4. tfidf
 
-#create corpus
-def tfidf_vector(n_gram, ):
-	import numpy as np
-	from sklearn.feature_extraction.text import TfidfVectorizer
-	import datetime
-
-	corpus = []
-	temp_word = ""
-	x_dates = []
-	prev_d = np.datetime64(datetime.date(1, 1, 1))
-
-	for i in news_data:
-		cur_d = np.datetime64(i[0])
-
-		#y
-		if cur_d == prev_d:
-			prev_d = cur_d
-		else:
-			if prev_d != np.datetime64(datetime.date(1, 1, 1)):
-				#documents.append(TaggedDocument(words,str(doc_c)))
-				#doc_c = doc_c + 1
-				corpus.append(temp_word)
-				temp_word = ""
-			x_dates.append(cur_d)
-			prev_d = cur_d
-		for hj in i[1]:
-			temp_word = temp_word + hj + " "
-			#words.append(hj)
-	corpus.append(temp_word)
-
-	
-	vectorizer = TfidfVectorizer(analyzer='word',ngram_range=(1,n_gram),stop_words='english',min_df=3,max_features=800)
-	return vectorizer.fit_transform(corpus).toarray(), x_dates
 
 
 # unigram
+x_unigram = tfidf_vector(1, news_data)
 
 # bigrams
+x_unigram = tfidf_vector(2, news_data)
 
 # trigrams
+x_unigram = tfidf_vector(3, news_data)
 
 
 # produce doc2vec ridgeregression -> mu_p_ts
