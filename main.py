@@ -10,7 +10,7 @@ import numpy as np
 
 
 # 0. modifiable variables
-firms_used = 5
+firms_used = 2
 n_past = 80
 
 path = 'Data/'
@@ -18,8 +18,6 @@ path = 'Data/'
 
 #traning splits
 test_split = 0.20
-
-
 
 
 
@@ -36,34 +34,42 @@ print(str(datetime.datetime.now())+': Successfully read all data')
 
 # 4. select stocks
 
-#cherry picking
-firm_ind_u = sort_predictability(news_data,lreturns,dates_prices,test_split,names,firms_used)[0:firms_used]
+#cherry picking -> repair 
+firm_ind_u = sort_predictability(news_data,lreturns,dates_prices,test_split,names)[0:firms_used]
 print(str(datetime.datetime.now())+': Successfully sorted')
+
 
 #random -> validation, maybe multiple times?
 #firm_ind_u = random.sample(range(len(names)-1), firms_used)
 
 
+# unigram count/tfidf
+[x_unigram_count, x_unigram_tfidf, dates_news] = tfidf_vector(1, news_data, np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)), dates_prices,test_split)
 
-# 3. doc2vec model calibration
+# bigrams count/tfidf
+[x_bigram_count, x_bigram_tfidf, dates_news] = tfidf_vector(2, news_data, np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)), dates_prices,test_split)
+
+# trigrams count/tfidf
+[x_trigram_count, x_trigram_tfidf, dates_news] = tfidf_vector(3, news_data, np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)), dates_prices,test_split)
+
+# doc2vec
 [x_doc2vec, dates_news] = calibrate_doc2vec(np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)),dates_prices,test_split,news_data)
-print(str(datetime.datetime.now())+': Successfully calibrated doc2vec model sign')
-
-# 4. tfidf
-
-# unigram
-[x_unigram_count, x_unigram_tfidf, dates_news] = tfidf_vector(1, news_data)
-
-# bigrams
-[x_bigram_count, x_bigram_tfidf, dates_news] = tfidf_vector(2, news_data)
-
-# trigrams
-[x_trigram_count, x_trigram_tfidf, dates_news] = tfidf_vector(3, news_data)
 
 
-# produce doc2vec ridgeregression -> mu_p_ts
-[mu_p_ts, cov_p_ts] = produce_mu_cov(x_calibrated,test_split,lreturns, dates_prices, dates_news, n_past, names, firm_ind_u)
+# linear regression
+[mu_p_ts_lr, cov_p_ts_lr] = produce_mu_cov(x_doc2vec,test_split,lreturns, dates_prices, dates_news, n_past, names, firm_ind_u, estimate_linear)
 
+#Ridge Regression + rbf + gridsearch
+[mu_p_ts_rr, cov_p_ts_rr] = produce_mu_cov(x_doc2vec,test_split,lreturns, dates_prices, dates_news, n_past, names, firm_ind_u, estimate_ridge)
+
+#SVR + gridsearch
+[mu_p_ts_svr, cov_p_ts_svr] = produce_mu_cov(x_doc2vec,test_split,lreturns, dates_prices, dates_news, n_past, names, firm_ind_u, estimate_SVR)
+
+#xgboost + gridsearch
+[mu_p_ts_xgb, cov_p_ts_xgb] = produce_mu_cov(x_doc2vec,test_split,lreturns, dates_prices, dates_news, n_past, names, firm_ind_u, estimate_xgboost)
+
+#RNN with LSTM
+[mu_p_ts_rnn, cov_p_ts_rnn] = produce_mu_cov(x_doc2vec,test_split,lreturns, dates_prices, dates_news, n_past, names, firm_ind_u, estimate_keras)
 
 
 
@@ -71,13 +77,14 @@ print(str(datetime.datetime.now())+': Successfully calibrated doc2vec model sign
 split_point = int(np.floor(np.shape(x_calibrated)[0]*(1-test_split)))
 pmu_p_ts = mu_gen_past1(lreturns, dates_prices, dates_news[(split_point+1):], firm_ind_u[0:firms_used], n_past)
 pcov_p_ts = cov_gen_past(lreturns, dates_prices, dates_news[(split_point+1):], firm_ind_u[0:firms_used], n_past)
-gc.collect()
+
+
 
 
 # 7. build portfolios based on both
 [r1,first_line] = evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,pmu_p_ts,pcov_p_ts,firm_ind_u,dates_prices,None, None, -1)
-[r2,second_line] = evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,mu_p_ts,cov_p_ts,firm_ind_u,dates_prices,None, None, -1)
-[r3,third_line] = evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,mu_p_ts,cov_p_ts,firm_ind_u,dates_prices,None, 0.5, -1)
+[r2,second_line] = evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,mu_p_ts_xgb,cov_p_ts_xgb,firm_ind_u,dates_prices,None, None, -1)
+[r3,third_line] = evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,mu_p_ts_xgb,cov_p_ts_xgb,firm_ind_u,dates_prices,None, 0.5, -1)
 [r4,sp500] = pure_SP(dates_news[(split_point+1):],path)
 
 #del dates, names, lreturns, firm_ind_u, x_dates, mu_p_ts, pmu_p_ts, pcov_p_ts, split_point

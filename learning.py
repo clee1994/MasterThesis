@@ -1,7 +1,5 @@
 
 
-#now i am taking next days return, 
-#so taking todays news to evaluate what is going to happen tomorrow
 
 def data_label_method_sign(lreturns, cur_d,dates_stocks):
 	import numpy as np
@@ -27,7 +25,7 @@ def data_label_method_cov(lreturns, cur_d,dates_stocks):
 	import numpy as np
 
 	#important
-	n = 3
+	n = 4
 
 	try:
 		indt = list(dates_stocks).index(cur_d)
@@ -80,8 +78,8 @@ def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ylm,dm_opt, t
 			if prev_d != np.datetime64(datetime.date(1, 1, 1)):
 				documents.append(TaggedDocument(words,str(doc_c)))
 				doc_c = doc_c + 1
-				x_dates.append(cur_d)
 				words = []
+			x_dates.append(cur_d)
 			prev_d = cur_d
 			#mu/y -> what do I want, the mean next day, average next three days
 			y.append(ylm(lreturns, cur_d,dates_stocks))
@@ -92,7 +90,7 @@ def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ylm,dm_opt, t
 	
 	try:
 		documents.append(TaggedDocument(words,tags=str(doc_c)))
-		x_dates.append(cur_d)
+		#x_dates.append(cur_d)
 	except:
 		pass
 
@@ -212,6 +210,7 @@ def bench_mark_mu(lreturns,dates_stocks,n_past,len_o):
 	return ret_val[ind_len-len_o:ind_len]
 
 
+
 def bench_mark_cov(lreturns,dates_stocks,n_past,len_o):
 	import numpy as np
 	ret_val = []
@@ -228,69 +227,7 @@ def bench_mark_cov(lreturns,dates_stocks,n_past,len_o):
 	return ret_val[ind_len-len_o:ind_len]
 
 
-#modify the standard values... according to something
-def produce_doc2vecmodels_sign(fts_space,ws_space,mc_space,lreturns,dates,test_split,news_data):
-	import datetime
-	import numpy as np
 
-	#creat different training x
-	# probably has to be nested....
-	x_fts = []
-	#parameter calibration with SVM
-	for fts in fts_space:
-		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,fts,8,10,data_label_method_sign,1)
-		x_fts.append(x)
-		#x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
-		# y_train[y_train < 0] = 0
-		# y_test[y_test < 0] = 0
-		
-	x_ws = []
-	for fts in ws_space:
-		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,350,fts,10,data_label_method_sign,1)
-		x_ws.append(x)
-		
-
-	x_mc = []
-	for fts in mc_space:
-		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,350,8,fts,data_label_method_sign, 1)
-		x_mc.append(x)
-
-	x_dm = []
-	for xdmc in [0,1]:
-		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,350,8,10,data_label_method_sign, 1)
-		x_dm.append(x)
-
-	x_dmm = []
-	for dmm in [0,1]:
-		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,350,8,10,data_label_method_sign, 1,dmm=dmm)
-		x_dmm.append(x)
-
-	x_dmc = []
-	for dmc in [0,1]:
-		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,350,8,10,data_label_method_sign, 1,dmc=dmc)
-		x_dmc.append(x)
-
-
-	#import pickle
-	#pickle.dump([x_fts, x_ws, x_mc,y], open( "Data/diffx", "wb" ) )
-
-	return x_fts, x_ws, x_mc, y, x_dm, x_dmm, x_dmc
-
-def svm_sign_eval(x,y,split):
-	from sklearn import svm
-	import numpy as np
-
-	x_train, y_train, x_test, y_test = train_test_split(x, y, split)
-
-	clf = svm.SVC()
-	ind_mask = np.invert(np.isnan(y_train)).ravel()
-
-	if np.sum(ind_mask) > 0:
-		clf.fit(x_train[ind_mask,:], y_train[ind_mask].ravel())
-		res =  np.array(clf.predict(x_test)).flatten()
-		return np.sum(np.invert(y_test.ravel() == res))/ np.shape(y_test)[0]
-	else:
-		return 1
 
 
 def calibrate_doc2vec(lreturns,dates,test_split,news_data):
@@ -316,64 +253,62 @@ def calibrate_doc2vec(lreturns,dates,test_split,news_data):
 	x_val = []
 	for fts in fts_space:
 		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,fts,ws_def,mc_def,data_label_method_sign, dm_def, False, dmm_def, dmc_def)
-		loss.append(svm_sign_eval(x,y,test_split))
+		loss.append(val_cv_eval(x,y,test_split))
 		x_val.append(x)
-	fts_opt = fts_space[np.argmin(loss)]
+	fts_opt = fts_space[np.argmax(loss)]
 
 	loss = []
 	x_val = []
 	for ws in ws_space:
 		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,fts_opt,ws,mc_def,data_label_method_sign, dm_def, False, dmm_def, dmc_def)
-		loss.append(svm_sign_eval(x,y,test_split))
+		loss.append(val_cv_eval(x,y,test_split))
 		x_val.append(x)
-	ws_opt = ws_space[np.argmin(loss)]
+	ws_opt = ws_space[np.argmax(loss)]
 
 	loss = []
 	x_val = []
 	for mc in mc_space:
 		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,fts_opt,ws_opt,mc,data_label_method_sign, dm_def, False, dmm_def, dmc_def)
-		loss.append(svm_sign_eval(x,y,test_split))
+		loss.append(val_cv_eval(x,y,test_split))
 		x_val.append(x)
-	mc_opt = mc_space[np.argmin(loss)]
+	mc_opt = mc_space[np.argmax(loss)]
 
 	loss = []
 	x_val = []
 	for dm in x_dm_space:
 		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,fts_opt,ws_opt,mc_opt,data_label_method_sign, dm, False, dmm_def, dmc_def)
-		loss.append(svm_sign_eval(x,y,test_split))
+		loss.append(val_cv_eval(x,y,test_split))
 		x_val.append(x)
-	dm_opt = x_dm_space[np.argmin(loss)]
+	dm_opt = x_dm_space[np.argmax(loss)]
 
 	loss = []
 	x_val = []
 	for dmm in x_dmm_space:
 		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,fts_opt,ws_opt,mc_opt,data_label_method_sign, dm_opt, False, dmm, dmc_def)
-		loss.append(svm_sign_eval(x,y,test_split))
+		loss.append(val_cv_eval(x,y,test_split))
 		x_val.append(x)
-	dmm_opt = x_dmm_space[np.argmin(loss)]
+	dmm_opt = x_dmm_space[np.argmax(loss)]
 
 	loss = []
 	x_val = []
 	for dmc in x_dcm_space:
 		[x,y,dates] = gen_xy_daily(news_data,lreturns,dates,fts_opt,ws_opt,mc_opt,data_label_method_sign, dm_opt, False, dmm_opt, dmc)
-		loss.append(svm_sign_eval(x,y,test_split))
+		loss.append(val_cv_eval(x,y,test_split))
 		x_val.append(x)
-	dmc_opt = x_dcm_space[np.argmin(loss)]
+	dmc_opt = x_dcm_space[np.argmax(loss)]
 
-	return np.matrix(x_val[np.argmin(loss)]), dates
+	return np.matrix(x_val[np.argmax(loss)]), dates
 
 
 		
-def make_pred_sort_table(firm_ind_u, loss, names, uss):
+def make_pred_sort_table(firm_ind_u, loss, names):
 	import numpy as np
 
 	f = open('Output/tables/pred_sort.tex', 'w')
 	f.write('\\begin{tabular}{ r | l }\n')
-	f.write('Stock Ticker & Loss \\\\ \n ')
+	f.write('Stock Ticker & MSE \\\\ \n ')
 	f.write('\hline \n')
-	if uss > 10:
-		uss = 10
-	for i in range(uss):
+	for i in range(10):
 		f.write(names[firm_ind_u[i]]+' & '+ "{:.4f}".format((loss[i]))+' \\\\ \n ')
 	f.write('\hline \n')
 	f.write('\hline \n')
@@ -382,244 +317,35 @@ def make_pred_sort_table(firm_ind_u, loss, names, uss):
 	f.close() 
 
 
-def sort_predictability(news_data,lreturns,dates,test_split,names,uss):
+def sort_predictability(news_data,lreturns,dates,test_split,names):
 	import datetime
 	import numpy as np
-	#hard coded values... review
+	from sklearn.linear_model import LinearRegression
+	from sklearn.model_selection import cross_val_score
+
+	#hard coded values... review -> definitly different
 	[x,y,_] = gen_xy_daily(news_data,lreturns,dates,340,8,21,data_label_method_sign,1)
-	x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
-
-
-	#stock picking
-	#classification
-	y_train[y_train < 0] = 0
-	y_test[y_test < 0] = 0
 
 	loss_ar_svm = []
 
-	from sklearn import svm
-	for i in range(np.shape(y_train)[1]):
-
-		#classification
-
-		#SVM
-		clf = svm.SVC()
-		ind_mask = np.invert(np.isnan(y_train[:,i]))
+	for i in range(np.shape(y)[1]):
+		clf = LinearRegression(n_jobs=-1)
+		ind_mask = np.invert(np.isnan(y[:,i]))
 
 		if np.sum(ind_mask) > 0:
-			clf.fit(x_train[ind_mask,:], y_train[ind_mask,i])
-			#res =  np.reshape(np.array(clf.predict(x_test)),[1,np.shape(x_test)[0]])
-			res =  np.array(clf.predict(x_test)).flatten()
-			temptt = np.sum(np.invert(y_test[:,i] == res))/ np.shape(y_test)[0]# (np.sum(np.abs(np.subtract(y_test[:,i],res)))/np.shape(y_test[:,i])[0])
-			#print(temptt)
-			loss_ar_svm.append(temptt)
+			scores = cross_val_score(clf, x[ind_mask,:], y[ind_mask,i], cv=5, n_jobs = -1, scoring='neg_mean_squared_error')
+			loss_ar_svm.append(scores.mean())
 		else:
-			loss_ar_svm.append(1)
+			loss_ar_svm.append(-np.inf)
 
-
-	npal = np.array(loss_ar_svm)
+	npal = np.multiply(np.array(loss_ar_svm),-1)
 	firm_ind_u = np.argsort(npal[npal!=1])
 
-	make_pred_sort_table(firm_ind_u, npal[np.argsort(npal[npal!=1])], names, uss )
-
-	#optional information
-	#names = np.array(names) 
-	#npal[firm_ind_u[0:firms_used]]
-	#names[firm_ind_u[0:firms_used]]
+	make_pred_sort_table(firm_ind_u, npal[np.argsort(npal[npal!=1])], names)
 
 	return firm_ind_u
 
-def inside_sxy(x, y, test_split, clf_v):
-	import numpy as np
 
-	x_train, y_train, x_test, y_test = train_test_split(x, y, test_split)
-	y_train[y_train < 0] = 0
-	y_test[y_test < 0] = 0
-	#clf = clf_v
-
-	ind_mask = np.invert(np.isnan(y_train))
-
-	clf_v.fit(x_train[ind_mask,:], y_train[ind_mask])
-	#res =  np.reshape(np.array(clf.predict(x_test)),[1,387])
-	res = np.array(clf_v.predict(x_test)).flatten()
-	return(np.sum(np.abs(np.subtract(y_test,res)))/np.shape(y_test)[0])
-
-def doc2vec_table(lpara1,lop1, lpara2, lop2, lpara3, lop3,dm_w, dmm_w, dmc_w,opt_loss, fts_op, ws_op, mc_op, dm_op, dmm_op, dmc_op):
-	import numpy as np
-	import datetime
-
-	#keep in mind the fixed values -> maybe modify them
-	f = open('Output/tables/'+str(datetime.datetime.now())+'ddoc2vec.tex', 'w')
-	f.write('\\begin{tabular}{ r r r r r r | l }\n')
-	f.write('Method & Dim. feature vec. & Window & Min. count & Sum/mean & concatenation & Loss \\\\ \n ')
-	f.write('\hline \n')
-	for i in range(3):
-		f.write('PV-DM & '+ str(lpara1[i]) +' & 8 & 10 & sum & Off & '+ "{:.4f}".format((lop1[i]))+' \\\\ \n ')
-	for i in range(3):
-		f.write('PV-DM & '+'350 & '+ str(lpara2[i]) +' & 10 &sum & Off & '+ "{:.4f}".format((lop2[i]))+' \\\\ \n ')
-	for i in range(3):
-		f.write('PV-DM & '+'350 & 8 & '+str(lpara3[i]) +' &sum & Off & '+ "{:.4f}".format((lop3[i]))+' \\\\ \n ')
-
-	f.write('PV-DBOW & '+'350 & 8 & 10 &sum & Off & '+ "{:.4f}".format((dm_w))+' \\\\ \n ')
-	f.write('PV-DM & '+'350 & 8 & 10 &mean & Off & '+ "{:.4f}".format((dmm_w))+' \\\\ \n ')
-	f.write('PV-DM & '+'350 & 8 & 10 &mean & On & '+ "{:.4f}".format((dmc_w))+' \\\\ \n ')
-	#final line -> best
-	f.write('\hline \n')
-	f.write('\hline \n')
-
-	f.write(('PV-DM & ' if dm_op else 'PV-DBOW & ') + str(fts_op) + ' & ' + str(ws_op) + ' & ' + str(mc_op) + ' & ' + ('mean & ' if dmm_op else 'sum & ') + ('Off & ' if dmm_op else 'On & ') + "{:.4f}".format((opt_loss))+' \\\\ \n ')
-	f.write('\\end{tabular}')
-	f.close() 
-
-
-def stock_xy(test_split, fts_space,ws_space, mc_space, news_data,lreturns,dates,x_fts, x_ws, x_mc,y,m_eval,clf_v,x_dm, x_dmm, x_dmc, tables = False):
-	#single stock parameter calibration
-	#import pickle
-	import numpy as np
-	import datetime
-
-	#[x_fts, x_ws, x_mc,y] = pickle.load( open( "Data/diffx", "rb" ) )
-	loss_cali = []
-	y_cal = []
-	x_cal = []
-	# for j in range(firms_used):
-	# 	i = firm_ind_u[j]
-	loss_cali.append([])
-
-	#make it a grid search
-	for x in x_fts + x_ws + x_mc + x_dm + x_dmm + x_dmc:
-		loss_cali[0].append(inside_sxy(x, y, test_split, clf_v))
-
-	
-	fts_w, xws_w, xmc_w = np.split(np.array(loss_cali[0])[:-6],3)
-	dm_w, dmm_w, dmc_w = np.split(np.array(loss_cali[0])[-6:],3)
-	fts_op = fts_space[np.argmin(fts_w)]
-	ws_op = ws_space[np.argmin(xws_w)]
-	mc_op = mc_space[np.argmin(xmc_w)]
-	dm_op = fts_space[np.argmin(dm_w)]
-	dmm_op = ws_space[np.argmin(dmm_w)]
-	dmc_op = mc_space[np.argmin(dmc_w)]
-
-
-	[x_cal,y_cal,x_dates] = gen_xy_daily(news_data,lreturns,dates,fts_op,ws_op,mc_op,m_eval,dm_op,tables, dmm=dmm_op, dmc=dmc_op)
-
-	opt_loss = inside_sxy(x_cal, y, test_split, clf_v)
-	if tables:
-		doc2vec_table(fts_space[np.argsort(fts_w)[:3]], np.sort(fts_w)[:3],
-			ws_space[np.argsort(xws_w)[:3]], np.sort(xws_w)[:3],
-			mc_space[np.argsort(xmc_w)[:3]], np.sort(xmc_w)[:3], 
-			dm_w[1], dmm_w[1], dmc_w[1],opt_loss, fts_op, ws_op, mc_op, dm_op, dmm_op, dmc_op)
-
-	
-
-	return x_cal,y_cal,x_dates
-
-
-
-
-def mu_news_estimate(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,benchm_f,mu_var,t_text,show_plots,tables):
-	from sklearn.linear_model import Ridge
-	from sklearn.kernel_ridge import KernelRidge
-	from sklearn.model_selection import GridSearchCV
-	import numpy as np
-	from evaluation import plot_pred_true_b, learning_curve_plots
-	import datetime
-
-
-	#get x and y
-	try:
-		y_cal = np.reshape(y_cal, [np.shape(y_cal)[0],np.shape(y_cal)[1]])
-	except:
-		pass
-
-	x_train, y_train, x_test, y_test = train_test_split(x_cal, y_cal, test_split)
-
-
-	#benchmark estimates -> this one is corrupt!
-	bench_y = benchm_f(lreturns,dates,n_past,len(y_test))
-
-
-
-	#1. model selection with cross validation and grid search
-	alpha_range1 = np.geomspace(0.1,80, 12)
-	#alpha_range = np.geomspace(1e-8,40, 12)
-	gamma_range = np.geomspace(1e-2,12,10)
-	#http://scikit-learn.org/stable/modules/classes.html#module-sklearn.metrics.pairwise -> kernels
-	RR_parameters = [{'kernel': ['rbf'], 'gamma': gamma_range, 'alpha': alpha_range1},
-					{'kernel': ['linear'], 'alpha': alpha_range1}]
-
-	RR_model = KernelRidge(alpha=30)
-	clf = GridSearchCV(RR_model, RR_parameters,scoring='neg_mean_squared_error')
-
-	#remove nan
-	#ind_mask = np.invert(np.isnan(y_train[i]))
-
-	ind_mask = np.invert(np.isnan(y_train))
-	ind_mask = np.reshape(ind_mask,[len(y_train),1])
-
-	clf = clf.fit(x_train[ind_mask[:,0],:], y_train[ind_mask[:,0]])
-	grid_results = clf.cv_results_
-	
-
-	#2. produce estimates
-	#clf = clf.fit(x_train, y_train)
-	mu_p_ts = clf.predict(x_test)
-	#set variance to zero if negativ / probably a bad trick
-	if benchm_f == bench_mark_cov:
-		if  np.array_equal(lreturns[0,:], lreturns[1,:]):
-			mu_p_ts[mu_p_ts < 0] = 0
-
-	#3. plots
-	#plot_pred_true_b(y_test,clf.predict(x_test),bench_y.flatten(), mu_var, t_text) 
-	#learning_plots(grid_results,clf, x_cal, y_cal,1,alpha_range,gamma_range,show_plots)
-
-	# if tables:
-	# 	learning_curve_plots(grid_results,clf, x_cal, y_cal,1,alpha_range1,gamma_range,show_plots)
-	# 	ind_m = np.argsort(np.abs(clf.cv_results_['mean_test_score']))[1:10]
-
-	# 	f = open('Output/tables/'+str(datetime.datetime.now())+'grdisearch.tex', 'w')
-	# 	f.write('\\begin{tabular}{ r r r | l }\n')
-	# 	f.write('Gamma & Alpha & Kernel & Loss \\\\ \n ')
-	# 	f.write('\hline \n')
-	# 	for i in ind_m:
-	# 		loss_v = "{:.4f}".format((np.abs(clf.cv_results_['mean_test_score'][i])))
-	# 		#gamma
-	# 		try:
-	# 			gamma_v = "{:.4f}".format((clf.cv_results_['params'][i]['gamma']))
-	# 		except:
-	# 			gamma_v = '-'
-	# 		#alpha
-	# 		try:
-	# 			alpha_v = "{:.4f}".format((clf.cv_results_['params'][i]['alpha']))
-	# 		except:
-	# 			alpha_v = '-'
-	# 		#kernel
-	# 		try:
-	# 			kernel_v = clf.cv_results_['params'][i]['kernel']
-	# 		except: 
-	# 			kernel_v = '-'
-	# 		f.write(gamma_v + ' & ' + alpha_v + ' & '+kernel_v+' & '+loss_v+'\\\\ \n ')
-	# 	f.write('\hline \n')
-	# 	f.write('\hline \n')
-	# 	try:
-	# 		gamma_v = "{:.4f}".format((clf.best_params_['gamma']))
-	# 	except:
-	# 		gamma_v = '-'
-	# 	#alpha
-	# 	try:
-	# 		alpha_v = "{:.4f}".format((clf.best_params_['alpha']))
-	# 	except:
-	# 		alpha_v = '-'
-	# 	#kernel
-	# 	try:
-	# 		kernel_v = clf.best_params_['kernel']
-	# 	except: 
-	# 		kernel_v = '-'
-	# 	f.write(gamma_v + ' & ' + alpha_v + ' & '+kernel_v+' & '+"{:.4f}".format((np.abs(clf.cv_results_['mean_test_score'][np.argsort(np.abs(clf.cv_results_['mean_test_score']))[0]])))+'\\\\ \n ')
-	# 	f.write('\\end{tabular}')
-	# 	f.close() 
-
-	return mu_p_ts
 
 def produce_y_ret(returns,dates_prices,dates_news):
 	import numpy as np
@@ -666,7 +392,7 @@ def produce_y_cov(returns,dates_prices,dates_news):
 
 
 
-def produce_mu_cov(x, test_split, lreturns, dates_prices, dates_news, n_past, names, firm_ind_u):
+def produce_mu_cov(x, test_split, lreturns, dates_prices, dates_news, n_past, names, firm_ind_u,reg_method):
 	import numpy as np
 
 	show_p = False
@@ -677,12 +403,9 @@ def produce_mu_cov(x, test_split, lreturns, dates_prices, dates_news, n_past, na
 		if i == firm_ind_u[0]:
 			stables = True
 		temp1 = np.transpose(np.matrix( lreturns[:,i]))
-		#[x_cal, y_cal, x_dates] = stock_xy(test_split,fts_space,ws_space, mc_space,news_data,temp1,dates,x_fts, x_ws, x_mc,y[:,i],data_label_method_val,svm.SVC(),x_dm, x_dmm, x_dmc,tables=stables)
 		y = produce_y_ret(temp1,dates_prices, dates_news)
 
-		mu_p_ts = np.concatenate([mu_p_ts,np.reshape(mu_news_estimate(x_calibrated, y, test_split, temp1, dates_prices, n_past,i,bench_mark_mu, "Mean",names[i],show_p,stables),(np.shape(mu_p_ts)[0],1))],axis=1)
-		del y, temp1
-		gc.collect()
+		mu_p_ts = np.concatenate([mu_p_ts,np.reshape(reg_method(x, y, test_split, temp1, dates_prices, n_past,i,bench_mark_mu, "Mean",names[i],show_p,stables),(np.shape(mu_p_ts)[0],1))],axis=1)
 		print(str(datetime.datetime.now())+': Successfully produced mu_p_ts for '+names[i])
 		if i == firm_ind_u[0]:
 			stables = False
@@ -697,19 +420,15 @@ def produce_mu_cov(x, test_split, lreturns, dates_prices, dates_news, n_past, na
 			if (i == 0) and (j == 1):
 				stables = True
 			temp1 = np.transpose(np.matrix( lreturns[:,[i,j]]))
-			#[_,y,_] = gen_xy_daily(news_data,temp1,dates,220,8,10,data_label_method_cov,1) 
 			y = produce_y_cov(temp1,dates_prices, dates_news)
-			#[x_cal, y_cal, x_dates] = stock_xy(test_split,fts_space,ws_space, mc_space,news_data,temp1,dates,x_fts, x_ws, x_mc,y,data_label_method_cov,Ridge(alpha=0),x_dm, x_dmm, x_dmc, tables= stables)
 			if i == j:
 				label_text = "Variance"
 				l2_test = names[i]
 			else:
 				label_text = "Covariance"
 				l2_test = names[i] + " and " + names[j]
-			cov_p_ts[:,i,j] = mu_news_estimate(x_calibrated, y, test_split, temp1, dates_prices, n_past,i,bench_mark_cov, label_text, l2_test ,show_p,stables)
+			cov_p_ts[:,i,j] = reg_method(x, y, test_split, temp1, dates_prices, n_past,i,bench_mark_cov, label_text, l2_test ,show_p,stables)
 			cov_p_ts[:,j,i] = cov_p_ts[:,i,j]
-			#del x_cal, y_cal, temp1, y
-			gc.collect()
 			print(str(datetime.datetime.now())+': Successfully produced co_p_ts for '+names[firm_ind_u[i]]+' and '+names[firm_ind_u[j]])
 			if (i == j) and (i == 0):
 				stables = False
@@ -718,8 +437,8 @@ def produce_mu_cov(x, test_split, lreturns, dates_prices, dates_news, n_past, na
 	return mu_p_ts, cov_p_ts
 
 
-#create corpus
-def tfidf_vector(n_gram, news_data):
+#TFIDF and n-grams
+def tfidf_vector(n_gram, news_data, lreturns, dates_stocks, test_split):
 	import numpy as np
 	from sklearn.feature_extraction.text import TfidfVectorizer
 	from sklearn.feature_extraction.text import CountVectorizer
@@ -750,7 +469,260 @@ def tfidf_vector(n_gram, news_data):
 	corpus.append(temp_word)
 
 	
-	vectorizerCount = CountVectorizer(analyzer='word',ngram_range=(1,n_gram),stop_words='english',min_df=3,max_features=800)
-	vectorizerTFIDF = TfidfVectorizer(analyzer='word',ngram_range=(1,n_gram),stop_words='english',min_df=3,max_features=800)
-	return vectorizerCount.fit_transform(corpus).toarray(), vectorizerTFIDF.fit_transform(corpus).toarray(), x_dates
+	fts_space = np.linspace(900,4000,10,dtype=int)
 
+	lossC = []
+	lossT = []
+	x_C = []
+	x_T = []
+	for i in fts_space:
+		vectorizerCount = CountVectorizer(analyzer='word',ngram_range=(1,n_gram),stop_words='english',min_df=3,max_features=i)
+		x = vectorizerCount.fit_transform(corpus).toarray()
+		y = np.array([data_label_method_val(lreturns, cur_d, dates_stocks) for cur_d in x_dates ])
+		lossC.append(val_cv_eval(x,y,test_split))
+		x_C.append(x)
+
+
+		vectorizerTFIDF = TfidfVectorizer(analyzer='word',ngram_range=(1,n_gram),stop_words='english',min_df=3,max_features=i)
+		x = vectorizerTFIDF.fit_transform(corpus).toarray()
+		y = np.array([data_label_method_val(lreturns, cur_d,dates_stocks) for cur_d in x_dates ])
+		lossT.append(val_cv_eval(x,y,test_split))
+		x_T.append(x)
+
+	return x_C[np.argmax(lossC)], x_T[np.argmax(lossT)], x_dates
+
+def val_cv_eval(x,y,split):
+	from sklearn.model_selection import cross_val_score
+	from sklearn.linear_model import LinearRegression 
+	import numpy as np
+
+	ind_mask = np.invert(np.isnan(y)).ravel()
+
+	clf = LinearRegression(n_jobs = -1)
+	if np.sum(ind_mask) > 0:
+		#different score neg_mean_squared_error / r2 
+		scores = cross_val_score(clf, x[ind_mask,:], y[ind_mask], cv=5, n_jobs = -1, scoring='neg_mean_squared_error')
+		return scores.mean()
+	else:
+		return 0
+
+def estimate_linear(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,benchm_f,mu_var,t_text,show_plots,tables):
+	from sklearn.linear_model import LinearRegression
+	import numpy as np
+	from evaluation import plot_pred_true_b, learning_curve_plots
+	import datetime
+
+
+	#get x and y
+	try:
+		y_cal = np.reshape(y_cal, [np.shape(y_cal)[0],np.shape(y_cal)[1]])
+	except:
+		pass
+
+	x_train, y_train, x_test, y_test = train_test_split(x_cal, y_cal, test_split)
+
+
+	#benchmark estimates -> this one is corrupt!
+	bench_y = benchm_f(lreturns,dates,n_past,len(y_test))
+
+
+	#1. model selection with cross validation and grid search
+	model = LinearRegression(n_jobs = -1)
+	
+	ind_mask = np.invert(np.isnan(y_train))
+	ind_mask = np.reshape(ind_mask,[len(y_train),1])
+
+	model = model.fit(x_train[ind_mask[:,0],:], y_train[ind_mask[:,0]])
+	
+
+	#2. produce estimates
+	mu_p_ts = model.predict(x_test)
+	#set variance to zero if negativ / probably a bad trick
+	if benchm_f == bench_mark_cov:
+		if  np.array_equal(lreturns[0,:], lreturns[1,:]):
+			mu_p_ts[mu_p_ts < 0] = 0
+
+	return mu_p_ts
+
+def estimate_ridge(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,benchm_f,mu_var,t_text,show_plots,tables):
+	from sklearn.kernel_ridge import KernelRidge
+	from sklearn.model_selection import GridSearchCV
+	import numpy as np
+	from evaluation import plot_pred_true_b, learning_curve_plots
+	import datetime
+
+
+	#get x and y
+	try:
+		y_cal = np.reshape(y_cal, [np.shape(y_cal)[0],np.shape(y_cal)[1]])
+	except:
+		pass
+
+	x_train, y_train, x_test, y_test = train_test_split(x_cal, y_cal, test_split)
+
+
+	#benchmark estimates -> this one is corrupt!
+	bench_y = benchm_f(lreturns,dates,n_past,len(y_test))
+
+
+	#1. model selection with cross validation and grid search
+	alpha_range1 = np.geomspace(0.1,80, 12)
+	#alpha_range = np.geomspace(1e-8,40, 12)
+	gamma_range = np.geomspace(1e-2,12,10)
+	#http://scikit-learn.org/stable/modules/classes.html#module-sklearn.metrics.pairwise -> kernels
+	RR_parameters = [{'kernel': ['rbf'], 'gamma': gamma_range, 'alpha': alpha_range1},
+					{'kernel': ['linear'], 'alpha': alpha_range1}]
+
+	RR_model = KernelRidge(alpha=30)
+	clf = GridSearchCV(RR_model, RR_parameters,scoring='neg_mean_squared_error')
+
+	ind_mask = np.invert(np.isnan(y_train))
+	ind_mask = np.reshape(ind_mask,[len(y_train),1])
+
+	clf = clf.fit(x_train[ind_mask[:,0],:], y_train[ind_mask[:,0]])
+	grid_results = clf.cv_results_
+	
+
+	#2. produce estimates
+	mu_p_ts = clf.predict(x_test)
+	#set variance to zero if negativ / probably a bad trick
+	if benchm_f == bench_mark_cov:
+		if  np.array_equal(lreturns[0,:], lreturns[1,:]):
+			mu_p_ts[mu_p_ts < 0] = 0
+
+	return mu_p_ts
+
+
+def estimate_SVR(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,benchm_f,mu_var,t_text,show_plots,tables):
+	from sklearn.svm import SVR
+	from sklearn.model_selection import GridSearchCV
+	import numpy as np
+	from evaluation import plot_pred_true_b, learning_curve_plots
+	import datetime
+
+
+	#get x and y
+	try:
+		y_cal = np.reshape(y_cal, [np.shape(y_cal)[0],np.shape(y_cal)[1]])
+	except:
+		pass
+
+	x_train, y_train, x_test, y_test = train_test_split(x_cal, y_cal, test_split)
+
+
+	#benchmark estimates -> this one is corrupt!
+	bench_y = benchm_f(lreturns,dates,n_past,len(y_test))
+
+	c_range = np.geomspace(0.1,100, 12)
+	epsilon_range = np.geomspace(1e-2,12,10)
+	RR_parameters = [{'C': c_range, 'epsilon': epsilon_range}]
+
+	RR_model = SVR()
+	clf = GridSearchCV(RR_model, RR_parameters,scoring='neg_mean_squared_error')
+
+	ind_mask = np.invert(np.isnan(y_train))
+	ind_mask = np.reshape(ind_mask,[len(y_train),1])
+
+	clf = clf.fit(x_train[ind_mask[:,0],:], y_train[ind_mask[:,0]])
+	
+	
+
+	#2. produce estimates
+	mu_p_ts = clf.predict(x_test)
+	#set variance to zero if negativ / probably a bad trick
+	if benchm_f == bench_mark_cov:
+		if  np.array_equal(lreturns[0,:], lreturns[1,:]):
+			mu_p_ts[mu_p_ts < 0] = 0
+
+	return mu_p_ts
+
+
+
+def estimate_xgboost(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,benchm_f,mu_var,t_text,show_plots,tables):
+	import xgboost as xgb
+	from sklearn.model_selection import GridSearchCV
+	import numpy as np
+	from evaluation import plot_pred_true_b, learning_curve_plots
+	import datetime
+
+
+	#get x and y
+	try:
+		y_cal = np.reshape(y_cal, [np.shape(y_cal)[0],np.shape(y_cal)[1]])
+	except:
+		pass
+
+	x_train, y_train, x_test, y_test = train_test_split(x_cal, y_cal, test_split)
+
+
+	#benchmark estimates -> this one is corrupt!
+	bench_y = benchm_f(lreturns,dates,n_past,len(y_test))
+
+	ind_mask = np.invert(np.isnan(y_train))
+	ind_mask = np.reshape(ind_mask,[len(y_train),1])
+
+	xgb_model = xgb.XGBRegressor()
+	max_depth_range = np.array(np.linspace(5,100,5),dtype=int)
+	n_est_range = np.array(np.linspace(50,500,5),dtype=int)
+	clf = GridSearchCV(xgb_model,{'max_depth': max_depth_range,'n_estimators': n_est_range}, verbose=1)
+	clf = clf.fit(x_train[ind_mask[:,0],:], y_train[ind_mask[:,0]])
+	
+
+	#2. produce estimates
+	mu_p_ts = clf.predict(x_test)
+	#set variance to zero if negativ / probably a bad trick
+	if benchm_f == bench_mark_cov:
+		if  np.array_equal(lreturns[0,:], lreturns[1,:]):
+			mu_p_ts[mu_p_ts < 0] = 0
+
+	return mu_p_ts
+
+
+
+def estimate_keras(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,benchm_f,mu_var,t_text,show_plots,tables):
+	from keras.models import Sequential
+	from keras.layers import LSTM
+	from keras.layers.embeddings import Embedding
+	import numpy as np
+	from evaluation import plot_pred_true_b, learning_curve_plots
+	import datetime
+
+
+	#get x and y
+	try:
+		y_cal = np.reshape(y_cal, [np.shape(y_cal)[0],np.shape(y_cal)[1]])
+	except:
+		pass
+
+
+	ind_mask = np.invert(np.isnan(y_cal))
+	ind_mask = np.reshape(ind_mask,[len(y_cal),1])
+
+	x_train, y_train, x_test, y_test = train_test_split(x_cal[ind_mask[:,0],:], y_cal[ind_mask[:,0]], test_split)
+
+
+	#benchmark estimates -> this one is corrupt!
+	bench_y = benchm_f(lreturns,dates,n_past,len(y_test))
+
+	
+
+
+	model = Sequential()
+
+	model.add(LSTM(64, input_shape=(x_train.shape[1],1), return_sequences=True))
+	model.add(LSTM(32, return_sequences=True))
+	model.add(LSTM(32, return_sequences=True))
+	model.add(LSTM(1))
+	model.compile(loss='mean_squared_error', optimizer='adam')
+	model.fit(x_train[:,:,None], y_train,validation_data=(x_test[:,:,None], y_test), epochs=5, batch_size=64)
+
+
+	mu_p_ts = model.predict(x_test[:,:,None], batch_size=32, verbose=0)
+
+
+	#set variance to zero if negativ / probably a bad trick
+	if benchm_f == bench_mark_cov:
+		if  np.array_equal(lreturns[0,:], lreturns[1,:]):
+			mu_p_ts[mu_p_ts < 0] = 0
+
+	return mu_p_ts[:,0]

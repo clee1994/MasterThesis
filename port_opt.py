@@ -10,7 +10,6 @@ def ret2prices(ret_series,base_value):
 
 	return prices
 
-
 def is_pos_def(x):
 	import numpy as np
 	return np.all(np.linalg.eigvals(x) > 0)
@@ -29,7 +28,7 @@ def cv_opt(mu, Sigma, e_mu, glambda, h):
 	if is_pos_def(Sigma):
 		risk = quad_form(w, Sigma)
 	else:
-		for i in np.linspace(0.01,5,500):
+		for i in np.linspace(0.01,9,900):
 			test = shrunk_covariance(Sigma, shrinkage=i)
 			if is_pos_def(test):
 				Sigma = test
