@@ -5,8 +5,8 @@ temp.py
 Output/*
 Output/pics/*
 Output/tables/*
-!Output/pics/.gitkeep 
-!Output/tables/.gitkeep 
+!Output/pics/.gitkeep1
+!Output/tables/.gitkeep2
 pickle_data/
 temp2.py
 word2vec_models.py
