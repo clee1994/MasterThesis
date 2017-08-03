@@ -202,29 +202,32 @@ def train_test_split(x,y,test_split):
 def bench_mark_mu(lreturns,dates_stocks,n_past,len_o):
 	import numpy as np
 	ret_val = []
-	for i in range(len(lreturns)-(n_past+1)):
-		ret_val.append(np.mean(lreturns[i:(i+n_past),:],axis=0))
+	for i in len_o:
+		try:
+			indt = list(dates_stocks).index(i)
+		except:
+			ind_temp = min(dates_stocks, key=lambda x: abs(x - i))
+			indt = list(dates_stocks).index(ind_temp)
+		ret_val.append(np.mean(lreturns[indt-n_past:indt,:],axis=0))
 
-	ret_val = np.array(ret_val)
-	ind_len = np.shape(ret_val)[0]-1
-	return ret_val[ind_len-len_o:ind_len]
+	ret_val = np.array(ret_val).ravel()
+	return ret_val
 
 
 
 def bench_mark_cov(lreturns,dates_stocks,n_past,len_o):
 	import numpy as np
 	ret_val = []
-	for i in range(np.shape(lreturns)[1]-(n_past+1)):
-		#try:
+	for i in len_o:
+		try:
+			indt = list(dates_stocks).index(i)
+		except:
+			ind_temp = min(dates_stocks, key=lambda x: abs(x - i))
+			indt = list(dates_stocks).index(ind_temp)
+		ret_val.append(np.cov(lreturns[0,indt-n_past:indt],lreturns[1,indt-n_past:indt])[0,1])
 
-		ret_val.append(np.cov(lreturns[0,i:(i+n_past)],lreturns[1,i:(i+n_past)])[0,1])
-		#except:
-		#	ret_val.append(np.cov(lreturns[0,i:],lreturns[1,i:])[0,1])
-
-
-	ret_val = np.array(ret_val)
-	ind_len = np.shape(ret_val)[0]-1
-	return ret_val[ind_len-len_o:ind_len]
+	ret_val = np.array(ret_val).ravel()
+	return ret_val
 
 
 
@@ -242,9 +245,9 @@ def calibrate_doc2vec(lreturns,dates,test_split,news_data):
 	dmc_def=0
 
 	#parameter space for gensim 
-	fts_space = np.linspace(150,900,4,dtype=int)
-	ws_space = np.linspace(2,25,4,dtype=int)
-	mc_space = np.linspace(0,50,4,dtype=int)
+	fts_space = np.linspace(150,900,8,dtype=int)
+	ws_space = np.linspace(9,25,4,dtype=int)
+	mc_space = np.linspace(0,27,4,dtype=int)
 	x_dm_space = [0,1]
 	x_dmm_space = [0,1]
 	x_dcm_space = [0,1]
@@ -297,7 +300,8 @@ def calibrate_doc2vec(lreturns,dates,test_split,news_data):
 		x_val.append(x)
 	dmc_opt = x_dcm_space[np.argmax(loss)]
 
-	return np.matrix(x_val[np.argmax(loss)]), dates
+	parameters = 'features ' + str(fts_opt) + ', window ' + str(ws_opt) + ', min. count ' + str(mc_opt) + (', PV-DM, ' if dm_opt else ', PV-DBOW, ') + ('mean, ' if dm_opt else 'sum') + ('concatenation' if dm_opt else '')
+	return [np.matrix(x_val[np.argmax(loss)]),parameters], dates
 
 
 		
@@ -394,18 +398,26 @@ def produce_y_cov(returns,dates_prices,dates_news):
 
 def produce_mu_cov(x, test_split, lreturns, dates_prices, dates_news, n_past, names, firm_ind_u,reg_method):
 	import numpy as np
+	import datetime
 
 	show_p = False
 	stables = False
+	losses = 0
+	r2_mat = []
 	# 5. single stock parameter calibration & get improved mu estimates
 	mu_p_ts = np.empty((int(np.ceil(np.shape(x)[0]*test_split)),0), float)
 	for i in firm_ind_u:
-		if i == firm_ind_u[0]:
-			stables = True
 		temp1 = np.transpose(np.matrix( lreturns[:,i]))
 		y = produce_y_ret(temp1,dates_prices, dates_news)
 
-		mu_p_ts = np.concatenate([mu_p_ts,np.reshape(reg_method(x, y, test_split, temp1, dates_prices, n_past,i,bench_mark_mu, "Mean",names[i],show_p,stables),(np.shape(mu_p_ts)[0],1))],axis=1)
+		if i == firm_ind_u[0]:
+			stables = True
+			[mu_p_ts_temp, lossest, r2t, parameters_reg] = reg_method(x, y, test_split, temp1, dates_prices, dates_news, n_past,i,bench_mark_mu, "Mean",names[i],show_p,stables)
+		else:
+			[mu_p_ts_temp, lossest, r2t, _] = reg_method(x, y, test_split, temp1, dates_prices, dates_news, n_past,i,bench_mark_mu, "Mean",names[i],show_p,stables)
+		mu_p_ts = np.concatenate([mu_p_ts,np.reshape(mu_p_ts_temp,(np.shape(mu_p_ts)[0],1))],axis=1)
+		r2_mat.append(r2t)
+		losses = losses + lossest
 		print(str(datetime.datetime.now())+': Successfully produced mu_p_ts for '+names[i])
 		if i == firm_ind_u[0]:
 			stables = False
@@ -415,10 +427,10 @@ def produce_mu_cov(x, test_split, lreturns, dates_prices, dates_news, n_past, na
 	cov_p_ts = np.zeros([int(np.ceil(np.shape(x)[0]*test_split)),len(firm_ind_u),len(firm_ind_u)])
 	for i in range(len(firm_ind_u)):
 		for j in range(i+1):
-			if (i == j) and (i == 0):
-				stables = True
-			if (i == 0) and (j == 1):
-				stables = True
+			# if (i == j) and (i == 0):
+			# 	stables = True
+			# if (i == 0) and (j == 1):
+			# 	stables = True
 			temp1 = np.transpose(np.matrix( lreturns[:,[i,j]]))
 			y = produce_y_cov(temp1,dates_prices, dates_news)
 			if i == j:
@@ -427,14 +439,17 @@ def produce_mu_cov(x, test_split, lreturns, dates_prices, dates_news, n_past, na
 			else:
 				label_text = "Covariance"
 				l2_test = names[i] + " and " + names[j]
-			cov_p_ts[:,i,j] = reg_method(x, y, test_split, temp1, dates_prices, n_past,i,bench_mark_cov, label_text, l2_test ,show_p,stables)
+			[cov_p_ts[:,i,j], lossest, r2t, _] = reg_method(x, y, test_split, temp1, dates_prices, dates_news, n_past,i,bench_mark_cov, label_text, l2_test ,show_p,stables)
 			cov_p_ts[:,j,i] = cov_p_ts[:,i,j]
+			losses = losses + lossest
+			r2_mat.append(r2t)
 			print(str(datetime.datetime.now())+': Successfully produced co_p_ts for '+names[firm_ind_u[i]]+' and '+names[firm_ind_u[j]])
-			if (i == j) and (i == 0):
-				stables = False
-			if (i == 0) and (j == 1):
-				stables = False
-	return mu_p_ts, cov_p_ts
+			# if (i == j) and (i == 0):
+			# 	stables = False
+			# if (i == 0) and (j == 1):
+			# 	stables = False
+
+	return mu_p_ts, cov_p_ts, losses, np.nanmean(r2_mat), parameters_reg
 
 
 #TFIDF and n-grams
@@ -475,12 +490,15 @@ def tfidf_vector(n_gram, news_data, lreturns, dates_stocks, test_split):
 	lossT = []
 	x_C = []
 	x_T = []
+	parameter1 = []
+	parameter2 = []
 	for i in fts_space:
 		vectorizerCount = CountVectorizer(analyzer='word',ngram_range=(1,n_gram),stop_words='english',min_df=3,max_features=i)
 		x = vectorizerCount.fit_transform(corpus).toarray()
 		y = np.array([data_label_method_val(lreturns, cur_d, dates_stocks) for cur_d in x_dates ])
 		lossC.append(val_cv_eval(x,y,test_split))
 		x_C.append(x)
+		parameter1.append('BOW: stopwords, cut-off=3, features='+str(i)+', '+str(n_gram)+'-gram')
 
 
 		vectorizerTFIDF = TfidfVectorizer(analyzer='word',ngram_range=(1,n_gram),stop_words='english',min_df=3,max_features=i)
@@ -488,8 +506,9 @@ def tfidf_vector(n_gram, news_data, lreturns, dates_stocks, test_split):
 		y = np.array([data_label_method_val(lreturns, cur_d,dates_stocks) for cur_d in x_dates ])
 		lossT.append(val_cv_eval(x,y,test_split))
 		x_T.append(x)
+		parameter2.append('TFIDF: stopwords, cut-off=3, features='+str(i)+', '+str(n_gram)+'-gram')
 
-	return x_C[np.argmax(lossC)], x_T[np.argmax(lossT)], x_dates
+	return [x_C[np.argmax(lossC)], parameter1[np.argmax(lossC)]], [x_T[np.argmax(lossT)], parameter1[np.argmax(lossC)]], x_dates
 
 def val_cv_eval(x,y,split):
 	from sklearn.model_selection import cross_val_score
@@ -506,8 +525,10 @@ def val_cv_eval(x,y,split):
 	else:
 		return 0
 
-def estimate_linear(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,benchm_f,mu_var,t_text,show_plots,tables):
+def estimate_linear(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, ind_r,benchm_f,mu_var,t_text,show_plots,tables):
 	from sklearn.linear_model import LinearRegression
+	from sklearn.metrics import mean_squared_error
+	from sklearn.metrics import r2_score
 	import numpy as np
 	from evaluation import plot_pred_true_b, learning_curve_plots
 	import datetime
@@ -523,8 +544,7 @@ def estimate_linear(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,ben
 
 
 	#benchmark estimates -> this one is corrupt!
-	bench_y = benchm_f(lreturns,dates,n_past,len(y_test))
-
+	bench_y = benchm_f(lreturns,dates,n_past, x_dates[np.shape(x_dates)[0]-np.shape(y_test)[0]:np.shape(x_dates)[0]])
 
 	#1. model selection with cross validation and grid search
 	model = LinearRegression(n_jobs = -1)
@@ -542,11 +562,17 @@ def estimate_linear(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,ben
 		if  np.array_equal(lreturns[0,:], lreturns[1,:]):
 			mu_p_ts[mu_p_ts < 0] = 0
 
-	return mu_p_ts
+	losses = mean_squared_error(y_test, mu_p_ts)
+	r2 = r2_score(y_test, mu_p_ts)
 
-def estimate_ridge(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,benchm_f,mu_var,t_text,show_plots,tables):
+	parameters = 'linear Regression'
+	return mu_p_ts, losses, r2, parameters
+
+def estimate_ridge(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, ind_r,benchm_f,mu_var,t_text,show_plots,tables):
 	from sklearn.kernel_ridge import KernelRidge
 	from sklearn.model_selection import GridSearchCV
+	from sklearn.metrics import mean_squared_error
+	from sklearn.metrics import r2_score
 	import numpy as np
 	from evaluation import plot_pred_true_b, learning_curve_plots
 	import datetime
@@ -562,7 +588,7 @@ def estimate_ridge(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,benc
 
 
 	#benchmark estimates -> this one is corrupt!
-	bench_y = benchm_f(lreturns,dates,n_past,len(y_test))
+	bench_y = benchm_f(lreturns,dates,n_past, x_dates[np.shape(x_dates)[0]-np.shape(y_test)[0]:np.shape(x_dates)[0]])
 
 
 	#1. model selection with cross validation and grid search
@@ -590,12 +616,23 @@ def estimate_ridge(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,benc
 		if  np.array_equal(lreturns[0,:], lreturns[1,:]):
 			mu_p_ts[mu_p_ts < 0] = 0
 
-	return mu_p_ts
+	losses = mean_squared_error(y_test, mu_p_ts)
+	r2 = r2_score(y_test, mu_p_ts)
+
+	para_string = 'Ridge Regression:'
+	for key, value in clf.best_params_.items():
+		if type(value) == np.float64:
+			para_string = para_string + ' ' + key + '=' + "{:.4f}".format(value) + ','
+		else:
+			para_string = para_string + ' ' + key + '=' + value + ','
+	return mu_p_ts, losses, r2, para_string[:-1]
 
 
-def estimate_SVR(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,benchm_f,mu_var,t_text,show_plots,tables):
+def estimate_SVR(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, ind_r,benchm_f,mu_var,t_text,show_plots,tables):
 	from sklearn.svm import SVR
 	from sklearn.model_selection import GridSearchCV
+	from sklearn.metrics import mean_squared_error
+	from sklearn.metrics import r2_score
 	import numpy as np
 	from evaluation import plot_pred_true_b, learning_curve_plots
 	import datetime
@@ -611,7 +648,7 @@ def estimate_SVR(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,benchm
 
 
 	#benchmark estimates -> this one is corrupt!
-	bench_y = benchm_f(lreturns,dates,n_past,len(y_test))
+	bench_y = benchm_f(lreturns,dates,n_past, x_dates[np.shape(x_dates)[0]-np.shape(y_test)[0]:np.shape(x_dates)[0]])
 
 	c_range = np.geomspace(0.1,100, 12)
 	epsilon_range = np.geomspace(1e-2,12,10)
@@ -634,14 +671,26 @@ def estimate_SVR(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,benchm
 		if  np.array_equal(lreturns[0,:], lreturns[1,:]):
 			mu_p_ts[mu_p_ts < 0] = 0
 
-	return mu_p_ts
+	losses = mean_squared_error(y_test, mu_p_ts)
+	r2 = r2_score(y_test, mu_p_ts)
+
+
+	para_string = 'Support Vector Regression:'
+	for key, value in clf.best_params_.items():
+		if type(value) == np.float64:
+			para_string = para_string + ' ' + key + '=' + "{:.4f}".format(value)+ ','
+		else:
+			para_string = para_string + ' ' + key + '=' + value + ','
+	return mu_p_ts, losses, r2, para_string[:-1]
 
 
 
-def estimate_xgboost(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,benchm_f,mu_var,t_text,show_plots,tables):
+def estimate_xgboost(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, ind_r,benchm_f,mu_var,t_text,show_plots,tables):
 	import xgboost as xgb
 	from sklearn.model_selection import GridSearchCV
 	import numpy as np
+	from sklearn.metrics import mean_squared_error
+	from sklearn.metrics import r2_score
 	from evaluation import plot_pred_true_b, learning_curve_plots
 	import datetime
 
@@ -656,7 +705,7 @@ def estimate_xgboost(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,be
 
 
 	#benchmark estimates -> this one is corrupt!
-	bench_y = benchm_f(lreturns,dates,n_past,len(y_test))
+	bench_y = benchm_f(lreturns,dates,n_past, x_dates[np.shape(x_dates)[0]-np.shape(y_test)[0]:np.shape(x_dates)[0]])
 
 	ind_mask = np.invert(np.isnan(y_train))
 	ind_mask = np.reshape(ind_mask,[len(y_train),1])
@@ -675,15 +724,26 @@ def estimate_xgboost(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,be
 		if  np.array_equal(lreturns[0,:], lreturns[1,:]):
 			mu_p_ts[mu_p_ts < 0] = 0
 
-	return mu_p_ts
+	losses = mean_squared_error(y_test, mu_p_ts)
+	r2 = r2_score(y_test, mu_p_ts)
+
+	para_string = 'XGBoost:'
+	for key, value in clf.best_params_.items():
+		if type(value) == np.float64:
+			para_string = para_string + ' ' + key + '=' + "{:.4f}".format(value)+ ','
+		else:
+			para_string = para_string + ' ' + key + '=' + value + ','
+	return mu_p_ts, losses, r2, para_string[:-1]
 
 
 
-def estimate_keras(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,benchm_f,mu_var,t_text,show_plots,tables):
+def estimate_keras(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, ind_r,benchm_f,mu_var,t_text,show_plots,tables):
 	from keras.models import Sequential
 	from keras.layers import LSTM
 	from keras.layers.embeddings import Embedding
 	import numpy as np
+	from sklearn.metrics import mean_squared_error
+	from sklearn.metrics import r2_score
 	from evaluation import plot_pred_true_b, learning_curve_plots
 	import datetime
 
@@ -702,10 +762,7 @@ def estimate_keras(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,benc
 
 
 	#benchmark estimates -> this one is corrupt!
-	bench_y = benchm_f(lreturns,dates,n_past,len(y_test))
-
-	
-
+	bench_y = benchm_f(lreturns,dates,n_past, x_dates[np.shape(x_dates)[0]-np.shape(y_test)[0]:np.shape(x_dates)[0]])
 
 	model = Sequential()
 
@@ -725,4 +782,7 @@ def estimate_keras(x_cal, y_cal, test_split, lreturns, dates, n_past, ind_r,benc
 		if  np.array_equal(lreturns[0,:], lreturns[1,:]):
 			mu_p_ts[mu_p_ts < 0] = 0
 
-	return mu_p_ts[:,0]
+	losses = mean_squared_error(y_test, mu_p_ts)
+	r2 = r2_score(y_test, mu_p_ts)
+	parameters = 'RNN with LSTM (4 Layers:64,32,32,1)'
+	return mu_p_ts[:,0], losses, r2, parameters

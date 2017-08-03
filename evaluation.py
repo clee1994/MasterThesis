@@ -234,3 +234,36 @@ def pure_SP(x_dates, path):
 	return ret,np.array(ret2prices(ret,100))
 
 
+def final_table(complet, r4):
+	#build final table
+	f = open('Output/tables/final_table.tex', 'w')
+	f.write('\\begin{tabular}{ r r r r r r r r r r r r}\n')
+	f.write('Vectorization & Regression Model & $\sum$ MSE & $R^2$ & Portfolio & Mean & Variance & Beta & Alpha & Sharpe Ratio & Treynor Ratio & V@R 95 \%  \\\\ \n ')
+	f.write('\hline \n')
+
+	for i in complet:
+		[mu, sigma, beta, alpha, sharpe, treynor, var95] = port_measures(r4, i[0])
+		f.write(i[8] +' & '+ i[9] + ' & '+ "{:.4f}".format(i[6]) +' & '+ "{:.4f}".format(i[7]) + ' & ' + 'min. var.' + ' & '+"{:.4f}".format(mu)+' & '+"{:.4f}".format(sigma)+' & '+"{:.4f}".format(beta)+' & '+ "{:.4f}".format(alpha) +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\ \n ')
+		[mu, sigma, beta, alpha, sharpe, treynor, var95] = port_measures(r4, i[2])
+		f.write(' & ' + ' & ' +' & ' + ' & ' + 'min. var. l1' + ' & '+"{:.4f}".format(mu)+' & '+"{:.4f}".format(sigma)+' & '+"{:.4f}".format(beta)+' & '+ "{:.4f}".format(alpha) +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\ \n ')
+
+	f.write('\\end{tabular}')
+	f.close() 
+
+
+def port_measures(rbase, ret):
+	import numpy as np
+
+	m_mu = np.mean(rbase)
+	m_sigma = np.var(rbase)
+	r_f = 0.00004 #assuming some risk free rate
+	mu = np.mean(ret) 
+	sigma = np.var(ret)
+	beta = np.cov(ret,r4)[0,1]/np.var(rbase)
+	alpha = mu - r_f - beta*(m_mu - r_f)
+	sharpe = (mu-r_f)/sigma
+	treynor = (mu-r_f)/beta
+	var95 = np.percentile(ret, 5)
+	return mu, sigma, beta, alpha, sharpe, treynor, var95
+
+
