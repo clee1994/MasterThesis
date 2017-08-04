@@ -10,11 +10,11 @@ import numpy as np
 firms_used = 2
 n_past = 80
 
-#path_data = 'Data/'
-path_data = '/home/ucabjss/Data/'
+path_data = 'Data/'
+#path_data = '/home/ucabjss/Data/'
 
-#path_output = 'Output/'
-path_output = '/home/ucabjss/Scratch/Output/'
+path_output = 'Output/'
+#path_output = '/home/ucabjss/Scratch/Output/'
 learning.path_output = path_output
 evaluation.path_output = path_output
 
