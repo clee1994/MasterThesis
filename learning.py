@@ -629,11 +629,11 @@ def estimate_ridge(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, i
 	for key, value in clf.best_params_.items():
 		if type(value) == np.float64:
 			para_string = para_string + ' ' + key + '=' + "{:.4f}".format(value) + ','
-		else if type(value) == float:
+		elif type(value) == float:
 			para_string = para_string + ' ' + key + '=' + "{:.4f}".format(value) + ','
-		else if type(value) == int:
+		elif type(value) == int:
 			para_string = para_string + ' ' + key + '=' + str(value) + ','
-		else if type(value) == str:
+		elif type(value) == str:
 			para_string = para_string + ' ' + key + '=' + value + ','
 	return mu_p_ts, losses, r2, para_string[:-1]
 
@@ -696,11 +696,11 @@ def estimate_SVR(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, ind
 	for key, value in clf.best_params_.items():
 		if type(value) == np.float64:
 			para_string = para_string + ' ' + key + '=' + "{:.4f}".format(value) + ','
-		else if type(value) == float:
+		elif type(value) == float:
 			para_string = para_string + ' ' + key + '=' + "{:.4f}".format(value) + ','
-		else if type(value) == int:
+		elif type(value) == int:
 			para_string = para_string + ' ' + key + '=' + str(value) + ','
-		else if type(value) == str:
+		elif type(value) == str:
 			para_string = para_string + ' ' + key + '=' + value + ','
 	return mu_p_ts, losses, r2, para_string[:-1]
 
@@ -752,11 +752,11 @@ def estimate_xgboost(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past,
 	for key, value in clf.best_params_.items():
 		if type(value) == np.float64:
 			para_string = para_string + ' ' + key + '=' + "{:.4f}".format(value) + ','
-		else if type(value) == float:
+		elif type(value) == float:
 			para_string = para_string + ' ' + key + '=' + "{:.4f}".format(value) + ','
-		else if type(value) == int:
+		elif type(value) == int:
 			para_string = para_string + ' ' + key + '=' + str(value) + ','
-		else if type(value) == str:
+		elif type(value) == str:
 			para_string = para_string + ' ' + key + '=' + value + ','
 	return mu_p_ts, losses, r2, para_string[:-1]
 
