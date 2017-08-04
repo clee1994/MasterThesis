@@ -1,6 +1,5 @@
 
 
-
 def data_label_method_sign(lreturns, cur_d,dates_stocks):
 	import numpy as np
 	try:
@@ -104,7 +103,7 @@ def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ylm,dm_opt, t
 	#tag goes into vocab too.... reconsider
 	model.build_vocab(documents)
 
-	model.train(documents,total_examples=model.corpus_count, epochs=40)
+	model.train(documents,total_examples=model.corpus_count, epochs=3)
 
 	for i in documents:
 		x.append(model.infer_vector(i[0]))
@@ -124,7 +123,7 @@ def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ylm,dm_opt, t
 
 
 
-		f = open('Output/tables/'+str(datetime.datetime.now())+'target.tex', 'w')
+		f = open(path_output+'tables/'+str(datetime.datetime.now())+'target.tex', 'w')
 		f.write('"'+ target[0:(chars_pl-1)] + '\n')
 
 		for i in range(9):
@@ -139,7 +138,7 @@ def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ylm,dm_opt, t
 		f.close() 
 
 
-		f = open('Output/tables/'+str(datetime.datetime.now())+'closest.tex', 'w')
+		f = open(path_output+'tables/'+str(datetime.datetime.now())+'closest.tex', 'w')
 		f.write('"'+ closest[0:(chars_pl-1)]+ '\n')
 
 		for i in range(9):
@@ -153,7 +152,7 @@ def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ylm,dm_opt, t
 		f.write('Number of characters: ' + str(len(closest)) + '\n')
 		f.close() 
 
-		f = open('Output/tables/'+str(datetime.datetime.now())+'least.tex', 'w')
+		f = open(path_output+'tables/'+str(datetime.datetime.now())+'least.tex', 'w')
 		f.write('"'+ least[0:(chars_pl-1)]+ '\n')
 
 		for i in range(9):
@@ -172,7 +171,7 @@ def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ylm,dm_opt, t
 		exword = random.choice(model.wv.index2word)
 		similars_words = str(model.most_similar(exword, topn=20)).replace('), ',')\n')
 
-		f = open('Output/tables/'+str(datetime.datetime.now())+'wordss.tex', 'w')
+		f = open(path_output+'tables/'+str(datetime.datetime.now())+'wordss.tex', 'w')
 		f.write('"'+exword + '"\n')
 		f.write(similars_words)
 		f.close() 
@@ -308,7 +307,7 @@ def calibrate_doc2vec(lreturns,dates,test_split,news_data):
 def make_pred_sort_table(firm_ind_u, loss, names):
 	import numpy as np
 
-	f = open('Output/tables/pred_sort.tex', 'w')
+	f = open(path_output+'tables/pred_sort.tex', 'w')
 	f.write('\\begin{tabular}{ r | l }\n')
 	f.write('Stock Ticker & MSE \\\\ \n ')
 	f.write('\hline \n')
@@ -337,7 +336,7 @@ def sort_predictability(news_data,lreturns,dates,test_split,names):
 		ind_mask = np.invert(np.isnan(y[:,i]))
 
 		if np.sum(ind_mask) > 0:
-			scores = cross_val_score(clf, x[ind_mask,:], y[ind_mask,i], cv=5, n_jobs = -1, scoring='neg_mean_squared_error')
+			scores = cross_val_score(clf, x[ind_mask,:], y[ind_mask,i], cv=5, n_jobs = -1, scoring='neg_mean_squared_error',verbose=1)
 			loss_ar_svm.append(scores.mean())
 		else:
 			loss_ar_svm.append(-np.inf)
@@ -484,7 +483,7 @@ def tfidf_vector(n_gram, news_data, lreturns, dates_stocks, test_split):
 	corpus.append(temp_word)
 
 	
-	fts_space = np.linspace(900,4000,10,dtype=int)
+	fts_space = np.linspace(2000,7000,10,dtype=int)
 
 	lossC = []
 	lossT = []
@@ -520,7 +519,7 @@ def val_cv_eval(x,y,split):
 	clf = LinearRegression(n_jobs = -1)
 	if np.sum(ind_mask) > 0:
 		#different score neg_mean_squared_error / r2 
-		scores = cross_val_score(clf, x[ind_mask,:], y[ind_mask], cv=5, n_jobs = -1, scoring='neg_mean_squared_error')
+		scores = cross_val_score(clf, x[ind_mask,:], y[ind_mask], cv=5, n_jobs = -1, scoring='neg_mean_squared_error',verbose=1)
 		return scores.mean()
 	else:
 		return 0
@@ -600,7 +599,7 @@ def estimate_ridge(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, i
 					{'kernel': ['linear'], 'alpha': alpha_range1}]
 
 	RR_model = KernelRidge(alpha=30)
-	clf = GridSearchCV(RR_model, RR_parameters,scoring='neg_mean_squared_error')
+	clf = GridSearchCV(RR_model, RR_parameters,scoring='neg_mean_squared_error', verbose=1)
 
 	ind_mask = np.invert(np.isnan(y_train))
 	ind_mask = np.reshape(ind_mask,[len(y_train),1])
@@ -655,7 +654,7 @@ def estimate_SVR(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, ind
 	RR_parameters = [{'C': c_range, 'epsilon': epsilon_range}]
 
 	RR_model = SVR()
-	clf = GridSearchCV(RR_model, RR_parameters,scoring='neg_mean_squared_error')
+	clf = GridSearchCV(RR_model, RR_parameters,scoring='neg_mean_squared_error',verbose=1)
 
 	ind_mask = np.invert(np.isnan(y_train))
 	ind_mask = np.reshape(ind_mask,[len(y_train),1])
@@ -774,7 +773,7 @@ def estimate_keras(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, i
 	model.fit(x_train[:,:,None], y_train,validation_data=(x_test[:,:,None], y_test), epochs=5, batch_size=64)
 
 
-	mu_p_ts = model.predict(x_test[:,:,None], batch_size=32, verbose=0)
+	mu_p_ts = model.predict(x_test[:,:,None], batch_size=32, verbose=1)
 
 
 	#set variance to zero if negativ / probably a bad trick

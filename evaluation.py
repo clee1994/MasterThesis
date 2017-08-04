@@ -1,3 +1,5 @@
+
+
 #plotting
 def plot_pred_true_b(y,yhat,benchm,v_m,t_text):
 	from matplotlib import rc
@@ -33,7 +35,7 @@ def plot_pred_true_b(y,yhat,benchm,v_m,t_text):
 	plt.ylabel(v_m)
 	
 	#axarr[1].set_ylabel('Difference to $y$')
-	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'pred_true.png',bbox_inches='tight',dpi=310)
+	plt.savefig(path_output+'pics/'+str(datetime.datetime.now())+'pred_true.png',bbox_inches='tight',dpi=310)
 	plt.close()
 	plt.close("all")
 
@@ -48,7 +50,7 @@ def plot_pred_true_b(y,yhat,benchm,v_m,t_text):
 	test34.get_frame().set_edgecolor('black')
 	plt.xlabel('Time/Observations')
 	plt.ylabel('Difference')
-	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'pred_true_d.png',bbox_inches='tight',dpi=310)
+	plt.savefig(path_output+'pics/'+str(datetime.datetime.now())+'pred_true_d.png',bbox_inches='tight',dpi=310)
 	plt.close()
 	plt.close("all")
 #evalute portfolio construction
@@ -144,7 +146,7 @@ def final_plots(arg_lines,label_list):
 	test34.get_frame().set_edgecolor('black')
 	plt.xlabel('Time/Observations')
 	plt.ylabel('Value/USD')
-	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'port_performance.png',bbox_inches='tight',dpi=310)
+	plt.savefig(path_output+'pics/'+str(datetime.datetime.now())+'port_performance.png',bbox_inches='tight',dpi=310)
 	plt.close()
 
 
@@ -167,7 +169,7 @@ def final_plots_s(arg_lines,label_list):
 		axarr[i].set_ylabel(label_list[i])
 	plt.xlabel('Time/Observations')
 	#plt.ylabel('Return')
-	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'port_performance_ret.png',bbox_inches='tight',dpi=310)
+	plt.savefig(path_output+'pics/'+str(datetime.datetime.now())+'port_performance_ret.png',bbox_inches='tight',dpi=310)
 	plt.close()
 
 
@@ -204,7 +206,7 @@ def learning_curve_plots(grid_results,clf, x_cal, y_cal,n_cpu, alpha_range,gamma
 	test34.get_frame().set_edgecolor('black')
 	plt.xlabel('Size training set')
 	plt.ylabel('MSE')
-	plt.savefig('Output/pics/'+str(datetime.datetime.now())+'learning_curve.png',bbox_inches='tight',dpi=310)
+	plt.savefig(path_output+'pics/'+str(datetime.datetime.now())+'learning_curve.png',bbox_inches='tight',dpi=310)
 	plt.close()
 
 
@@ -236,7 +238,7 @@ def pure_SP(x_dates, path):
 
 def final_table(complet, r4):
 	#build final table
-	f = open('Output/tables/final_table.tex', 'w')
+	f = open(path_output+'tables/final_table.tex', 'w')
 	f.write('\\begin{tabular}{ r r r r r r r r r r r r}\n')
 	f.write('Vectorization & Regression Model & $\sum$ MSE & $R^2$ & Portfolio & Mean & Variance & Beta & Alpha & Sharpe Ratio & Treynor Ratio & V@R 95 \%  \\\\ \n ')
 	f.write('\hline \n')
@@ -259,7 +261,7 @@ def port_measures(rbase, ret):
 	r_f = 0.00004 #assuming some risk free rate
 	mu = np.mean(ret) 
 	sigma = np.var(ret)
-	beta = np.cov(ret,r4)[0,1]/np.var(rbase)
+	beta = np.cov(ret,rbase)[0,1]/np.var(rbase)
 	alpha = mu - r_f - beta*(m_mu - r_f)
 	sharpe = (mu-r_f)/sigma
 	treynor = (mu-r_f)/beta
