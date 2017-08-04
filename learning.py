@@ -591,9 +591,16 @@ def estimate_ridge(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, i
 
 
 	#1. model selection with cross validation and grid search
-	alpha_range1 = np.geomspace(0.1,80, 12)
+	#alpha_range1 = np.geomspace(0.1,80, 12)
+	alpha_range1 = [0.1       ,   0.18361885,   0.33715883,   0.61908719,
+					1.13676079,   2.08730714,   3.83268943,   7.0375404 ,
+					12.922251  ,  23.72768914,  43.56851077,  80.]
 	#alpha_range = np.geomspace(1e-8,40, 12)
-	gamma_range = np.geomspace(1e-2,12,10)
+	#gamma_range = np.geomspace(1e-2,12,10)
+	gamma_range = [ 1.00000000e-02,   2.19852420e-02,   4.83350864e-02,
+					1.06265857e-01,   2.33628058e-01,   5.13636937e-01,
+					1.12924323e+00,   2.48266857e+00,   5.45820693e+00,
+					1.20000000e+01]
 	#http://scikit-learn.org/stable/modules/classes.html#module-sklearn.metrics.pairwise -> kernels
 	RR_parameters = [{'kernel': ['rbf'], 'gamma': gamma_range, 'alpha': alpha_range1},
 					{'kernel': ['linear'], 'alpha': alpha_range1}]
@@ -649,8 +656,15 @@ def estimate_SVR(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, ind
 	#benchmark estimates -> this one is corrupt!
 	bench_y = benchm_f(lreturns,dates,n_past, x_dates[np.shape(x_dates)[0]-np.shape(y_test)[0]:np.shape(x_dates)[0]])
 
-	c_range = np.geomspace(0.1,100, 12)
-	epsilon_range = np.geomspace(1e-2,12,10)
+	#c_range = np.geomspace(0.1,100, 12)
+	c_range = [	0.1       ,    0.18738174,    0.35111917,    0.65793322,
+				1.23284674,    2.3101297 ,    4.32876128,    8.11130831,
+				15.19911083,   28.48035868,   53.36699231,  100.        ]
+	#epsilon_range = np.geomspace(1e-2,12,10)
+	epsilon_range = [	1.00000000e-02,   2.19852420e-02,   4.83350864e-02,
+						1.06265857e-01,   2.33628058e-01,   5.13636937e-01,
+						1.12924323e+00,   2.48266857e+00,   5.45820693e+00,
+						1.20000000e+01]
 	RR_parameters = [{'C': c_range, 'epsilon': epsilon_range}]
 
 	RR_model = SVR()
