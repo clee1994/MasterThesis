@@ -332,11 +332,11 @@ def sort_predictability(news_data,lreturns,dates,test_split,names):
 	loss_ar_svm = []
 
 	for i in range(np.shape(y)[1]):
-		clf = LinearRegression(n_jobs=-1)
+		clf = LinearRegression()
 		ind_mask = np.invert(np.isnan(y[:,i]))
 
 		if np.sum(ind_mask) > 0:
-			scores = cross_val_score(clf, x[ind_mask,:], y[ind_mask,i], cv=5, n_jobs = -1, scoring='neg_mean_squared_error')
+			scores = cross_val_score(clf, x[ind_mask,:], y[ind_mask,i], cv=5, scoring='neg_mean_squared_error')
 			loss_ar_svm.append(scores.mean())
 		else:
 			loss_ar_svm.append(-np.inf)
@@ -516,10 +516,10 @@ def val_cv_eval(x,y,split):
 
 	ind_mask = np.invert(np.isnan(y)).ravel()
 
-	clf = LinearRegression(n_jobs = -1)
+	clf = LinearRegression()
 	if np.sum(ind_mask) > 0:
 		#different score neg_mean_squared_error / r2 
-		scores = cross_val_score(clf, x[ind_mask,:], y[ind_mask], cv=5, n_jobs = -1, scoring='neg_mean_squared_error')
+		scores = cross_val_score(clf, x[ind_mask,:], y[ind_mask], cv=5, scoring='neg_mean_squared_error')
 		return scores.mean()
 	else:
 		return 0
@@ -546,7 +546,7 @@ def estimate_linear(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, 
 	bench_y = benchm_f(lreturns,dates,n_past, x_dates[np.shape(x_dates)[0]-np.shape(y_test)[0]:np.shape(x_dates)[0]])
 
 	#1. model selection with cross validation and grid search
-	model = LinearRegression(n_jobs = -1)
+	model = LinearRegression()
 	
 	ind_mask = np.invert(np.isnan(y_train))
 	ind_mask = np.reshape(ind_mask,[len(y_train),1])

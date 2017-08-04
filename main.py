@@ -43,15 +43,19 @@ print(str(datetime.datetime.now())+': Successfully sorted')
 
 # unigram count/tfidf
 [x_unigram_count, x_unigram_tfidf, dates_news] = learning.tfidf_vector(1, news_data, np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)), dates_prices,test_split)
+print(str(datetime.datetime.now())+': Successfully 1-gram')
 
 # bigrams count/tfidf
 [x_bigram_count, x_bigram_tfidf, dates_news] = learning.tfidf_vector(2, news_data, np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)), dates_prices,test_split)
+print(str(datetime.datetime.now())+': Successfully 2-gram')
 
 # trigrams count/tfidf
 [x_trigram_count, x_trigram_tfidf, dates_news] = learning.tfidf_vector(3, news_data, np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)), dates_prices,test_split)
+print(str(datetime.datetime.now())+': Successfully 3-gram')
 
 # doc2vec
 [x_doc2vec, dates_news] = learning.calibrate_doc2vec(np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)),dates_prices,test_split,news_data)
+print(str(datetime.datetime.now())+': Successfully doc2vec')
 
 pickle.dump((x_unigram_count, x_unigram_tfidf, x_bigram_count, x_bigram_tfidf, x_trigram_count, x_trigram_tfidf, x_doc2vec, dates_news), open( path_output+"x_models.p", "wb" ) )
 
@@ -69,7 +73,7 @@ for j in [learning.estimate_linear, learning.estimate_ridge, learning.estimate_S
 		[r2,second_line] = evaluation.evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,mu_p_ts, cov_p_ts, firm_ind_u,dates_prices,None, None, -1)
 		[r3,third_line] = evaluation.evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,mu_p_ts, cov_p_ts, firm_ind_u,dates_prices,None, 0.5, -1)
 		complet.append([r2,second_line,r3, third_line, r1, first_line, losses, r2m,i[1], parmeters_reg] )
-
+		print(str(datetime.datetime.now())+': Successfully learned a vec-reg combination')
 
 [r4,sp500] = evaluation.pure_SP(dates_news[(split_point+1):],path_data)
 
