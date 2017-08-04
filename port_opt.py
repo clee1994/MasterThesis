@@ -28,7 +28,7 @@ def cv_opt(mu, Sigma, e_mu, glambda, h):
 	if is_pos_def(Sigma):
 		risk = quad_form(w, Sigma)
 	else:
-		for i in np.linspace(0.01,30,3000):
+		for i in np.linspace(0.01,100,10000):
 			test = shrunk_covariance(Sigma, shrinkage=i)
 			if is_pos_def(test):
 				Sigma = test
