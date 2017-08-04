@@ -629,7 +629,7 @@ def estimate_ridge(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, i
 	for key, value in clf.best_params_.items():
 		if type(value) == np.float64:
 			para_string = para_string + ' ' + key + '=' + "{:.4f}".format(value) + ','
-		else if type(value) == float64:
+		else if type(value) == float:
 			para_string = para_string + ' ' + key + '=' + "{:.4f}".format(value) + ','
 		else:
 			para_string = para_string + ' ' + key + '=' + value + ','
