@@ -19,7 +19,7 @@ learning.path_output = path_output
 evaluation.path_output = path_output
 
 #traning splits
-test_split = 0.80
+test_split = 0.55
 
 
 print(str(datetime.datetime.now())+': Start reading in news:')
