@@ -336,7 +336,7 @@ def sort_predictability(news_data,lreturns,dates,test_split,names):
 		ind_mask = np.invert(np.isnan(y[:,i]))
 
 		if np.sum(ind_mask) > 0:
-			scores = cross_val_score(clf, x[ind_mask,:], y[ind_mask,i], cv=5, n_jobs = -1, scoring='neg_mean_squared_error',verbose=1)
+			scores = cross_val_score(clf, x[ind_mask,:], y[ind_mask,i], cv=5, n_jobs = -1, scoring='neg_mean_squared_error')
 			loss_ar_svm.append(scores.mean())
 		else:
 			loss_ar_svm.append(-np.inf)
@@ -519,7 +519,7 @@ def val_cv_eval(x,y,split):
 	clf = LinearRegression(n_jobs = -1)
 	if np.sum(ind_mask) > 0:
 		#different score neg_mean_squared_error / r2 
-		scores = cross_val_score(clf, x[ind_mask,:], y[ind_mask], cv=5, n_jobs = -1, scoring='neg_mean_squared_error',verbose=1)
+		scores = cross_val_score(clf, x[ind_mask,:], y[ind_mask], cv=5, n_jobs = -1, scoring='neg_mean_squared_error')
 		return scores.mean()
 	else:
 		return 0
@@ -606,7 +606,7 @@ def estimate_ridge(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, i
 					{'kernel': ['linear'], 'alpha': alpha_range1}]
 
 	RR_model = KernelRidge(alpha=30)
-	clf = GridSearchCV(RR_model, RR_parameters,scoring='neg_mean_squared_error', verbose=1)
+	clf = GridSearchCV(RR_model, RR_parameters,scoring='neg_mean_squared_error')
 
 	ind_mask = np.invert(np.isnan(y_train))
 	ind_mask = np.reshape(ind_mask,[len(y_train),1])
@@ -672,7 +672,7 @@ def estimate_SVR(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, ind
 	RR_parameters = [{'C': c_range, 'epsilon': epsilon_range}]
 
 	RR_model = SVR()
-	clf = GridSearchCV(RR_model, RR_parameters,scoring='neg_mean_squared_error',verbose=1)
+	clf = GridSearchCV(RR_model, RR_parameters,scoring='neg_mean_squared_error')
 
 	ind_mask = np.invert(np.isnan(y_train))
 	ind_mask = np.reshape(ind_mask,[len(y_train),1])
@@ -734,7 +734,7 @@ def estimate_xgboost(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past,
 	xgb_model = xgb.XGBRegressor()
 	max_depth_range = np.array(np.linspace(5,100,5),dtype=int)
 	n_est_range = np.array(np.linspace(50,500,5),dtype=int)
-	clf = GridSearchCV(xgb_model,{'max_depth': max_depth_range,'n_estimators': n_est_range}, verbose=1)
+	clf = GridSearchCV(xgb_model,{'max_depth': max_depth_range,'n_estimators': n_est_range})
 	clf = clf.fit(x_train[ind_mask[:,0],:], y_train[ind_mask[:,0]])
 	
 
@@ -799,7 +799,7 @@ def estimate_keras(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, i
 	model.fit(x_train[:,:,None], y_train,validation_data=(x_test[:,:,None], y_test), epochs=5, batch_size=64)
 
 
-	mu_p_ts = model.predict(x_test[:,:,None], batch_size=32, verbose=1)
+	mu_p_ts = model.predict(x_test[:,:,None], batch_size=32)
 
 
 	#set variance to zero if negativ / probably a bad trick
