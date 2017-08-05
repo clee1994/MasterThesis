@@ -631,7 +631,7 @@ def estimate_ridge(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, i
 
 	if tables:
 		plot_pred_true_b(y_test,mu_p_ts,bench_y,mu_var,t_text)
-		learning_curve_plots(grid_results,clf, x_cal, y_cal,4, alpha_range1,gamma_range,show_p)
+		learning_curve_plots(grid_results,clf, x_cal, y_cal,4, alpha_range1,gamma_range,show_plots)
 
 
 	para_string = 'Ridge Regression:'
