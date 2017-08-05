@@ -80,7 +80,7 @@ def main_x_reg(x_method):
 			del mu_p_ts, cov_p_ts, losses, r2m, parmeters_reg, r2,second_line, r3,third_line
 			print(str(datetime.datetime.now())+': Successfully learned a vec-reg combination')
 			gc.collect()
-	return dates_news,r1
+	return dates_news,r1, split_point
 
 
 import multiprocessing
@@ -109,7 +109,7 @@ if __name__ == '__main__':
 
 	#for i in range(4):
 	#	[dates_news,r1] = main_x_reg(i)
-	[dates_news,r1] = main_x_reg(3)
+	[dates_news,r1,split_point] = main_x_reg(3)
 
 	[r4,sp500] = evaluation.pure_SP(dates_news[(split_point+1):],path_data)
 	gc.collect()
