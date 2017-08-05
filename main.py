@@ -7,7 +7,7 @@ import numpy as np
 
 
 # 0. modifiable variables
-firms_used = 20
+firms_used = 2
 n_past = 80
 
 path_data = 'Data/'
@@ -51,7 +51,7 @@ def main_x_reg(x_method):
 	else:
 		# doc2vec
 		[x_gram, dates_news] = learning.calibrate_doc2vec(np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)),dates_prices,test_split,news_data)
-		tfidf = []
+		x_tfidf = []
 		del news_data
 		print(str(datetime.datetime.now())+': Successfully doc2vec')
 		gc.collect()
