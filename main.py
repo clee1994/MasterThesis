@@ -91,8 +91,6 @@ import multiprocessing
 if __name__ == '__main__':
 	multiprocessing.set_start_method('forkserver')
 
-	
-
 
 	print(str(datetime.datetime.now())+': Start reading in news:')
 	news_data = pickle.load(open(path_data + "Reuters.p", "rb" ) )
@@ -115,7 +113,6 @@ if __name__ == '__main__':
 
 	for i in range(4):
 		main_x_reg(i)
-
 
 	[r4,sp500] = evaluation.pure_SP(dates_news[(split_point+1):],path_data)
 	gc.collect()

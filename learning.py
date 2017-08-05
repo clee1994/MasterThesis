@@ -507,7 +507,7 @@ def tfidf_vector(n_gram, news_data, lreturns, dates_stocks, test_split):
 		x_T.append(x)
 		parameter2.append('TFIDF: stopwords, cut-off=3, features='+str(i)+', '+str(n_gram)+'-gram')
 
-	return [x_C[np.argmax(lossC)], parameter1[np.argmax(lossC)]], [x_T[np.argmax(lossT)], parameter1[np.argmax(lossC)]], x_dates
+	return [x_C[np.argmax(lossC)], parameter1[np.argmax(lossC)]], [x_T[np.argmax(lossT)], parameter1[np.argmax(lossC)]], np.array(x_dates)
 
 def val_cv_eval(x,y,split):
 	from sklearn.model_selection import cross_val_score
