@@ -55,9 +55,9 @@ def main_x_reg(x_method):
 		print(str(datetime.datetime.now())+': Successfully doc2vec')
 		gc.collect()
 	#x_unigram_count, x_unigram_tfidf, x_bigram_count, x_bigram_tfidf, x_trigram_count, x_trigram_tfidf, 
-	pickle.dump((x_doc2vec, dates_news), open( path_output+"x_models.p", "wb" ) )
+	pickle.dump((x_gram, x_tfidf, dates_news), open( path_output+"x_models"+str(x_method)+".p", "wb" ) )
 
-	split_point = int(np.floor(np.shape(x_doc2vec[0])[0]*(1-test_split)))
+	split_point = int(np.floor(np.shape(x_gram[0])[0]*(1-test_split)))
 	pmu_p_ts = evaluation.mu_gen_past1(lreturns, dates_prices, dates_news[(split_point+1):], firm_ind_u[0:firms_used], n_past)
 	pcov_p_ts = evaluation.cov_gen_past(lreturns, dates_prices, dates_news[(split_point+1):], firm_ind_u[0:firms_used], n_past)
 	gc.collect()
@@ -73,6 +73,7 @@ def main_x_reg(x_method):
 				[r2,second_line] = evaluation.evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,mu_p_ts, cov_p_ts, firm_ind_u,dates_prices,None, None, -1)
 				[r3,third_line] = evaluation.evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,mu_p_ts, cov_p_ts, firm_ind_u,dates_prices,None, 0.5, -1)
 				complet.append([r2,second_line,r3, third_line, r1, first_line, losses, r2m,i[1], parmeters_reg] )
+				del mu_p_ts, cov_p_ts, losses, r2m, parmeters_reg, r2,second_line, r3,third_line
 				print(str(datetime.datetime.now())+': Successfully learned a vec-reg combination')
 				gc.collect()
 		else:
@@ -81,6 +82,7 @@ def main_x_reg(x_method):
 				[r2,second_line] = evaluation.evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,mu_p_ts, cov_p_ts, firm_ind_u,dates_prices,None, None, -1)
 				[r3,third_line] = evaluation.evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,mu_p_ts, cov_p_ts, firm_ind_u,dates_prices,None, 0.5, -1)
 				complet.append([r2,second_line,r3, third_line, r1, first_line, losses, r2m,i[1], parmeters_reg] )
+				del mu_p_ts, cov_p_ts, losses, r2m, parmeters_reg, r2,second_line, r3,third_line
 				print(str(datetime.datetime.now())+': Successfully learned a vec-reg combination')
 				gc.collect()
 
