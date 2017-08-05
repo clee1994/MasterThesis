@@ -45,6 +45,9 @@ gc.collect()
 [x_unigram_count, x_unigram_tfidf, dates_news] = learning.tfidf_vector(1, news_data, np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)), dates_prices,test_split)
 print(str(datetime.datetime.now())+': Successfully 1-gram')
 gc.collect()
+
+for var, obj in locals().items():
+    print var, sys.getsizeof(obj)
 # bigrams count/tfidf
 [x_bigram_count, x_bigram_tfidf, dates_news] = learning.tfidf_vector(2, news_data, np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)), dates_prices,test_split)
 print(str(datetime.datetime.now())+': Successfully 2-gram')
