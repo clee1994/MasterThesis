@@ -86,6 +86,7 @@ def main_x_reg(x_method):
 				del mu_p_ts, cov_p_ts, losses, r2m, parmeters_reg, r2,second_line, r3,third_line
 				print(str(datetime.datetime.now())+': Successfully learned a vec-reg combination')
 				gc.collect()
+	return dates_news
 
 
 import multiprocessing
@@ -112,8 +113,9 @@ if __name__ == '__main__':
 	#random -> validation, maybe multiple times?
 	#firm_ind_u = random.sample(range(len(names)-1), firms_used)
 
-	for i in range(4):
-		main_x_reg(i)
+	#for i in range(4):
+	#	dates_news = main_x_reg(i)
+	dates_news = main_x_reg(3)
 
 	[r4,sp500] = evaluation.pure_SP(dates_news[(split_point+1):],path_data)
 	gc.collect()
