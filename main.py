@@ -42,26 +42,25 @@ gc.collect()
 
 
 # unigram count/tfidf
-[x_unigram_count, x_unigram_tfidf, dates_news] = learning.tfidf_vector(1, news_data, np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)), dates_prices,test_split)
-print(str(datetime.datetime.now())+': Successfully 1-gram')
-gc.collect()
+#[x_unigram_count, x_unigram_tfidf, dates_news] = learning.tfidf_vector(1, news_data, np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)), dates_prices,test_split)
+#print(str(datetime.datetime.now())+': Successfully 1-gram')
+#gc.collect()
 
-for var, obj in locals().items():
-    print(var + str(sys.getsizeof(obj)))
 # bigrams count/tfidf
-[x_bigram_count, x_bigram_tfidf, dates_news] = learning.tfidf_vector(2, news_data, np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)), dates_prices,test_split)
-print(str(datetime.datetime.now())+': Successfully 2-gram')
-gc.collect()
+#[x_bigram_count, x_bigram_tfidf, dates_news] = learning.tfidf_vector(2, news_data, np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)), dates_prices,test_split)
+#print(str(datetime.datetime.now())+': Successfully 2-gram')
+#gc.collect()
 # trigrams count/tfidf
-[x_trigram_count, x_trigram_tfidf, dates_news] = learning.tfidf_vector(3, news_data, np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)), dates_prices,test_split)
-print(str(datetime.datetime.now())+': Successfully 3-gram')
-gc.collect()
+#[x_trigram_count, x_trigram_tfidf, dates_news] = learning.tfidf_vector(3, news_data, np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)), dates_prices,test_split)
+#print(str(datetime.datetime.now())+': Successfully 3-gram')
+#gc.collect()
 # doc2vec
 [x_doc2vec, dates_news] = learning.calibrate_doc2vec(np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)),dates_prices,test_split,news_data)
 del news_data
 print(str(datetime.datetime.now())+': Successfully doc2vec')
 gc.collect()
-pickle.dump((x_unigram_count, x_unigram_tfidf, x_bigram_count, x_bigram_tfidf, x_trigram_count, x_trigram_tfidf, x_doc2vec, dates_news), open( path_output+"x_models.p", "wb" ) )
+#x_unigram_count, x_unigram_tfidf, x_bigram_count, x_bigram_tfidf, x_trigram_count, x_trigram_tfidf, 
+pickle.dump((x_doc2vec, dates_news), open( path_output+"x_models.p", "wb" ) )
 
 split_point = int(np.floor(np.shape(x_doc2vec[0])[0]*(1-test_split)))
 pmu_p_ts = evaluation.mu_gen_past1(lreturns, dates_prices, dates_news[(split_point+1):], firm_ind_u[0:firms_used], n_past)
@@ -70,9 +69,10 @@ gc.collect()
 
 complet = []
 #learning.estimate_xgboost, learning.estimate_keras
+#x_unigram_count, x_unigram_tfidf, x_bigram_count, x_bigram_tfidf, x_trigram_count, x_trigram_tfidf,
 for j in [learning.estimate_linear, learning.estimate_ridge, learning.estimate_SVR]:
 	[r1,first_line] = evaluation.evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,pmu_p_ts,pcov_p_ts,firm_ind_u,dates_prices,None, None, -1)
-	for i in [x_unigram_count, x_unigram_tfidf, x_bigram_count, x_bigram_tfidf, x_trigram_count, x_trigram_tfidf, x_doc2vec]:
+	for i in [x_doc2vec]:
 		[mu_p_ts, cov_p_ts, losses, r2m, parmeters_reg] = learning.produce_mu_cov(i[0] ,test_split,lreturns, dates_prices, dates_news, n_past, names, firm_ind_u, j)
 		[r2,second_line] = evaluation.evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,mu_p_ts, cov_p_ts, firm_ind_u,dates_prices,None, None, -1)
 		[r3,third_line] = evaluation.evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,mu_p_ts, cov_p_ts, firm_ind_u,dates_prices,None, 0.5, -1)
