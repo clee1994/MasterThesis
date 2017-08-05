@@ -5,6 +5,9 @@ import learning
 import datetime, pickle, gc, random
 import numpy as np
 
+import multiprocessing
+if __name__ == '__main__':
+    multiprocessing.set_start_method('forkserver')
 
 # 0. modifiable variables
 firms_used = 2

@@ -332,11 +332,11 @@ def sort_predictability(news_data,lreturns,dates,test_split,names):
 	loss_ar_svm = []
 
 	for i in range(np.shape(y)[1]):
-		clf = LinearRegression()
+		clf = LinearRegression(n_jobs=-1)
 		ind_mask = np.invert(np.isnan(y[:,i]))
 
 		if np.sum(ind_mask) > 0:
-			scores = cross_val_score(clf, x[ind_mask,:], y[ind_mask,i], cv=5, scoring='neg_mean_squared_error')
+			scores = cross_val_score(clf, x[ind_mask,:], y[ind_mask,i], cv=5, scoring='neg_mean_squared_error',n_jobs=-1)
 			loss_ar_svm.append(scores.mean())
 		else:
 			loss_ar_svm.append(-np.inf)
@@ -516,10 +516,10 @@ def val_cv_eval(x,y,split):
 
 	ind_mask = np.invert(np.isnan(y)).ravel()
 
-	clf = LinearRegression()
+	clf = LinearRegression(n_jobs=-1)
 	if np.sum(ind_mask) > 0:
 		#different score neg_mean_squared_error / r2 
-		scores = cross_val_score(clf, x[ind_mask,:], y[ind_mask], cv=5, scoring='neg_mean_squared_error')
+		scores = cross_val_score(clf, x[ind_mask,:], y[ind_mask], cv=5, scoring='neg_mean_squared_error',n_jobs=-1)
 		return scores.mean()
 	else:
 		return 0
@@ -546,7 +546,7 @@ def estimate_linear(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, 
 	bench_y = benchm_f(lreturns,dates,n_past, x_dates[np.shape(x_dates)[0]-np.shape(y_test)[0]:np.shape(x_dates)[0]])
 
 	#1. model selection with cross validation and grid search
-	model = LinearRegression()
+	model = LinearRegression(n_jobs=-1)
 	
 	ind_mask = np.invert(np.isnan(y_train))
 	ind_mask = np.reshape(ind_mask,[len(y_train),1])
@@ -606,7 +606,7 @@ def estimate_ridge(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, i
 					{'kernel': ['linear'], 'alpha': alpha_range1}]
 
 	RR_model = KernelRidge(alpha=30)
-	clf = GridSearchCV(RR_model, RR_parameters,scoring='neg_mean_squared_error')
+	clf = GridSearchCV(RR_model, RR_parameters,scoring='neg_mean_squared_error',n_jobs=-1)
 
 	ind_mask = np.invert(np.isnan(y_train))
 	ind_mask = np.reshape(ind_mask,[len(y_train),1])
@@ -672,7 +672,7 @@ def estimate_SVR(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, ind
 	RR_parameters = [{'C': c_range, 'epsilon': epsilon_range}]
 
 	RR_model = SVR()
-	clf = GridSearchCV(RR_model, RR_parameters,scoring='neg_mean_squared_error')
+	clf = GridSearchCV(RR_model, RR_parameters,scoring='neg_mean_squared_error',n_jobs=-1)
 
 	ind_mask = np.invert(np.isnan(y_train))
 	ind_mask = np.reshape(ind_mask,[len(y_train),1])
@@ -734,7 +734,7 @@ def estimate_xgboost(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past,
 	xgb_model = xgb.XGBRegressor()
 	max_depth_range = np.array(np.linspace(5,100,5),dtype=int)
 	n_est_range = np.array(np.linspace(50,500,5),dtype=int)
-	clf = GridSearchCV(xgb_model,{'max_depth': max_depth_range,'n_estimators': n_est_range})
+	clf = GridSearchCV(xgb_model,{'max_depth': max_depth_range,'n_estimators': n_est_range},n_jobs=-1)
 	clf = clf.fit(x_train[ind_mask[:,0],:], y_train[ind_mask[:,0]])
 	
 
