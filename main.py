@@ -64,29 +64,23 @@ def main_x_reg(x_method):
 	gc.collect()
 
 	complet = []
+	[r1,first_line] = evaluation.evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,pmu_p_ts,pcov_p_ts,firm_ind_u,dates_prices,None, None, -1)
 	#learning.estimate_xgboost, learning.estimate_keras
-	#x_unigram_count, x_unigram_tfidf, x_bigram_count, x_bigram_tfidf, x_trigram_count, x_trigram_tfidf,
-	for j in [learning.estimate_linear, learning.estimate_ridge, learning.estimate_SVR]:
-		[r1,first_line] = evaluation.evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,pmu_p_ts,pcov_p_ts,firm_ind_u,dates_prices,None, None, -1)
+	#x_unigram_count, x_unigram_tfidf, x_bigram_count, x_bigram_tfidf, x_trigram_count, x_trigram_tfidf, learning.estimate_linear, , learning.estimate_SVR
+	for j in [learning.estimate_ridge]:
 		if x_method != 3:
-			for i in [x_gram,x_tfidf]:
-				[mu_p_ts, cov_p_ts, losses, r2m, parmeters_reg] = learning.produce_mu_cov(i[0] ,test_split,lreturns, dates_prices, dates_news, n_past, names, firm_ind_u, j)
-				[r2,second_line] = evaluation.evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,mu_p_ts, cov_p_ts, firm_ind_u,dates_prices,None, None, -1)
-				[r3,third_line] = evaluation.evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,mu_p_ts, cov_p_ts, firm_ind_u,dates_prices,None, 0.5, -1)
-				complet.append([r2,second_line,r3, third_line, r1, first_line, losses, r2m,i[1], parmeters_reg] )
-				del mu_p_ts, cov_p_ts, losses, r2m, parmeters_reg, r2,second_line, r3,third_line
-				print(str(datetime.datetime.now())+': Successfully learned a vec-reg combination')
-				gc.collect()
+			iter_list = [x_gram,x_tfidf]
 		else:
-			for i in [x_gram]:
-				[mu_p_ts, cov_p_ts, losses, r2m, parmeters_reg] = learning.produce_mu_cov(i[0] ,test_split,lreturns, dates_prices, dates_news, n_past, names, firm_ind_u, j)
-				[r2,second_line] = evaluation.evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,mu_p_ts, cov_p_ts, firm_ind_u,dates_prices,None, None, -1)
-				[r3,third_line] = evaluation.evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,mu_p_ts, cov_p_ts, firm_ind_u,dates_prices,None, 0.5, -1)
-				complet.append([r2,second_line,r3, third_line, r1, first_line, losses, r2m,i[1], parmeters_reg] )
-				del mu_p_ts, cov_p_ts, losses, r2m, parmeters_reg, r2,second_line, r3,third_line
-				print(str(datetime.datetime.now())+': Successfully learned a vec-reg combination')
-				gc.collect()
-	return dates_news
+			iter_list = [x_gram]
+		for i in iter_list:
+			[mu_p_ts, cov_p_ts, losses, r2m, parmeters_reg] = learning.produce_mu_cov(i[0] ,test_split,lreturns, dates_prices, dates_news, n_past, names, firm_ind_u, j)
+			[r2,second_line] = evaluation.evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,mu_p_ts, cov_p_ts, firm_ind_u,dates_prices,None, None, -1)
+			[r3,third_line] = evaluation.evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,mu_p_ts, cov_p_ts, firm_ind_u,dates_prices,None, 0.5, -1)
+			complet.append([r2,second_line,r3, third_line, losses, r2m, i[1], parmeters_reg] )
+			del mu_p_ts, cov_p_ts, losses, r2m, parmeters_reg, r2,second_line, r3,third_line
+			print(str(datetime.datetime.now())+': Successfully learned a vec-reg combination')
+			gc.collect()
+	return dates_news,r1
 
 
 import multiprocessing
@@ -114,19 +108,19 @@ if __name__ == '__main__':
 	#firm_ind_u = random.sample(range(len(names)-1), firms_used)
 
 	#for i in range(4):
-	#	dates_news = main_x_reg(i)
-	dates_news = main_x_reg(3)
+	#	[dates_news,r1] = main_x_reg(i)
+	[dates_news,r1] = main_x_reg(3)
 
 	[r4,sp500] = evaluation.pure_SP(dates_news[(split_point+1):],path_data)
 	gc.collect()
-	evaluation.final_table(complet,r4)
+	evaluation.final_table(complet,r4,r1)
 	gc.collect()
 	pickle.dump((complet,r4, sp500), open( path_output + "final.p", "wb" ) )
 
 	#plot the best way to do it -> pred/true, learning curve, final curves
 
-	# final_plots([first_line,second_line,third_line,sp500],[r'min. var. portfolio (past obs.)', r'min. var. portfolio (doc2vec)',r'min. var. (doc2vec, l1)',r'SP500 raw performance'])
-	# final_plots_s([r1,r2,r3,r4],[r'past obs.', r'doc2vec',r'doc2vec, l1',r'SP500'])
+	#final_plots([first_line,second_line,third_line,sp500],[r'min. var. portfolio (past obs.)', r'min. var. portfolio (doc2vec)',r'min. var. (doc2vec, l1)',r'SP500 raw performance'])
+	#final_plots_s([r1,r2,r3,r4],[r'past obs.', r'doc2vec',r'doc2vec, l1',r'SP500'])
 
 
 

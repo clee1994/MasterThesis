@@ -426,10 +426,10 @@ def produce_mu_cov(x, test_split, lreturns, dates_prices, dates_news, n_past, na
 	cov_p_ts = np.zeros([int(np.ceil(np.shape(x)[0]*test_split)),len(firm_ind_u),len(firm_ind_u)])
 	for i in range(len(firm_ind_u)):
 		for j in range(i+1):
-			# if (i == j) and (i == 0):
-			# 	stables = True
-			# if (i == 0) and (j == 1):
-			# 	stables = True
+			if (i == j) and (i == 0):
+				stables = True
+			if (i == 0) and (j == 1):
+				stables = True
 			temp1 = np.transpose(np.matrix( lreturns[:,[i,j]]))
 			y = produce_y_cov(temp1,dates_prices, dates_news)
 			if i == j:
@@ -443,10 +443,10 @@ def produce_mu_cov(x, test_split, lreturns, dates_prices, dates_news, n_past, na
 			losses = losses + lossest
 			r2_mat.append(r2t)
 			print(str(datetime.datetime.now())+': Successfully produced co_p_ts for '+names[firm_ind_u[i]]+' and '+names[firm_ind_u[j]])
-			# if (i == j) and (i == 0):
-			# 	stables = False
-			# if (i == 0) and (j == 1):
-			# 	stables = False
+			if (i == j) and (i == 0):
+				stables = False
+			if (i == 0) and (j == 1):
+				stables = False
 
 	return mu_p_ts, cov_p_ts, losses, np.nanmean(r2_mat), parameters_reg
 
@@ -564,6 +564,10 @@ def estimate_linear(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, 
 	losses = mean_squared_error(y_test, mu_p_ts)
 	r2 = r2_score(y_test, mu_p_ts)
 
+	if stables:
+		plot_pred_true_b(y_test,mu_p_ts,bench_y,mu_var,t_text)
+		#learning_curve_plots(grid_results,clf, x_cal, y_cal,n_cpu, alpha_range,gamma_range,show_p)
+
 	parameters = 'linear Regression'
 	return mu_p_ts, losses, r2, parameters
 
@@ -624,6 +628,11 @@ def estimate_ridge(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, i
 
 	losses = mean_squared_error(y_test, mu_p_ts)
 	r2 = r2_score(y_test, mu_p_ts)
+
+	if stables:
+		plot_pred_true_b(y_test,mu_p_ts,bench_y,mu_var,t_text)
+		learning_curve_plots(grid_results,clf, x_cal, y_cal,4, alpha_range1,gamma_range,show_p)
+
 
 	para_string = 'Ridge Regression:'
 	for key, value in clf.best_params_.items():

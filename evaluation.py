@@ -188,7 +188,7 @@ def learning_curve_plots(grid_results,clf, x_cal, y_cal,n_cpu, alpha_range,gamma
 
 
 
-	train_sizes, train_scores, test_scores = learning_curve(clf, x_cal, y_cal, cv=None, train_sizes=np.linspace(3, len(x_cal)*0.6, 100,dtype=int),scoring='neg_mean_squared_error')
+	train_sizes, train_scores, test_scores = learning_curve(clf, x_cal, y_cal, cv=None, train_sizes=np.linspace(3, len(x_cal)*0.6, 100,dtype=int),scoring='neg_mean_squared_error',n_jobs=-1)
 	train_scores = np.mean(train_scores,axis=1)
 	test_scores = np.mean(test_scores,axis=1)
 
@@ -236,18 +236,22 @@ def pure_SP(x_dates, path):
 	return ret,np.array(ret2prices(ret,100))
 
 
-def final_table(complet, r4):
+def final_table(complet, r4,r1):
 	#build final table
 	f = open(path_output+'tables/final_table.tex', 'w')
 	f.write('\\begin{tabular}{ r r r r r r r r r r r r}\n')
 	f.write('Vectorization & Regression Model & $\sum$ MSE & $R^2$ & Portfolio & Mean & Variance & Beta & Alpha & Sharpe Ratio & Treynor Ratio & V@R 95 \%  \\\\ \n ')
 	f.write('\hline \n')
 
+	[mu, sigma, beta, alpha, sharpe, treynor, var95] = port_measures(r4, r1)
+	f.write('\\textit{past obs.} & ' + ' & ' +' & ' + ' & ' + '\\textit{min. var.}' + ' & '+"{:.4f}".format(mu)+' & '+"{:.4f}".format(sigma)+' & '+"{:.4f}".format(beta)+' & '+ "{:.4f}".format(alpha) +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\ \n ')
+			
 	for i in complet:
 		[mu, sigma, beta, alpha, sharpe, treynor, var95] = port_measures(r4, i[0])
-		f.write(i[8] +' & '+ i[9] + ' & '+ "{:.4f}".format(i[6]) +' & '+ "{:.4f}".format(i[7]) + ' & ' + 'min. var.' + ' & '+"{:.4f}".format(mu)+' & '+"{:.4f}".format(sigma)+' & '+"{:.4f}".format(beta)+' & '+ "{:.4f}".format(alpha) +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\ \n ')
+		f.write(i[6] +' & '+ i[7] + ' & '+ "{:.4f}".format(i[4]) +' & '+ "{:.4f}".format(i[5]) + ' & ' + 'min. var.' + ' & '+"{:.4f}".format(mu)+' & '+"{:.4f}".format(sigma)+' & '+"{:.4f}".format(beta)+' & '+ "{:.4f}".format(alpha) +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\ \n ')
 		[mu, sigma, beta, alpha, sharpe, treynor, var95] = port_measures(r4, i[2])
 		f.write(' & ' + ' & ' +' & ' + ' & ' + 'min. var. l1' + ' & '+"{:.4f}".format(mu)+' & '+"{:.4f}".format(sigma)+' & '+"{:.4f}".format(beta)+' & '+ "{:.4f}".format(alpha) +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\ \n ')
+
 
 	f.write('\\end{tabular}')
 	f.close() 
