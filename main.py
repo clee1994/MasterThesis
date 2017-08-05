@@ -7,7 +7,7 @@ import numpy as np
 
 
 # 0. modifiable variables
-firms_used = 2
+firms_used = 25
 n_past = 80
 
 path_data = 'Data/'
