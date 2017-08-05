@@ -44,19 +44,19 @@ gc.collect()
 #firm_ind_u = random.sample(range(len(names)-1), firms_used)
 
 
-# unigram count/tfidf
-#[x_unigram_count, x_unigram_tfidf, dates_news] = learning.tfidf_vector(1, news_data, np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)), dates_prices,test_split)
-#print(str(datetime.datetime.now())+': Successfully 1-gram')
-#gc.collect()
+#unigram count/tfidf
+[x_unigram_count, x_unigram_tfidf, dates_news] = learning.tfidf_vector(1, news_data, np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)), dates_prices,test_split)
+print(str(datetime.datetime.now())+': Successfully 1-gram')
+gc.collect()
 
-# bigrams count/tfidf
-#[x_bigram_count, x_bigram_tfidf, dates_news] = learning.tfidf_vector(2, news_data, np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)), dates_prices,test_split)
-#print(str(datetime.datetime.now())+': Successfully 2-gram')
-#gc.collect()
-# trigrams count/tfidf
-#[x_trigram_count, x_trigram_tfidf, dates_news] = learning.tfidf_vector(3, news_data, np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)), dates_prices,test_split)
-#print(str(datetime.datetime.now())+': Successfully 3-gram')
-#gc.collect()
+#bigrams count/tfidf
+[x_bigram_count, x_bigram_tfidf, dates_news] = learning.tfidf_vector(2, news_data, np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)), dates_prices,test_split)
+print(str(datetime.datetime.now())+': Successfully 2-gram')
+gc.collect()
+#trigrams count/tfidf
+[x_trigram_count, x_trigram_tfidf, dates_news] = learning.tfidf_vector(3, news_data, np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)), dates_prices,test_split)
+print(str(datetime.datetime.now())+': Successfully 3-gram')
+gc.collect()
 # doc2vec
 [x_doc2vec, dates_news] = learning.calibrate_doc2vec(np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)),dates_prices,test_split,news_data)
 del news_data
