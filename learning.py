@@ -1,13 +1,5 @@
 
 
-def data_label_method_sign(lreturns, cur_d,dates_stocks):
-	import numpy as np
-	try:
-		ret_val = np.sign(lreturns[list(dates_stocks).index(cur_d)+1,:])
-	except:
-		ind_temp = min(dates_stocks, key=lambda x: abs(x - cur_d))
-		ret_val = np.sign(lreturns[list(dates_stocks).index(ind_temp)+1,:])
-	return ret_val
 
 def data_label_method_val(lreturns, cur_d,dates_stocks):
 	import numpy as np
@@ -254,7 +246,7 @@ def calibrate_doc2vec(lreturns,dates,test_split,news_data):
 	loss = []
 	x_val = []
 	for fts in fts_space:
-		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,fts,ws_def,mc_def,data_label_method_sign, dm_def, False, dmm_def, dmc_def)
+		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,fts,ws_def,mc_def,data_label_method_val, dm_def, False, dmm_def, dmc_def)
 		loss.append(val_cv_eval(x,y,test_split))
 		x_val.append(x)
 	fts_opt = fts_space[np.argmax(loss)]
@@ -262,7 +254,7 @@ def calibrate_doc2vec(lreturns,dates,test_split,news_data):
 	loss = []
 	x_val = []
 	for ws in ws_space:
-		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,fts_opt,ws,mc_def,data_label_method_sign, dm_def, False, dmm_def, dmc_def)
+		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,fts_opt,ws,mc_def,data_label_method_val, dm_def, False, dmm_def, dmc_def)
 		loss.append(val_cv_eval(x,y,test_split))
 		x_val.append(x)
 	ws_opt = ws_space[np.argmax(loss)]
@@ -270,7 +262,7 @@ def calibrate_doc2vec(lreturns,dates,test_split,news_data):
 	loss = []
 	x_val = []
 	for mc in mc_space:
-		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,fts_opt,ws_opt,mc,data_label_method_sign, dm_def, False, dmm_def, dmc_def)
+		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,fts_opt,ws_opt,mc,data_label_method_val, dm_def, False, dmm_def, dmc_def)
 		loss.append(val_cv_eval(x,y,test_split))
 		x_val.append(x)
 	mc_opt = mc_space[np.argmax(loss)]
@@ -278,7 +270,7 @@ def calibrate_doc2vec(lreturns,dates,test_split,news_data):
 	loss = []
 	x_val = []
 	for dm in x_dm_space:
-		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,fts_opt,ws_opt,mc_opt,data_label_method_sign, dm, False, dmm_def, dmc_def)
+		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,fts_opt,ws_opt,mc_opt,data_label_method_val, dm, False, dmm_def, dmc_def)
 		loss.append(val_cv_eval(x,y,test_split))
 		x_val.append(x)
 	dm_opt = x_dm_space[np.argmax(loss)]
@@ -286,7 +278,7 @@ def calibrate_doc2vec(lreturns,dates,test_split,news_data):
 	loss = []
 	x_val = []
 	for dmm in x_dmm_space:
-		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,fts_opt,ws_opt,mc_opt,data_label_method_sign, dm_opt, False, dmm, dmc_def)
+		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,fts_opt,ws_opt,mc_opt,data_label_method_val, dm_opt, False, dmm, dmc_def)
 		loss.append(val_cv_eval(x,y,test_split))
 		x_val.append(x)
 	dmm_opt = x_dmm_space[np.argmax(loss)]
@@ -294,7 +286,7 @@ def calibrate_doc2vec(lreturns,dates,test_split,news_data):
 	loss = []
 	x_val = []
 	for dmc in x_dcm_space:
-		[x,y,dates] = gen_xy_daily(news_data,lreturns,dates,fts_opt,ws_opt,mc_opt,data_label_method_sign, dm_opt, False, dmm_opt, dmc)
+		[x,y,dates] = gen_xy_daily(news_data,lreturns,dates,fts_opt,ws_opt,mc_opt,data_label_method_val, dm_opt, False, dmm_opt, dmc)
 		loss.append(val_cv_eval(x,y,test_split))
 		x_val.append(x)
 	dmc_opt = x_dcm_space[np.argmax(loss)]
@@ -327,7 +319,7 @@ def sort_predictability(news_data,lreturns,dates,test_split,names):
 	from sklearn.model_selection import cross_val_score
 
 	#hard coded values... review -> definitly different
-	[x,y,_] = gen_xy_daily(news_data,lreturns,dates,340,8,21,data_label_method_sign,1)
+	[x,y,_] = gen_xy_daily(news_data,lreturns,dates,340,8,21,data_label_method_val,1)
 
 	loss_ar_svm = []
 
