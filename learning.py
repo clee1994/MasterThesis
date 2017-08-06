@@ -283,13 +283,13 @@ def calibrate_doc2vec(lreturns,dates,test_split,news_data):
 		x_val.append(x)
 	dmm_opt = x_dmm_space[np.argmax(loss)]
 
-	loss = []
-	x_val = []
-	for dmc in x_dcm_space:
-		[x,y,dates] = gen_xy_daily(news_data,lreturns,dates,fts_opt,ws_opt,mc_opt,data_label_method_val, dm_opt, False, dmm_opt, dmc)
-		loss.append(val_cv_eval(x,y,test_split))
-		x_val.append(x)
-	dmc_opt = x_dcm_space[np.argmax(loss)]
+	#loss = []
+	#x_val = []
+	#for dmc in x_dcm_space:
+	#	[x,y,dates] = gen_xy_daily(news_data,lreturns,dates,fts_opt,ws_opt,mc_opt,data_label_method_val, dm_opt, False, dmm_opt, dmc)
+	#	loss.append(val_cv_eval(x,y,test_split))
+	#	x_val.append(x)
+	dmc_opt = 0#x_dcm_space[np.argmax(loss)]
 
 	parameters = 'features ' + str(fts_opt) + ', window ' + str(ws_opt) + ', min. count ' + str(mc_opt) + (', PV-DM, ' if dm_opt else ', PV-DBOW, ') + ('mean, ' if dm_opt else 'sum') + ('concatenation' if dm_opt else '')
 	return [np.matrix(x_val[np.argmax(loss)]),parameters], dates
