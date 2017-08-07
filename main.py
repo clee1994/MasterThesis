@@ -13,7 +13,7 @@ path_output = 'Output/'
 learning.path_output = path_output
 evaluation.path_output = path_output
 
-number_jobs = 3
+number_jobs = 1
 learning.number_jobs = number_jobs
 evaluation.number_jobs = number_jobs
 
