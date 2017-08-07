@@ -7,9 +7,6 @@ import numpy as np
 
 
 # 0. modifiable variables
-firms_used = 20
-n_past = 80
-
 path_data = 'Data/'
 
 path_output = 'Output/'
@@ -20,8 +17,9 @@ number_jobs = 1
 learning.number_jobs = number_jobs
 evaluation.number_jobs = number_jobs
 
-#traning splits
-test_split = 0.55
+firms_used = 20
+n_past = 80
+test_split = 0.35
 
 complet = []
 
@@ -50,12 +48,8 @@ def main_x_reg(x_method):
 	pickle.dump((x_gram, x_tfidf, dates_news), open( path_output+"x_models"+str(x_method)+".p", "wb" ) )
 
 	split_point = int(np.floor(np.shape(x_gram[0])[0]*(1-test_split)))
-	pmu_p_ts = evaluation.mu_gen_past1(lreturns, dates_prices, dates_news[(split_point+1):], firm_ind_u[0:firms_used], n_past)
-	pcov_p_ts = evaluation.cov_gen_past(lreturns, dates_prices, dates_news[(split_point+1):], firm_ind_u[0:firms_used], n_past)
 	gc.collect()
 
-	complet = []
-	[r1,first_line] = evaluation.evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,pmu_p_ts,pcov_p_ts,firm_ind_u,dates_prices,None, None, -1)
 	#learning.estimate_xgboost, learning.estimate_keras
 	#x_unigram_count, x_unigram_tfidf, x_bigram_count, x_bigram_tfidf, x_trigram_count, x_trigram_tfidf, learning.estimate_linear, , learning.estimate_SVR
 	for j in [learning.estimate_ridge]:
@@ -71,7 +65,7 @@ def main_x_reg(x_method):
 			del mu_p_ts, cov_p_ts, losses, r2m, parmeters_reg, r2,second_line, r3,third_line
 			print(str(datetime.datetime.now())+': Successfully learned a vec-reg combination')
 			gc.collect()
-	return dates_news,r1, split_point
+	return dates_news, split_point
 
 
 import multiprocessing
@@ -98,21 +92,24 @@ if __name__ == '__main__':
 	#random -> validation, maybe multiple times?
 	#firm_ind_u = random.sample(range(len(names)-1), firms_used)
 
+	
 	#for i in range(4):
 	#	[dates_news,r1] = main_x_reg(i)
-	[dates_news,r1,split_point] = main_x_reg(3)
+	[dates_news, split_point] = main_x_reg(3)
+
+	#benchmark, past obs.
+	pmu_p_ts = evaluation.mu_gen_past1(lreturns, dates_prices, dates_news[(split_point+1):], firm_ind_u[0:firms_used], n_past)
+	pcov_p_ts = evaluation.cov_gen_past(lreturns, dates_prices, dates_news[(split_point+1):], firm_ind_u[0:firms_used], n_past)
+	[r1,first_line] = evaluation.evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,pmu_p_ts,pcov_p_ts,firm_ind_u,dates_prices,None, None, -1)
+	[r2,second_line] = evaluation.evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,pmu_p_ts,pcov_p_ts,firm_ind_u,dates_prices,None, 0.5, -1)
+	complet.append([r1,first_line,r2, second_line, np.nan, np.nan, ' ','Past observations'] )
 
 	[r4,sp500] = evaluation.pure_SP(dates_news[(split_point+1):],path_data)
 	gc.collect()
-	evaluation.final_table(complet,r4,r1)
+	evaluation.final_table(complet,r4,r1,sp500)
+
 	gc.collect()
 	pickle.dump((complet,r4, sp500), open( path_output + "final.p", "wb" ) )
-
-	#plot the best way to do it -> pred/true, learning curve, final curves
-
-	#final_plots([first_line,second_line,third_line,sp500],[r'min. var. portfolio (past obs.)', r'min. var. portfolio (doc2vec)',r'min. var. (doc2vec, l1)',r'SP500 raw performance'])
-	#final_plots_s([r1,r2,r3,r4],[r'past obs.', r'doc2vec',r'doc2vec, l1',r'SP500'])
-
 
 
 

@@ -18,22 +18,17 @@ def plot_pred_true_b(y,yhat,benchm,v_m,t_text):
 
 	plt.figure()
 	plt.clf()
-	#f, axarr = plt.subplots(2, sharex=True)
 	plt.plot(y,label= "$y$",linewidth=0.8)
 	plt.plot(yhat,label="$\hat{y}_{doc2vec}$",linewidth=0.8)
 	plt.plot(benchm,label="$\hat{y}_{past\;obs.}$",linewidth=0.8)
 	ts_temp1 = np.abs(np.subtract(yhat,y))
 	ts_temp2 = np.abs(np.subtract(benchm,y))
-	#axarr[0].text(0.5, 0.5, str(np.sum(np.abs(np.subtract(yhat,y)))), fontdict=font)
 	plt.title(t_text)
-	#plt.legend(bbox_to_anchor=(0., 1.05, 1., .102), loc=3,
-	#			ncol=2, mode="expand", borderaxespad=0.,shadow=None,framealpha=1)
 	test34 = plt.legend(loc=0,shadow=None,framealpha=1,fancybox=False)
 	test34.get_frame().set_edgecolor('black')
 	plt.xlabel('Time/Observations')
 	plt.ylabel(v_m)
 	
-	#axarr[1].set_ylabel('Difference to $y$')
 	plt.savefig(path_output+'pics/'+str(datetime.datetime.now())+'pred_true.png',bbox_inches='tight',dpi=310)
 	plt.close()
 	plt.close("all")
@@ -43,8 +38,6 @@ def plot_pred_true_b(y,yhat,benchm,v_m,t_text):
 	plt.title(t_text)
 	plt.plot(ts_temp1,label="$y - \hat{y}_{doc2vec}$ ($"+str(np.round(np.sum(ts_temp1),4))+"$)",linewidth=0.8)
 	plt.plot(ts_temp2,label="$y - \hat{y}_{past\;obs.}$ ($"+str(np.round(np.sum(ts_temp2),4))+"$)",linewidth=0.8)
-	#plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
-	#			ncol=2, mode="expand", borderaxespad=0.,shadow=None,framealpha=1)
 	test34 = plt.legend(loc=0,shadow=None,framealpha=1,fancybox=False)
 	test34.get_frame().set_edgecolor('black')
 	plt.xlabel('Time/Observations')
@@ -52,7 +45,6 @@ def plot_pred_true_b(y,yhat,benchm,v_m,t_text):
 	plt.savefig(path_output+'pics/'+str(datetime.datetime.now())+'pred_true_d.png',bbox_inches='tight',dpi=310)
 	plt.close()
 	plt.close("all")
-#evalute portfolio construction
 
 def mu_gen_past1(lreturns, dates_lr, x_dates_test, used_stocks_ind, n_past):
 	import numpy as np
@@ -167,7 +159,6 @@ def final_plots_s(arg_lines,label_list):
 		axarr[i].plot(arg_lines[i], label=label_list[i],linewidth=0.8)
 		axarr[i].set_ylabel(label_list[i])
 	plt.xlabel('Time/Observations')
-	#plt.ylabel('Return')
 	plt.savefig(path_output+'pics/'+str(datetime.datetime.now())+'port_performance_ret.png',bbox_inches='tight',dpi=310)
 	plt.close()
 
@@ -197,9 +188,7 @@ def learning_curve_plots(grid_results,clf, x_cal, y_cal,n_cpu, alpha_range,gamma
 
 	plt.plot(train_sizes,train_scores*-1, label="Train MSE",linewidth=0.8)
 	plt.plot(train_sizes,test_scores*-1, label="Test MSE",linewidth=0.8)
-	#plt.xticks(range(len(train_scores)),train_sizes)
-	#plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,ncol=2, mode="expand", borderaxespad=0.,shadow=None,framealpha=1)
-	
+		
 	test34 = plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
 	           ncol=2, mode="expand", borderaxespad=0.,shadow=None,framealpha=1,fancybox=False)
 	test34.get_frame().set_edgecolor('black')
@@ -235,25 +224,33 @@ def pure_SP(x_dates, path):
 	return ret,np.array(ret2prices(ret,100))
 
 
-def final_table(complet, r4,r1):
+def final_table(complet, r4,r1,sp500):
+	from port_opt import ret2prices
+	import numpy as np
+
 	#build final table
 	f = open(path_output+'tables/final_table.tex', 'w')
 	f.write('\\begin{tabular}{ r r r r r r r r r r r r}\n')
 	f.write('Vectorization & Regression Model & $\sum$ MSE & $R^2$ & Portfolio & Mean & Variance & Beta & Alpha & Sharpe Ratio & Treynor Ratio & V@R 95 \%  \\\\ \n ')
 	f.write('\hline \n')
 
+
+	order = np.argsort(np.array(complet)[:,4])
 	[mu, sigma, beta, alpha, sharpe, treynor, var95] = port_measures(r4, r1)
 	f.write('\\textit{past obs.} & ' + ' & ' +' & ' + ' & ' + '\\textit{min. var.}' + ' & '+"{:.4f}".format(mu)+' & '+"{:.4f}".format(sigma)+' & '+"{:.4f}".format(beta)+' & '+ "{:.4f}".format(alpha) +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\ \n ')
 			
-	for i in complet:
-		[mu, sigma, beta, alpha, sharpe, treynor, var95] = port_measures(r4, i[0])
-		f.write(i[6] +' & '+ i[7] + ' & '+ "{:.4f}".format(i[4]) +' & '+ "{:.4f}".format(i[5]) + ' & ' + 'min. var.' + ' & '+"{:.4f}".format(mu)+' & '+"{:.4f}".format(sigma)+' & '+"{:.4f}".format(beta)+' & '+ "{:.4f}".format(alpha) +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\ \n ')
-		[mu, sigma, beta, alpha, sharpe, treynor, var95] = port_measures(r4, i[2])
+	for i in order:
+		[mu, sigma, beta, alpha, sharpe, treynor, var95] = port_measures(r4, complet[i][0])
+		f.write(complet[i][6] +' & '+ complet[i][7] + ' & '+ "{:.4f}".format(complet[i][4]) +' & '+ "{:.4f}".format(complet[i][5]) + ' & ' + 'min. var.' + ' & '+"{:.4f}".format(mu)+' & '+"{:.4f}".format(sigma)+' & '+"{:.4f}".format(beta)+' & '+ "{:.4f}".format(alpha) +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\ \n ')
+		[mu, sigma, beta, alpha, sharpe, treynor, var95] = port_measures(r4, complet[i][2])
 		f.write(' & ' + ' & ' +' & ' + ' & ' + 'min. var. l1' + ' & '+"{:.4f}".format(mu)+' & '+"{:.4f}".format(sigma)+' & '+"{:.4f}".format(beta)+' & '+ "{:.4f}".format(alpha) +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\ \n ')
 
 
 	f.write('\\end{tabular}')
 	f.close() 
+
+	final_plots_s([r1,complet[order[0]][0],complet[order[0]][2],r4],[r'past obs.',r'doc2vec',r'doc2vec, l1',r'SP500'])
+	final_plots([ret2prices(r1,100),complet[order[0]][1],complet[order[0]][3],sp500],[r'past obs.',r'doc2vec',r'doc2vec, l1',r'SP500'])
 
 
 def port_measures(rbase, ret):

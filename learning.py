@@ -1,12 +1,16 @@
 
-def data_label_method_val(lreturns, cur_d,dates_stocks):
+def ind_closest(lval,list_vals):
 	import numpy as np
 	try:
-		ret_val = lreturns[list(dates_stocks).index(cur_d)+1,:]
+		indt = list(list_vals).index(lval)
 	except:
-		ind_temp = min(dates_stocks, key=lambda x: abs(x - cur_d))
-		ret_val = lreturns[list(dates_stocks).index(ind_temp)+1,:]
-	return ret_val
+		ind_temp = min(list_vals, key=lambda x: abs(x - lval))
+		indt = list(list_vals).index(ind_temp)
+	return indt
+
+def data_label_method_val(lreturns, cur_d,dates_stocks):
+	import numpy as np
+	return lreturns[ind_closest(cur_d, dates_stocks)+1,:]
 
 #now I am taking past and future to correctly estimate var/cov
 def data_label_method_cov(lreturns, cur_d,dates_stocks):
@@ -16,12 +20,7 @@ def data_label_method_cov(lreturns, cur_d,dates_stocks):
 	#important
 	n = 4
 
-	try:
-		indt = list(dates_stocks).index(cur_d)
-		#ret_val = np.cov(lreturns[indt:indt+3,0],lreturns[indt:indt+3,1])[0,1]
-	except:
-		ind_temp = min(dates_stocks, key=lambda x: abs(x - cur_d))
-		indt = list(dates_stocks).index(ind_temp)
+	indt = ind_closest(cur_d, dates_stocks)
 	try:
 		ret_val = np.cov(lreturns[0,indt-n:indt+n],lreturns[1,indt-n:indt+n])[0,1]
 	except:
@@ -132,11 +131,7 @@ def bench_mark_mu(lreturns,dates_stocks,n_past,len_o):
 	import numpy as np
 	ret_val = []
 	for i in len_o:
-		try:
-			indt = list(dates_stocks).index(i)
-		except:
-			ind_temp = min(dates_stocks, key=lambda x: abs(x - i))
-			indt = list(dates_stocks).index(ind_temp)
+		indt = ind_closest(i, dates_stocks)
 		ret_val.append(np.mean(lreturns[indt-n_past:indt,:],axis=0))
 
 	ret_val = np.array(ret_val).ravel()
@@ -146,11 +141,7 @@ def bench_mark_cov(lreturns,dates_stocks,n_past,len_o):
 	import numpy as np
 	ret_val = []
 	for i in len_o:
-		try:
-			indt = list(dates_stocks).index(i)
-		except:
-			ind_temp = min(dates_stocks, key=lambda x: abs(x - i))
-			indt = list(dates_stocks).index(ind_temp)
+		indt = ind_closest(i, dates_stocks)
 		ret_val.append(np.cov(lreturns[0,indt-n_past:indt],lreturns[1,indt-n_past:indt])[0,1])
 
 	ret_val = np.array(ret_val).ravel()
@@ -278,12 +269,7 @@ def produce_y_ret(returns,dates_prices,dates_news):
 
 	y = []
 	for i in dates_news:
-		try:
-			ret_val = returns[list(dates_prices).index(i)+1]
-		except:
-			ind_temp = min(dates_prices, key=lambda x: abs(x - i))
-			ret_val = returns[list(dates_prices).index(ind_temp)+1]
-		y.append(ret_val)
+		y.append(returns[ind_closest(i, dates_prices)+1])
 
 	return np.array(y).ravel()
 
@@ -298,11 +284,12 @@ def produce_y_cov(returns,dates_prices,dates_news):
 
 	y = []
 	for i in dates_news:
-		try:
-			indt = list(dates_prices).index(i)
-		except:
-			ind_temp = min(dates_prices, key=lambda x: abs(x - i))
-			indt = list(dates_prices).index(ind_temp)
+		# try:
+		# 	indt = list(dates_prices).index(i)
+		# except:
+		# 	ind_temp = min(dates_prices, key=lambda x: abs(x - i))
+		# 	indt = list(dates_prices).index(ind_temp)
+		indt = ind_closest(i, dates_prices)
 		try:
 			ret_val = np.cov(returns[0,indt-n:indt+n],returns[1,indt-n:indt+n])[0,1]
 		except:
@@ -320,7 +307,7 @@ def produce_mu_cov(x, test_split, lreturns, dates_prices, dates_news, n_past, na
 	stables = False
 	losses = 0
 	r2_mat = []
-	# 5. single stock parameter calibration & get improved mu estimates
+	# get improved mu estimates
 	mu_p_ts = np.empty((int(np.ceil(np.shape(x)[0]*test_split)),0), float)
 	for i in firm_ind_u:
 		temp1 = np.transpose(np.matrix( lreturns[:,i]))
@@ -339,7 +326,7 @@ def produce_mu_cov(x, test_split, lreturns, dates_prices, dates_news, n_past, na
 			stables = False
 
 
-	# 7. single stock parameter calibration & get improved cov estimates
+	# get improved cov estimates
 	cov_p_ts = np.zeros([int(np.ceil(np.shape(x)[0]*test_split)),len(firm_ind_u),len(firm_ind_u)])
 	for i in range(len(firm_ind_u)):
 		for j in range(i+1):
