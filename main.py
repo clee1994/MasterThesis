@@ -7,16 +7,18 @@ import numpy as np
 
 
 # 0. modifiable variables
-firms_used = 2
+firms_used = 20
 n_past = 80
 
 path_data = 'Data/'
-#path_data = '/home/ucabjss/Data/'
 
 path_output = 'Output/'
-#path_output = '/home/ucabjss/Scratch/Output/'
 learning.path_output = path_output
 evaluation.path_output = path_output
+
+number_jobs = 1
+learning.number_jobs = number_jobs
+evaluation.number_jobs = number_jobs
 
 #traning splits
 test_split = 0.55
@@ -30,31 +32,20 @@ def main_x_reg(x_method):
 	print(str(datetime.datetime.now())+': Successfully read all news')
 	gc.collect()
 
-	if x_method == 0:
-		#unigram count/tfidf
-		[x_gram, x_tfidf, dates_news] = learning.tfidf_vector(1, news_data, np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)), dates_prices,test_split)
-		del news_data
-		print(str(datetime.datetime.now())+': Successfully 1-gram')
-		gc.collect()
-
-	elif x_method == 1:
-		#bigrams count/tfidf
-		[x_gram, x_tfidf, dates_news] = learning.tfidf_vector(2, news_data, np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)), dates_prices,test_split)
-		del news_data
-		print(str(datetime.datetime.now())+': Successfully 2-gram')
-		gc.collect()
-	elif x_method == 2:
-		#trigrams count/tfidf
-		[x_gram, x_tfidf, dates_news] = learning.tfidf_vector(3, news_data, np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)), dates_prices,test_split)
-		print(str(datetime.datetime.now())+': Successfully 3-gram')
-		gc.collect()
-	else:
-		# doc2vec
+	if x_method == 3:
+		#doc2vec
 		[x_gram, dates_news] = learning.calibrate_doc2vec(np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)),dates_prices,test_split,news_data)
 		x_tfidf = []
 		del news_data
 		print(str(datetime.datetime.now())+': Successfully doc2vec')
 		gc.collect()
+	else:
+		#uni/bi/tri-grams count/tfidf
+		[x_gram, x_tfidf, dates_news] = learning.tfidf_vector(x_method, news_data, np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)), dates_prices,test_split)
+		del news_data
+		print(str(datetime.datetime.now())+': Successfully 2-gram')
+		gc.collect()
+		
 	#x_unigram_count, x_unigram_tfidf, x_bigram_count, x_bigram_tfidf, x_trigram_count, x_trigram_tfidf, 
 	pickle.dump((x_gram, x_tfidf, dates_news), open( path_output+"x_models"+str(x_method)+".p", "wb" ) )
 

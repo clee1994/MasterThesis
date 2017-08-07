@@ -1,6 +1,4 @@
 
-
-
 def data_label_method_val(lreturns, cur_d,dates_stocks):
 	import numpy as np
 	try:
@@ -30,16 +28,15 @@ def data_label_method_cov(lreturns, cur_d,dates_stocks):
 		ret_val = np.cov(lreturns[0,indt-n:],lreturns[1,indt-n:])[0,1]
 	return ret_val
 
-def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ylm,dm_opt, tables=False, dmm=0, dmc=0):
+
+def create_documents(news,lreturns,dates_stocks,ylm):
 	import datetime
 	import numpy as np
 	from gensim.models.doc2vec import TaggedDocument
-	from gensim.models import Doc2Vec
 
 	#variables
 	documents = []
 	y = []
-	x = []
 	words = []
 	x_dates = []
 	doc_c = 0
@@ -87,88 +84,31 @@ def gen_xy_daily(news,lreturns,dates_stocks,features,window,mcount,ylm,dm_opt, t
 
 	print('] Done')
 
-	#maybe also dm = 0 -> different methode
-	#iter -> number of epochs 
-	#way more models then here -> think about extending
+	return documents, np.array(y), np.array(x_dates)
+
+
+
+
+def gen_xy_daily(documents,features,window,mcount,dm_opt, tables=False, dmm=0, dmc=0):
+	import datetime
+	import numpy as np
+	from gensim.models.doc2vec import Doc2Vec
+	from evaluation import doc2vec_tables
+
+	x = []
 	model = Doc2Vec(dm = dm_opt, size=features, window=window, min_count=mcount, workers=4, dbow_words=1,dm_mean=dmm,dm_concat=dmc)
 
-	#tag goes into vocab too.... reconsider
 	model.build_vocab(documents)
-
 	model.train(documents,total_examples=model.corpus_count, epochs=3)
 
 	for i in documents:
 		x.append(model.infer_vector(i[0]))
 
-
 	#evaluation
-	
 	if tables:
+		doc2vec_tables(model, documents)
 
-		doc_id = np.random.randint(model.docvecs.count)
-		sims = model.docvecs.most_similar(doc_id, topn=model.docvecs.count)
-		target = ' '.join(documents[doc_id].words)
-		closest = ' '.join(documents[int(sims[0][0])].words)
-		least = ' '.join(documents[int(sims[len(sims) - 1][0])].words)
-
-		chars_pl = 65
-
-
-
-		f = open(path_output+'tables/'+str(datetime.datetime.now())+'target.tex', 'w')
-		f.write('"'+ target[0:(chars_pl-1)] + '\n')
-
-		for i in range(9):
-			f.write(target[(i+1)*(chars_pl-1):(i+2)*(chars_pl-1)] + '\n')
-		f.write('... \n')
-
-		for i in np.arange(9,0,-1):
-			f.write(target[-(i+2)*chars_pl:-(i+1)*chars_pl] + '\n')
-		f.write(target[-chars_pl:-1]+'"\n')
-		f.write('Date: '+ str(x_dates[doc_id].astype('M8[D]')) + '\n')
-		f.write('Number of characters: ' + str(len(target)) + '\n')
-		f.close() 
-
-
-		f = open(path_output+'tables/'+str(datetime.datetime.now())+'closest.tex', 'w')
-		f.write('"'+ closest[0:(chars_pl-1)]+ '\n')
-
-		for i in range(9):
-			f.write(closest[(i+1)*(chars_pl-1):(i+2)*(chars_pl-1)] + '\n')
-		f.write('... \n')
-
-		for i in np.arange(9,0,-1):
-			f.write(closest[-(i+2)*chars_pl:-(i+1)*chars_pl] + '\n')
-		f.write(closest[-chars_pl:-1]+'"\n')
-		f.write('Date: '+ str(x_dates[int(sims[0][0])].astype('M8[D]')) + '\n')
-		f.write('Number of characters: ' + str(len(closest)) + '\n')
-		f.close() 
-
-		f = open(path_output+'tables/'+str(datetime.datetime.now())+'least.tex', 'w')
-		f.write('"'+ least[0:(chars_pl-1)]+ '\n')
-
-		for i in range(9):
-			f.write(least[(i+1)*(chars_pl-1):(i+2)*(chars_pl-1)] + '\n')
-		f.write('... \n')
-
-		for i in np.arange(9,0,-1):
-			f.write(least[-(i+2)*chars_pl:-(i+1)*chars_pl] + '\n')
-		f.write(least[-chars_pl:-1]+'"\n')
-		f.write('Date: '+ str(x_dates[int(sims[len(sims) - 1][0])].astype('M8[D]')) + '\n')
-		f.write('Number of characters: ' + str(len(least)) + '\n')
-		f.close()
-
-		#words -> actually not of relevance but cool to see
-		import random
-		exword = random.choice(model.wv.index2word)
-		similars_words = str(model.most_similar(exword, topn=20)).replace('), ',')\n')
-
-		f = open(path_output+'tables/'+str(datetime.datetime.now())+'wordss.tex', 'w')
-		f.write('"'+exword + '"\n')
-		f.write(similars_words)
-		f.close() 
-
-	return [np.array(x), np.array(y), np.array(x_dates)]
+	return np.array(x)
 
 
 
@@ -188,8 +128,6 @@ def train_test_split(x,y,test_split):
 	
 	return x_train,y_train,x_test,y_test
 
-
-#maybe benchmark also based on dates
 def bench_mark_mu(lreturns,dates_stocks,n_past,len_o):
 	import numpy as np
 	ret_val = []
@@ -203,8 +141,6 @@ def bench_mark_mu(lreturns,dates_stocks,n_past,len_o):
 
 	ret_val = np.array(ret_val).ravel()
 	return ret_val
-
-
 
 def bench_mark_cov(lreturns,dates_stocks,n_past,len_o):
 	import numpy as np
@@ -220,10 +156,6 @@ def bench_mark_cov(lreturns,dates_stocks,n_past,len_o):
 	ret_val = np.array(ret_val).ravel()
 	return ret_val
 
-
-
-
-
 def calibrate_doc2vec(lreturns,dates,test_split,news_data):
 	from sklearn import svm
 	import numpy as np
@@ -236,59 +168,67 @@ def calibrate_doc2vec(lreturns,dates,test_split,news_data):
 	dmc_def=0
 
 	#parameter space for gensim 
-	fts_space = np.linspace(150,900,8,dtype=int)
+	fts_space = np.linspace(150,900,5,dtype=int)
 	ws_space = np.linspace(9,25,4,dtype=int)
 	mc_space = np.linspace(0,27,4,dtype=int)
 	x_dm_space = [0,1]
 	x_dmm_space = [0,1]
 	x_dcm_space = [0,1]
 
+	[documents, y,dates_ret] = create_documents(news_data,lreturns,dates,data_label_method_val)
+
 	loss = []
 	x_val = []
 	for fts in fts_space:
-		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,fts,ws_def,mc_def,data_label_method_val, dm_def, False, dmm_def, dmc_def)
+		x = gen_xy_daily(documents,fts,ws_def,mc_def, dm_def, False, dmm_def, dmc_def)
 		loss.append(val_cv_eval(x,y,test_split))
 		x_val.append(x)
+		print('doc2vec model built')
 	fts_opt = fts_space[np.argmax(loss)]
 
 	loss = []
 	x_val = []
 	for ws in ws_space:
-		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,fts_opt,ws,mc_def,data_label_method_val, dm_def, False, dmm_def, dmc_def)
+		x = gen_xy_daily(documents,fts_opt,ws,mc_def, dm_def, False, dmm_def, dmc_def)
 		loss.append(val_cv_eval(x,y,test_split))
 		x_val.append(x)
+		print('doc2vec model built')
 	ws_opt = ws_space[np.argmax(loss)]
 
 	loss = []
 	x_val = []
 	for mc in mc_space:
-		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,fts_opt,ws_opt,mc,data_label_method_val, dm_def, False, dmm_def, dmc_def)
+		x = gen_xy_daily(documents,fts_opt,ws_opt,mc, dm_def, False, dmm_def, dmc_def)
 		loss.append(val_cv_eval(x,y,test_split))
 		x_val.append(x)
+		print('doc2vec model built')
 	mc_opt = mc_space[np.argmax(loss)]
 
 	loss = []
 	x_val = []
 	for dm in x_dm_space:
-		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,fts_opt,ws_opt,mc_opt,data_label_method_val, dm, False, dmm_def, dmc_def)
+		x = gen_xy_daily(documents,fts_opt,ws_opt,mc_opt, dm, False, dmm_def, dmc_def)
 		loss.append(val_cv_eval(x,y,test_split))
 		x_val.append(x)
+		print('doc2vec model built')
 	dm_opt = x_dm_space[np.argmax(loss)]
 
 	loss = []
 	x_val = []
 	for dmm in x_dmm_space:
-		[x,y,_] = gen_xy_daily(news_data,lreturns,dates,fts_opt,ws_opt,mc_opt,data_label_method_val, dm_opt, False, dmm, dmc_def)
+		x = gen_xy_daily(documents,fts_opt,ws_opt,mc_opt, dm_opt, False, dmm, dmc_def)
 		loss.append(val_cv_eval(x,y,test_split))
 		x_val.append(x)
+		print('doc2vec model built')
 	dmm_opt = x_dmm_space[np.argmax(loss)]
 
 	loss = []
 	x_val = []
 	for dmc in x_dcm_space:
-		[x,y,dates_ret] = gen_xy_daily(news_data,lreturns,dates,fts_opt,ws_opt,mc_opt,data_label_method_val, dm_opt, False, dmm_opt, dmc)
+		x = gen_xy_daily(documents,fts_opt,ws_opt,mc_opt, dm_opt, False, dmm_opt, dmc)
 		loss.append(val_cv_eval(x,y,test_split))
 		x_val.append(x)
+		print('doc2vec model built')
 	dmc_opt = x_dcm_space[np.argmax(loss)]
 
 	parameters = 'features ' + str(fts_opt) + ', window ' + str(ws_opt) + ', min. count ' + str(mc_opt) + (', PV-DM, ' if dm_opt else ', PV-DBOW, ') + ('mean, ' if dm_opt else 'sum') + ('concatenation' if dm_opt else '')
@@ -296,20 +236,7 @@ def calibrate_doc2vec(lreturns,dates,test_split,news_data):
 
 
 		
-def make_pred_sort_table(firm_ind_u, loss, names):
-	import numpy as np
 
-	f = open(path_output+'tables/pred_sort.tex', 'w')
-	f.write('\\begin{tabular}{ r | l }\n')
-	f.write('Stock Ticker & MSE \\\\ \n ')
-	f.write('\hline \n')
-	for i in range(10):
-		f.write(names[firm_ind_u[i]]+' & '+ "{:.4f}".format((loss[i]))+' \\\\ \n ')
-	f.write('\hline \n')
-	f.write('\hline \n')
-	f.write('Mean & '+ "{:.4f}".format(np.nanmean(loss[:]))+' \\\\ \n ')
-	f.write('\\end{tabular}')
-	f.close() 
 
 
 def sort_predictability(news_data,lreturns,dates,test_split,names):
@@ -317,18 +244,20 @@ def sort_predictability(news_data,lreturns,dates,test_split,names):
 	import numpy as np
 	from sklearn.linear_model import LinearRegression
 	from sklearn.model_selection import cross_val_score
+	from evaluation import make_pred_sort_table
 
 	#hard coded values... review -> definitly different
-	[x,y,_] = gen_xy_daily(news_data,lreturns,dates,340,8,21,data_label_method_val,1)
+	[documents, y,_] = create_documents(news_data,lreturns,dates, data_label_method_val)
+	x = gen_xy_daily(documents,340,8,21,1)
 
 	loss_ar_svm = []
 
 	for i in range(np.shape(y)[1]):
-		clf = LinearRegression(n_jobs=-1)
+		clf = LinearRegression(n_jobs=number_jobs)
 		ind_mask = np.invert(np.isnan(y[:,i]))
 
 		if np.sum(ind_mask) > 0:
-			scores = cross_val_score(clf, x[ind_mask,:], y[ind_mask,i], cv=5, scoring='neg_mean_squared_error',n_jobs=-1)
+			scores = cross_val_score(clf, x[ind_mask,:], y[ind_mask,i], cv=5, scoring='neg_mean_squared_error',n_jobs=number_jobs)
 			loss_ar_svm.append(scores.mean())
 		else:
 			loss_ar_svm.append(-np.inf)
@@ -339,8 +268,6 @@ def sort_predictability(news_data,lreturns,dates,test_split,names):
 	make_pred_sort_table(firm_ind_u, npal[np.argsort(npal[npal!=1])], names)
 
 	return firm_ind_u
-
-
 
 def produce_y_ret(returns,dates_prices,dates_news):
 	import numpy as np
@@ -384,8 +311,6 @@ def produce_y_cov(returns,dates_prices,dates_news):
 		y.append(ret_val)
 
 	return np.array(y).ravel()
-
-
 
 def produce_mu_cov(x, test_split, lreturns, dates_prices, dates_news, n_past, names, firm_ind_u,reg_method):
 	import numpy as np
@@ -508,10 +433,10 @@ def val_cv_eval(x,y,split):
 
 	ind_mask = np.invert(np.isnan(y)).ravel()
 
-	clf = LinearRegression(n_jobs=-1)
+	clf = LinearRegression(n_jobs=number_jobs)
 	if np.sum(ind_mask) > 0:
 		#different score neg_mean_squared_error / r2 
-		scores = cross_val_score(clf, x[ind_mask,:], y[ind_mask], cv=5, scoring='neg_mean_squared_error',n_jobs=-1)
+		scores = cross_val_score(clf, x[ind_mask,:], y[ind_mask], cv=5, scoring='neg_mean_squared_error',n_jobs=number_jobs)
 		return scores.mean()
 	else:
 		return 0
@@ -538,7 +463,7 @@ def estimate_linear(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, 
 	bench_y = benchm_f(lreturns,dates,n_past, x_dates[np.shape(x_dates)[0]-np.shape(y_test)[0]:np.shape(x_dates)[0]])
 
 	#1. model selection with cross validation and grid search
-	model = LinearRegression(n_jobs=-1)
+	model = LinearRegression(n_jobs=number_jobs)
 	
 	ind_mask = np.invert(np.isnan(y_train))
 	ind_mask = np.reshape(ind_mask,[len(y_train),1])
@@ -581,10 +506,7 @@ def estimate_ridge(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, i
 
 	x_train, y_train, x_test, y_test = train_test_split(x_cal, y_cal, test_split)
 
-
-	#benchmark estimates -> this one is corrupt!
 	bench_y = benchm_f(lreturns,dates,n_past, x_dates[np.shape(x_dates)[0]-np.shape(y_test)[0]:np.shape(x_dates)[0]])
-
 
 	#1. model selection with cross validation and grid search
 	#alpha_range1 = np.geomspace(0.1,80, 12)
@@ -602,7 +524,7 @@ def estimate_ridge(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, i
 					{'kernel': ['linear'], 'alpha': alpha_range1}]
 
 	RR_model = KernelRidge(alpha=30)
-	clf = GridSearchCV(RR_model, RR_parameters,scoring='neg_mean_squared_error',n_jobs=-1)
+	clf = GridSearchCV(RR_model, RR_parameters,scoring='neg_mean_squared_error',n_jobs=number_jobs)
 
 	ind_mask = np.invert(np.isnan(y_train))
 	ind_mask = np.reshape(ind_mask,[len(y_train),1])
@@ -638,7 +560,6 @@ def estimate_ridge(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, i
 			para_string = para_string + ' ' + key + '=' + value + ','
 	return mu_p_ts, losses, r2, para_string[:-1]
 
-
 def estimate_SVR(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, ind_r,benchm_f,mu_var,t_text,show_plots,tables):
 	from sklearn.svm import SVR
 	from sklearn.model_selection import GridSearchCV
@@ -657,8 +578,6 @@ def estimate_SVR(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, ind
 
 	x_train, y_train, x_test, y_test = train_test_split(x_cal, y_cal, test_split)
 
-
-	#benchmark estimates -> this one is corrupt!
 	bench_y = benchm_f(lreturns,dates,n_past, x_dates[np.shape(x_dates)[0]-np.shape(y_test)[0]:np.shape(x_dates)[0]])
 
 	#c_range = np.geomspace(0.1,100, 12)
@@ -673,14 +592,12 @@ def estimate_SVR(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, ind
 	RR_parameters = [{'C': c_range, 'epsilon': epsilon_range}]
 
 	RR_model = SVR()
-	clf = GridSearchCV(RR_model, RR_parameters,scoring='neg_mean_squared_error',n_jobs=-1)
+	clf = GridSearchCV(RR_model, RR_parameters,scoring='neg_mean_squared_error',n_jobs=number_jobs)
 
 	ind_mask = np.invert(np.isnan(y_train))
 	ind_mask = np.reshape(ind_mask,[len(y_train),1])
 
 	clf = clf.fit(x_train[ind_mask[:,0],:], y_train[ind_mask[:,0]])
-	
-	
 
 	#2. produce estimates
 	mu_p_ts = clf.predict(x_test)
@@ -705,8 +622,6 @@ def estimate_SVR(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, ind
 			para_string = para_string + ' ' + key + '=' + value + ','
 	return mu_p_ts, losses, r2, para_string[:-1]
 
-
-
 def estimate_xgboost(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, ind_r,benchm_f,mu_var,t_text,show_plots,tables):
 	import xgboost as xgb
 	from sklearn.model_selection import GridSearchCV
@@ -716,7 +631,6 @@ def estimate_xgboost(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past,
 	from evaluation import plot_pred_true_b, learning_curve_plots
 	import datetime
 
-
 	#get x and y
 	try:
 		y_cal = np.reshape(y_cal, [np.shape(y_cal)[0],np.shape(y_cal)[1]])
@@ -725,8 +639,6 @@ def estimate_xgboost(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past,
 
 	x_train, y_train, x_test, y_test = train_test_split(x_cal, y_cal, test_split)
 
-
-	#benchmark estimates -> this one is corrupt!
 	bench_y = benchm_f(lreturns,dates,n_past, x_dates[np.shape(x_dates)[0]-np.shape(y_test)[0]:np.shape(x_dates)[0]])
 
 	ind_mask = np.invert(np.isnan(y_train))
@@ -735,7 +647,7 @@ def estimate_xgboost(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past,
 	xgb_model = xgb.XGBRegressor()
 	max_depth_range = np.array(np.linspace(5,100,5),dtype=int)
 	n_est_range = np.array(np.linspace(50,500,5),dtype=int)
-	clf = GridSearchCV(xgb_model,{'max_depth': max_depth_range,'n_estimators': n_est_range},n_jobs=-1)
+	clf = GridSearchCV(xgb_model,{'max_depth': max_depth_range,'n_estimators': n_est_range},n_jobs=number_jobs)
 	clf = clf.fit(x_train[ind_mask[:,0],:], y_train[ind_mask[:,0]])
 	
 
@@ -761,8 +673,6 @@ def estimate_xgboost(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past,
 			para_string = para_string + ' ' + key + '=' + value + ','
 	return mu_p_ts, losses, r2, para_string[:-1]
 
-
-
 def estimate_keras(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, ind_r,benchm_f,mu_var,t_text,show_plots,tables):
 	from keras.models import Sequential
 	from keras.layers import LSTM
@@ -786,8 +696,6 @@ def estimate_keras(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, i
 
 	x_train, y_train, x_test, y_test = train_test_split(x_cal[ind_mask[:,0],:], y_cal[ind_mask[:,0]], test_split)
 
-
-	#benchmark estimates -> this one is corrupt!
 	bench_y = benchm_f(lreturns,dates,n_past, x_dates[np.shape(x_dates)[0]-np.shape(y_test)[0]:np.shape(x_dates)[0]])
 
 	model = Sequential()
@@ -801,7 +709,6 @@ def estimate_keras(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, i
 
 
 	mu_p_ts = model.predict(x_test[:,:,None], batch_size=32)
-
 
 	#set variance to zero if negativ / probably a bad trick
 	if benchm_f == bench_mark_cov:

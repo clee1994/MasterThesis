@@ -1,5 +1,4 @@
 
-
 #plotting
 def plot_pred_true_b(y,yhat,benchm,v_m,t_text):
 	from matplotlib import rc
@@ -188,7 +187,7 @@ def learning_curve_plots(grid_results,clf, x_cal, y_cal,n_cpu, alpha_range,gamma
 
 
 
-	train_sizes, train_scores, test_scores = learning_curve(clf, x_cal, y_cal, cv=None, train_sizes=np.linspace(3, len(x_cal)*0.6, 100,dtype=int),scoring='neg_mean_squared_error',n_jobs=-1)
+	train_sizes, train_scores, test_scores = learning_curve(clf, x_cal, y_cal, cv=None, train_sizes=np.linspace(3, len(x_cal)*0.6, 100,dtype=int),scoring='neg_mean_squared_error',n_jobs=number_jobs)
 	train_scores = np.mean(train_scores,axis=1)
 	test_scores = np.mean(test_scores,axis=1)
 
@@ -272,4 +271,84 @@ def port_measures(rbase, ret):
 	var95 = np.percentile(ret, 5)
 	return mu, sigma, beta, alpha, sharpe, treynor, var95
 
+def doc2vec_tables(model,documents):
+	import datetime
+	import numpy as np
 
+	doc_id = np.random.randint(model.docvecs.count)
+	sims = model.docvecs.most_similar(doc_id, topn=model.docvecs.count)
+	target = ' '.join(documents[doc_id].words)
+	closest = ' '.join(documents[int(sims[0][0])].words)
+	least = ' '.join(documents[int(sims[len(sims) - 1][0])].words)
+
+	chars_pl = 65
+
+
+
+	f = open(path_output+'tables/'+str(datetime.datetime.now())+'target.tex', 'w')
+	f.write('"'+ target[0:(chars_pl-1)] + '\n')
+
+	for i in range(9):
+		f.write(target[(i+1)*(chars_pl-1):(i+2)*(chars_pl-1)] + '\n')
+	f.write('... \n')
+
+	for i in np.arange(9,0,-1):
+		f.write(target[-(i+2)*chars_pl:-(i+1)*chars_pl] + '\n')
+	f.write(target[-chars_pl:-1]+'"\n')
+	f.write('Date: '+ str(x_dates[doc_id].astype('M8[D]')) + '\n')
+	f.write('Number of characters: ' + str(len(target)) + '\n')
+	f.close() 
+
+
+	f = open(path_output+'tables/'+str(datetime.datetime.now())+'closest.tex', 'w')
+	f.write('"'+ closest[0:(chars_pl-1)]+ '\n')
+
+	for i in range(9):
+		f.write(closest[(i+1)*(chars_pl-1):(i+2)*(chars_pl-1)] + '\n')
+	f.write('... \n')
+
+	for i in np.arange(9,0,-1):
+		f.write(closest[-(i+2)*chars_pl:-(i+1)*chars_pl] + '\n')
+	f.write(closest[-chars_pl:-1]+'"\n')
+	f.write('Date: '+ str(x_dates[int(sims[0][0])].astype('M8[D]')) + '\n')
+	f.write('Number of characters: ' + str(len(closest)) + '\n')
+	f.close() 
+
+	f = open(path_output+'tables/'+str(datetime.datetime.now())+'least.tex', 'w')
+	f.write('"'+ least[0:(chars_pl-1)]+ '\n')
+
+	for i in range(9):
+		f.write(least[(i+1)*(chars_pl-1):(i+2)*(chars_pl-1)] + '\n')
+	f.write('... \n')
+
+	for i in np.arange(9,0,-1):
+		f.write(least[-(i+2)*chars_pl:-(i+1)*chars_pl] + '\n')
+	f.write(least[-chars_pl:-1]+'"\n')
+	f.write('Date: '+ str(x_dates[int(sims[len(sims) - 1][0])].astype('M8[D]')) + '\n')
+	f.write('Number of characters: ' + str(len(least)) + '\n')
+	f.close()
+
+	#words -> actually not of relevance but cool to see
+	import random
+	exword = random.choice(model.wv.index2word)
+	similars_words = str(model.most_similar(exword, topn=20)).replace('), ',')\n')
+
+	f = open(path_output+'tables/'+str(datetime.datetime.now())+'wordss.tex', 'w')
+	f.write('"'+exword + '"\n')
+	f.write(similars_words)
+	f.close() 
+
+def make_pred_sort_table(firm_ind_u, loss, names):
+	import numpy as np
+
+	f = open(path_output+'tables/pred_sort.tex', 'w')
+	f.write('\\begin{tabular}{ r | l }\n')
+	f.write('Stock Ticker & MSE \\\\ \n ')
+	f.write('\hline \n')
+	for i in range(10):
+		f.write(names[firm_ind_u[i]]+' & '+ "{:.4f}".format((loss[i]))+' \\\\ \n ')
+	f.write('\hline \n')
+	f.write('\hline \n')
+	f.write('Mean & '+ "{:.4f}".format(np.nanmean(loss[:]))+' \\\\ \n ')
+	f.write('\\end{tabular}')
+	f.close() 
