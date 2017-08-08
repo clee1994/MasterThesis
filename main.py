@@ -86,7 +86,7 @@ if __name__ == '__main__':
 	#print(str(datetime.datetime.now())+': Successfully sorted')
 	#pickle.dump((firm_ind_u), open( path_output + "order.p", "wb" ) )
 	del news_data
-	firm_ind_u = pickle.load(open(path_data + "order.p", "rb" ) )
+	firm_ind_u = pickle.load(open(path_output + "order.p", "rb" ) )
 	gc.collect()
 
 	#random -> validation, maybe multiple times?
