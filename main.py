@@ -30,7 +30,7 @@ def main_x_reg(x_method):
 	print(str(datetime.datetime.now())+': Successfully read all news')
 	gc.collect()
 
-	if x_method == 3:
+	if x_method == 4:
 		#doc2vec
 		[x_gram, dates_news] = learning.calibrate_doc2vec(np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)),dates_prices,test_split,news_data)
 		x_tfidf = []
@@ -41,19 +41,17 @@ def main_x_reg(x_method):
 		#uni/bi/tri-grams count/tfidf
 		[x_gram, x_tfidf, dates_news] = learning.tfidf_vector(x_method, news_data, np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)), dates_prices,test_split)
 		del news_data
-		print(str(datetime.datetime.now())+': Successfully 2-gram')
+		print(str(datetime.datetime.now())+': Successfully n-gram')
 		gc.collect()
 		
-	#x_unigram_count, x_unigram_tfidf, x_bigram_count, x_bigram_tfidf, x_trigram_count, x_trigram_tfidf, 
 	pickle.dump((x_gram, x_tfidf, dates_news), open( path_output+"x_models"+str(x_method)+".p", "wb" ) )
 
 	split_point = int(np.floor(np.shape(x_gram[0])[0]*(1-test_split)))
 	gc.collect()
 
-	#learning.estimate_xgboost, learning.estimate_keras
-	#x_unigram_count, x_unigram_tfidf, x_bigram_count, x_bigram_tfidf, x_trigram_count, x_trigram_tfidf, learning.estimate_linear, , learning.estimate_SVR
+	#learning.estimate_xgboost, learning.estimate_keras, learning.estimate_linear, learning.estimate_SVR
 	for j in [learning.estimate_ridge]:
-		if x_method != 3:
+		if x_method != 4:
 			iter_list = [x_gram,x_tfidf]
 		else:
 			iter_list = [x_gram]
@@ -91,10 +89,9 @@ if __name__ == '__main__':
 
 	#random -> validation, maybe multiple times?
 	#firm_ind_u = random.sample(range(len(names)-1), firms_used)
-
 	
 	#for i in range(4):
-	#	[dates_news,r1] = main_x_reg(i)
+	#	[dates_news,split_point] = main_x_reg(i+1)
 	[dates_news, split_point] = main_x_reg(3)
 
 	#benchmark, past obs.

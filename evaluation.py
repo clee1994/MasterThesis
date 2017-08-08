@@ -1,6 +1,6 @@
 
 #plotting
-def plot_pred_true_b(y,yhat,benchm,v_m,t_text):
+def plot_pred_true_b(grid_results,clf, x_cal, y_cal,n_cpu, alpha_range,gamma_range, y,yhat,benchm,v_m,t_text):
 	from matplotlib import rc
 	rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
 	rc('text', usetex=True)
@@ -10,41 +10,52 @@ def plot_pred_true_b(y,yhat,benchm,v_m,t_text):
 	import matplotlib.pyplot as plt
 	import datetime
 	import numpy as np
+	from sklearn.model_selection import learning_curve
 
 
 	benchm = np.reshape(benchm,[len(benchm)])
 	y = np.reshape(y,[len(y)])
 	yhat = np.reshape(yhat,[len(yhat)])
 
-	plt.figure()
-	plt.clf()
-	plt.plot(y,label= "$y$",linewidth=0.8)
-	plt.plot(yhat,label="$\hat{y}_{doc2vec}$",linewidth=0.8)
-	plt.plot(benchm,label="$\hat{y}_{past\;obs.}$",linewidth=0.8)
+	train_sizes, train_scores, test_scores = learning_curve(clf, x_cal, y_cal, cv=None, train_sizes=np.linspace(3, len(x_cal)*0.6, 100,dtype=int),scoring='neg_mean_squared_error',n_jobs=number_jobs)
+	train_scores = np.mean(train_scores,axis=1)
+	test_scores = np.mean(test_scores,axis=1)
+
 	ts_temp1 = np.abs(np.subtract(yhat,y))
 	ts_temp2 = np.abs(np.subtract(benchm,y))
-	plt.title(t_text)
-	test34 = plt.legend(loc=0,shadow=None,framealpha=1,fancybox=False)
-	test34.get_frame().set_edgecolor('black')
-	plt.xlabel('Time/Observations')
-	plt.ylabel(v_m)
-	
-	plt.savefig(path_output+'pics/'+str(datetime.datetime.now())+'pred_true.png',bbox_inches='tight',dpi=310)
-	plt.close()
-	plt.close("all")
 
-	plt.figure()
-	plt.clf()
-	plt.title(t_text)
-	plt.plot(ts_temp1,label="$y - \hat{y}_{doc2vec}$ ($"+str(np.round(np.sum(ts_temp1),4))+"$)",linewidth=0.8)
-	plt.plot(ts_temp2,label="$y - \hat{y}_{past\;obs.}$ ($"+str(np.round(np.sum(ts_temp2),4))+"$)",linewidth=0.8)
-	test34 = plt.legend(loc=0,shadow=None,framealpha=1,fancybox=False)
+
+	fig, ax = plt.subplots(nrows=1,ncols=3, figsize=(35,10))
+
+
+	ax[0].plot(y,label= "$y$",linewidth=0.8)
+	ax[0].plot(yhat,label="$\hat{y}_{doc2vec}$",linewidth=1)
+	ax[0].plot(benchm,label="$\hat{y}_{past\;obs.}$",linewidth=1)
+	test34 = ax[0].legend(loc=1,shadow=None,framealpha=1,fancybox=False)
 	test34.get_frame().set_edgecolor('black')
-	plt.xlabel('Time/Observations')
-	plt.ylabel('Difference')
-	plt.savefig(path_output+'pics/'+str(datetime.datetime.now())+'pred_true_d.png',bbox_inches='tight',dpi=310)
+	ax[0].set_xlabel('Time/Observations')
+	ax[0].set_ylabel(v_m)
+
+
+
+	ax[1].plot(ts_temp1,label="$y - \hat{y}_{doc2vec}$ ($"+str(np.round(np.sum(ts_temp1),4))+"$)",linewidth=1)
+	ax[1].plot(ts_temp2,label="$y - \hat{y}_{past\;obs.}$ ($"+str(np.round(np.sum(ts_temp2),4))+"$)",linewidth=1)
+	test34 = ax[1].legend(loc=1,shadow=None,framealpha=1,fancybox=False)
+	test34.get_frame().set_edgecolor('black')
+	ax[1].set_xlabel('Time/Observations')
+	ax[1].set_ylabel('Difference')
+
+
+	ax[2].plot(train_sizes,train_scores*-1, label="Train MSE",linewidth=1)
+	ax[2].plot(train_sizes,test_scores*-1, label="Test MSE",linewidth=1)
+	test34 = ax[2].legend(loc=1, shadow=None,framealpha=1,fancybox=False)
+	test34.get_frame().set_edgecolor('black')
+	ax[2].set_xlabel('Size training set')
+	ax[2].set_ylabel('MSE')
+
+
+	plt.savefig(path_output+'pics/'+str(datetime.datetime.now())+'learning_curve.png',bbox_inches='tight',dpi=310)
 	plt.close()
-	plt.close("all")
 
 def mu_gen_past1(lreturns, dates_lr, x_dates_test, used_stocks_ind, n_past):
 	import numpy as np
@@ -165,37 +176,7 @@ def final_plots_s(arg_lines,label_list):
 
 
 
-def learning_curve_plots(grid_results,clf, x_cal, y_cal,n_cpu, alpha_range,gamma_range,show_p):
-	from matplotlib import rc
-	rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
-	rc('text', usetex=True)
-	import matplotlib as mpl
-	import datetime
-	mpl.use('Agg')
-	import matplotlib.pyplot as plt
-	from sklearn.model_selection import learning_curve
-	import numpy as np
 
-
-
-	train_sizes, train_scores, test_scores = learning_curve(clf, x_cal, y_cal, cv=None, train_sizes=np.linspace(3, len(x_cal)*0.6, 100,dtype=int),scoring='neg_mean_squared_error',n_jobs=number_jobs)
-	train_scores = np.mean(train_scores,axis=1)
-	test_scores = np.mean(test_scores,axis=1)
-
-	
-	plt.figure() 
-	plt.clf()
-
-	plt.plot(train_sizes,train_scores*-1, label="Train MSE",linewidth=0.8)
-	plt.plot(train_sizes,test_scores*-1, label="Test MSE",linewidth=0.8)
-		
-	test34 = plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
-	           ncol=2, mode="expand", borderaxespad=0.,shadow=None,framealpha=1,fancybox=False)
-	test34.get_frame().set_edgecolor('black')
-	plt.xlabel('Size training set')
-	plt.ylabel('MSE')
-	plt.savefig(path_output+'pics/'+str(datetime.datetime.now())+'learning_curve.png',bbox_inches='tight',dpi=310)
-	plt.close()
 
 
 def pure_SP(x_dates, path):

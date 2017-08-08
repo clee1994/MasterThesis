@@ -150,6 +150,7 @@ def bench_mark_cov(lreturns,dates_stocks,n_past,len_o):
 def calibrate_doc2vec(lreturns,dates,test_split,news_data):
 	from sklearn import svm
 	import numpy as np
+	import gc
 
 	#default values
 	ws_def = 8
@@ -176,6 +177,8 @@ def calibrate_doc2vec(lreturns,dates,test_split,news_data):
 		x_val.append(x)
 		print('doc2vec model built')
 	fts_opt = fts_space[np.argmax(loss)]
+	del loss, x_val 
+	gc.collect()
 
 	loss = []
 	x_val = []
@@ -185,6 +188,8 @@ def calibrate_doc2vec(lreturns,dates,test_split,news_data):
 		x_val.append(x)
 		print('doc2vec model built')
 	ws_opt = ws_space[np.argmax(loss)]
+	del loss, x_val 
+	gc.collect()
 
 	loss = []
 	x_val = []
@@ -194,6 +199,8 @@ def calibrate_doc2vec(lreturns,dates,test_split,news_data):
 		x_val.append(x)
 		print('doc2vec model built')
 	mc_opt = mc_space[np.argmax(loss)]
+	del loss, x_val 
+	gc.collect()
 
 	loss = []
 	x_val = []
@@ -203,6 +210,8 @@ def calibrate_doc2vec(lreturns,dates,test_split,news_data):
 		x_val.append(x)
 		print('doc2vec model built')
 	dm_opt = x_dm_space[np.argmax(loss)]
+	del loss, x_val 
+	gc.collect()
 
 	loss = []
 	x_val = []
@@ -212,6 +221,8 @@ def calibrate_doc2vec(lreturns,dates,test_split,news_data):
 		x_val.append(x)
 		print('doc2vec model built')
 	dmm_opt = x_dmm_space[np.argmax(loss)]
+	del loss, x_val 
+	gc.collect()
 
 	loss = []
 	x_val = []
@@ -377,14 +388,14 @@ def tfidf_vector(n_gram, news_data, lreturns, dates_stocks, test_split):
 			if prev_d != np.datetime64(datetime.date(1, 1, 1)):
 				#documents.append(TaggedDocument(words,str(doc_c)))
 				#doc_c = doc_c + 1
-				corpus.append(temp_word)
+				corpus.append(str(temp_word))
 				temp_word = ""
 			x_dates.append(cur_d)
 			prev_d = cur_d
 		for hj in i[1]:
 			temp_word = temp_word + hj + " "
 			#words.append(hj)
-	corpus.append(temp_word)
+	corpus.append(str(temp_word))
 
 	
 	fts_space = np.linspace(2000,7000,10,dtype=int)
@@ -402,7 +413,6 @@ def tfidf_vector(n_gram, news_data, lreturns, dates_stocks, test_split):
 		lossC.append(val_cv_eval(x,y,test_split))
 		x_C.append(x)
 		parameter1.append('BOW: stopwords, cut-off=3, features='+str(i)+', '+str(n_gram)+'-gram')
-
 
 		vectorizerTFIDF = TfidfVectorizer(analyzer='word',ngram_range=(1,n_gram),stop_words='english',min_df=3,max_features=i)
 		x = vectorizerTFIDF.fit_transform(corpus).toarray()
@@ -433,7 +443,7 @@ def estimate_linear(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, 
 	from sklearn.metrics import mean_squared_error
 	from sklearn.metrics import r2_score
 	import numpy as np
-	from evaluation import plot_pred_true_b, learning_curve_plots
+	from evaluation import plot_pred_true_b#, learning_curve_plots
 	import datetime
 
 
@@ -468,8 +478,8 @@ def estimate_linear(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, 
 	losses = mean_squared_error(y_test, mu_p_ts)
 	r2 = r2_score(y_test, mu_p_ts)
 
-	if stables:
-		plot_pred_true_b(y_test,mu_p_ts,bench_y,mu_var,t_text)
+	#if tables:
+	#	plot_pred_true_b(y_test,mu_p_ts,bench_y,mu_var,t_text)
 		#learning_curve_plots(grid_results,clf, x_cal, y_cal,n_cpu, alpha_range,gamma_range,show_p)
 
 	parameters = 'linear Regression'
@@ -481,7 +491,7 @@ def estimate_ridge(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, i
 	from sklearn.metrics import mean_squared_error
 	from sklearn.metrics import r2_score
 	import numpy as np
-	from evaluation import plot_pred_true_b, learning_curve_plots
+	from evaluation import plot_pred_true_b#, learning_curve_plots
 	import datetime
 
 
@@ -531,8 +541,8 @@ def estimate_ridge(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, i
 	r2 = r2_score(y_test, mu_p_ts)
 
 	if tables:
-		plot_pred_true_b(y_test,mu_p_ts,bench_y,mu_var,t_text)
-		learning_curve_plots(grid_results,clf, x_cal, y_cal,4, alpha_range1,gamma_range,show_plots)
+		plot_pred_true_b(grid_results,clf, x_cal, y_cal,4, alpha_range1,gamma_range,y_test,mu_p_ts,bench_y,mu_var,t_text)
+		#learning_curve_plots(grid_results,clf, x_cal, y_cal,4, alpha_range1,gamma_range,show_plots)
 
 
 	para_string = 'Ridge Regression:'
@@ -553,7 +563,7 @@ def estimate_SVR(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, ind
 	from sklearn.metrics import mean_squared_error
 	from sklearn.metrics import r2_score
 	import numpy as np
-	from evaluation import plot_pred_true_b, learning_curve_plots
+	from evaluation import plot_pred_true_b#, learning_curve_plots
 	import datetime
 
 
@@ -615,7 +625,7 @@ def estimate_xgboost(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past,
 	import numpy as np
 	from sklearn.metrics import mean_squared_error
 	from sklearn.metrics import r2_score
-	from evaluation import plot_pred_true_b, learning_curve_plots
+	from evaluation import plot_pred_true_b#, learning_curve_plots
 	import datetime
 
 	#get x and y
@@ -667,7 +677,7 @@ def estimate_keras(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, i
 	import numpy as np
 	from sklearn.metrics import mean_squared_error
 	from sklearn.metrics import r2_score
-	from evaluation import plot_pred_true_b, learning_curve_plots
+	from evaluation import plot_pred_true_b#, learning_curve_plots
 	import datetime
 
 

@@ -37,6 +37,11 @@ def cv_opt(mu, Sigma, e_mu, glambda, h):
 		if not is_pos_def(Sigma):
 			print('Here you got a serious problem')
 			print(Sigma)
+			np.empty((len(mu)))
+			rw[:] = np.nan
+			rr = np.nan
+			rri = np.nan
+			return rw, rr, rri
 
 	if glambda == None:
 		if e_mu == None:
