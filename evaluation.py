@@ -25,7 +25,7 @@ def plot_pred_true_b(grid_results,clf, x_cal, y_cal,n_cpu, alpha_range,gamma_ran
 	ts_temp2 = np.abs(np.subtract(benchm,y))
 
 
-	fig, ax = plt.subplots(nrows=1,ncols=3, figsize=(35,10))
+	fig, ax = plt.subplots(nrows=1,ncols=3, figsize=(40,10))
 
 
 	ax[0].plot(y,label= "$y$",linewidth=0.8)
@@ -222,7 +222,7 @@ def final_table(complet, r4,r1,sp500):
 			
 	for i in order:
 		[mu, sigma, beta, alpha, sharpe, treynor, var95] = port_measures(r4, complet[i][0].astype(float))
-		f.write(complet[i][6] +' & '+ complet[i][7] + ' & '+ "{:.4f}".format(complet[i][4]) +' & '+ "{:.4f}".format(complet[i][5]) + ' & ' + 'min. var.' + ' & '+"{:.4f}".format(mu)+' & '+"{:.4f}".format(sigma)+' & '+"{:.4f}".format(beta)+' & '+ "{:.4f}".format(alpha) +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\ \n ')
+		f.write(complet[i][6] +' & '+ complet[i][7] + ' & '+ "${:.4e}".format(complet[i][4]).split('e')[0] + '\\times 10^{'+"{:.4e}".format(complet[i][4]).split('e')[1]+'}$' +' & '+ "{:.4f}".format(complet[i][5]) + ' & ' + 'min. var.' + ' & '+"{:.4f}".format(mu)+' & '+"{:.4f}".format(sigma)+' & '+"{:.4f}".format(beta)+' & '+ "{:.4f}".format(alpha) +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\ \n ')
 		[mu, sigma, beta, alpha, sharpe, treynor, var95] = port_measures(r4, complet[i][2].astype(float))
 		f.write(' & ' + ' & ' +' & ' + ' & ' + 'min. var. l1' + ' & '+"{:.4f}".format(mu)+' & '+"{:.4f}".format(sigma)+' & '+"{:.4f}".format(beta)+' & '+ "{:.4f}".format(alpha) +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\ \n ')
 
@@ -325,9 +325,9 @@ def make_pred_sort_table(firm_ind_u, loss, names):
 	f.write('Stock Ticker & MSE \\\\ \n ')
 	f.write('\hline \n')
 	for i in range(10):
-		f.write(names[firm_ind_u[i]]+' & '+ "{:.4f}".format((loss[i]))+' \\\\ \n ')
+		f.write(names[firm_ind_u[i]]+' & '+ "${:.4e}".format(loss[i]).split('e')[0] + '\\times 10^{'+"{:.4e}".format(loss[i]).split('e')[1]+'}$'+' \\\\ \n ')
 	f.write('\hline \n')
 	f.write('\hline \n')
-	f.write('Mean & '+ "{:.4f}".format(np.nanmean(loss[:]))+' \\\\ \n ')
+	f.write('Mean & '+"${:.4e}".format(np.nanmean(loss[:])).split('e')[0] + '\\times 10^{'+"{:.4e}".format(np.nanmean(loss[:])).split('e')[1]+'}$' +' \\\\ \n ')
 	f.write('\\end{tabular}')
 	f.close() 

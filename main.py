@@ -17,7 +17,7 @@ number_jobs = 1
 learning.number_jobs = number_jobs
 evaluation.number_jobs = number_jobs
 
-firms_used = 20
+firms_used = 2
 n_past = 80
 test_split = 0.35
 
@@ -84,6 +84,7 @@ if __name__ == '__main__':
 	#cherry picking -> repair 
 	firm_ind_u = learning.sort_predictability(news_data,lreturns,dates_prices,test_split,names)[0:firms_used]
 	print(str(datetime.datetime.now())+': Successfully sorted')
+	pickle.dump((firm_ind_u), open( path_output + "order.p", "wb" ) )
 	del news_data
 	gc.collect()
 
