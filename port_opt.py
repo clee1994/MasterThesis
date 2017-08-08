@@ -6,6 +6,9 @@ def ret2prices(ret_series,base_value):
 	prices = np.zeros([len(ret_series)+1])
 	prices[0] = base_value
 	for i in range(len(ret_series)):
+		#probably cheating but... we pray that there wont be any nan
+		if np.isnan(ret_series[i]):
+			prices[i+1] = prices[i]
 		prices[i+1] = prices[i] * np.exp(ret_series[i])
 
 	return prices

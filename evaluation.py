@@ -218,12 +218,12 @@ def final_table(complet, r4,r1,sp500):
 
 	order = np.argsort(np.array(complet)[:,4])
 	[mu, sigma, beta, alpha, sharpe, treynor, var95] = port_measures(r4, r1)
-	f.write('\\textit{past obs.} & ' + ' & ' +' & ' + ' & ' + '\\textit{min. var.}' + ' & '+"{:.4f}".format(mu)+' & '+"{:.4f}".format(sigma)+' & '+"{:.4f}".format(beta)+' & '+ "{:.4f}".format(alpha) +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\ \n ')
+	f.write('\\textit{Past observations} & ' + ' & ' +' & ' + ' & ' + '\\textit{min. var.}' + ' & '+"{:.4f}".format(mu)+' & '+"{:.4f}".format(sigma)+' & '+"{:.4f}".format(beta)+' & '+ "{:.4f}".format(alpha) +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\ \n ')
 			
 	for i in order:
-		[mu, sigma, beta, alpha, sharpe, treynor, var95] = port_measures(r4, complet[i][0])
+		[mu, sigma, beta, alpha, sharpe, treynor, var95] = port_measures(r4, complet[i][0].astype(float))
 		f.write(complet[i][6] +' & '+ complet[i][7] + ' & '+ "{:.4f}".format(complet[i][4]) +' & '+ "{:.4f}".format(complet[i][5]) + ' & ' + 'min. var.' + ' & '+"{:.4f}".format(mu)+' & '+"{:.4f}".format(sigma)+' & '+"{:.4f}".format(beta)+' & '+ "{:.4f}".format(alpha) +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\ \n ')
-		[mu, sigma, beta, alpha, sharpe, treynor, var95] = port_measures(r4, complet[i][2])
+		[mu, sigma, beta, alpha, sharpe, treynor, var95] = port_measures(r4, complet[i][2].astype(float))
 		f.write(' & ' + ' & ' +' & ' + ' & ' + 'min. var. l1' + ' & '+"{:.4f}".format(mu)+' & '+"{:.4f}".format(sigma)+' & '+"{:.4f}".format(beta)+' & '+ "{:.4f}".format(alpha) +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\ \n ')
 
 
@@ -237,12 +237,13 @@ def final_table(complet, r4,r1,sp500):
 def port_measures(rbase, ret):
 	import numpy as np
 
-	m_mu = np.mean(rbase)
-	m_sigma = np.var(rbase)
+	m_mu = np.nanmean(rbase)
+	m_sigma = np.nanvar(rbase)
 	r_f = 0.00004 #assuming some risk free rate
-	mu = np.mean(ret) 
-	sigma = np.var(ret)
-	beta = np.cov(ret,rbase)[0,1]/np.var(rbase)
+	mu = np.nanmean(ret) 
+	sigma = np.nanvar(ret)
+	nan_mask = ret != np.nan
+	beta = np.cov(ret[nan_mask],rbase[nan_mask])[0,1]/np.nanvar(rbase)
 	alpha = mu - r_f - beta*(m_mu - r_f)
 	sharpe = (mu-r_f)/sigma
 	treynor = (mu-r_f)/beta

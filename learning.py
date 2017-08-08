@@ -233,7 +233,7 @@ def calibrate_doc2vec(lreturns,dates,test_split,news_data):
 		print('doc2vec model built')
 	dmc_opt = x_dcm_space[np.argmax(loss)]
 
-	parameters = 'features ' + str(fts_opt) + ', window ' + str(ws_opt) + ', min. count ' + str(mc_opt) + (', PV-DM, ' if dm_opt else ', PV-DBOW, ') + ('mean, ' if dm_opt else 'sum') + ('concatenation' if dm_opt else '')
+	parameters = 'Doc2Vec: features ' + str(fts_opt) + ', window ' + str(ws_opt) + ', min. count ' + str(mc_opt) + (', PV-DM, ' if dm_opt else ', PV-DBoW, ') + ('mean, ' if dm_opt else 'sum') + ('concatenation' if dm_opt else '')
 	return [np.matrix(x_val[np.argmax(loss)]),parameters], dates_ret
 
 
@@ -412,7 +412,7 @@ def tfidf_vector(n_gram, news_data, lreturns, dates_stocks, test_split):
 		y = np.array([data_label_method_val(lreturns, cur_d, dates_stocks) for cur_d in x_dates ])
 		lossC.append(val_cv_eval(x,y,test_split))
 		x_C.append(x)
-		parameter1.append('BOW: stopwords, cut-off=3, features='+str(i)+', '+str(n_gram)+'-gram')
+		parameter1.append('BoW: stopwords, cut-off=3, features='+str(i)+', '+str(n_gram)+'-gram')
 
 		vectorizerTFIDF = TfidfVectorizer(analyzer='word',ngram_range=(1,n_gram),stop_words='english',min_df=3,max_features=i)
 		x = vectorizerTFIDF.fit_transform(corpus).toarray()
@@ -421,7 +421,7 @@ def tfidf_vector(n_gram, news_data, lreturns, dates_stocks, test_split):
 		x_T.append(x)
 		parameter2.append('TFIDF: stopwords, cut-off=3, features='+str(i)+', '+str(n_gram)+'-gram')
 
-	return [x_C[np.argmax(lossC)], parameter1[np.argmax(lossC)]], [x_T[np.argmax(lossT)], parameter1[np.argmax(lossC)]], np.array(x_dates)
+	return [x_C[np.argmax(lossC)], parameter1[np.argmax(lossC)]], [x_T[np.argmax(lossT)], parameter2[np.argmax(lossC)]], np.array(x_dates)
 
 def val_cv_eval(x,y,split):
 	from sklearn.model_selection import cross_val_score

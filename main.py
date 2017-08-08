@@ -92,21 +92,21 @@ if __name__ == '__main__':
 	
 	#for i in range(4):
 	#	[dates_news,split_point] = main_x_reg(i+1)
-	[dates_news, split_point] = main_x_reg(3)
+	[dates_news, split_point] = main_x_reg(4)
 
 	#benchmark, past obs.
 	pmu_p_ts = evaluation.mu_gen_past1(lreturns, dates_prices, dates_news[(split_point+1):], firm_ind_u[0:firms_used], n_past)
 	pcov_p_ts = evaluation.cov_gen_past(lreturns, dates_prices, dates_news[(split_point+1):], firm_ind_u[0:firms_used], n_past)
 	[r1,first_line] = evaluation.evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,pmu_p_ts,pcov_p_ts,firm_ind_u,dates_prices,None, None, -1)
-	[r2,second_line] = evaluation.evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,pmu_p_ts,pcov_p_ts,firm_ind_u,dates_prices,None, 0.5, -1)
-	complet.append([r1,first_line,r2, second_line, np.nan, np.nan, ' ','Past observations'] )
+	#[r2,second_line] = evaluation.evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,pmu_p_ts,pcov_p_ts,firm_ind_u,dates_prices,None, 0.5, -1)
+	#complet.append([r1,first_line,r2, second_line, np.nan, np.nan, ' ','Past observations'] )
 
 	[r4,sp500] = evaluation.pure_SP(dates_news[(split_point+1):],path_data)
 	gc.collect()
-	evaluation.final_table(complet,r4,r1,sp500)
+	evaluation.final_table(complet,np.array(r4),r1,sp500)
 
 	gc.collect()
-	pickle.dump((complet,r4, sp500), open( path_output + "final.p", "wb" ) )
+	pickle.dump((complet,r4,r1,sp500), open( path_output + "final.p", "wb" ) )
 
 
 
