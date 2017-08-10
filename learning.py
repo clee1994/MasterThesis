@@ -45,7 +45,9 @@ def create_documents(news,lreturns,dates_stocks,ylm):
 	prog_c = 0
 	bp = 0
 
-	prev_d = np.datetime64(datetime.date(1, 1, 1))
+	#prev_d = np.datetime64(datetime.date(1, 1, 1))
+	prev_d = np.datetime64(news[0][0])
+	x_dates.append(prev_d)
 	for i in news:
 		prog_c += 1
 		if bp < np.sum((prog_c/len(news)) >  np.linspace(1/30,1,30)):
@@ -61,22 +63,27 @@ def create_documents(news,lreturns,dates_stocks,ylm):
 		if cur_d == prev_d:
 			prev_d = cur_d
 		else:
+			#if cur_d == dates_stocks[ind_closest(cur_d,lreturns)]
 			#text/x
-			if prev_d != np.datetime64(datetime.date(1, 1, 1)):
+			try:
+				indt = list(dates_stocks).index(cur_d)
+				#if prev_d != np.datetime64(datetime.date(1, 1, 1)):
 				documents.append(TaggedDocument(words,str(doc_c)))
 				doc_c = doc_c + 1
 				words = []
-			x_dates.append(cur_d)
-			prev_d = cur_d
-			#mu/y -> what do I want, the mean next day, average next three days
-			y.append(ylm(lreturns, cur_d,dates_stocks))
-
+				x_dates.append(cur_d)
+				prev_d = cur_d
+				#mu/y -> what do I want, the mean next day, average next three days
+				y.append(ylm(lreturns, cur_d,dates_stocks))
+			except:
+				prev_d = cur_d
 		#x and skip last sentence / headlines... no last sentence only one
 		for hj in i[1]:
 			words.append(hj)
 	
 	try:
 		documents.append(TaggedDocument(words,tags=str(doc_c)))
+		y.append(ylm(lreturns, cur_d,dates_stocks))
 		#x_dates.append(cur_d)
 	except:
 		pass
@@ -312,12 +319,31 @@ def produce_y_cov(returns,dates_prices,dates_news):
 
 def append_past_obs_ret(x, dates_news, lreturns, dates_prices):
 	#append ten last days returns
-	import pdb; pdb.set_trace()  # breakpoint 9c1557a4 //
+	
+	import numpy as np
+
+	n_reach = 20
+	x_ret = np.c_[x, np.full([np.shape(x)[0] , n_reach],np.nan)]
+	for i in range(len(dates_news)):
+		ind_price = ind_closest(dates_news[i],dates_prices)
+		x_ret[i, -n_reach:] = lreturns[ind_price-n_reach:ind_price]
+
+
+	return x_ret
 
 
 def append_past_obs_cov(x, dates_news, lreturns, dates_prices):
 	#append ten last days cov...
-	import pdb; pdb.set_trace()  # breakpoint 99711e23 //
+	import numpy as np
+
+	n_reach = 20
+	x_ret = np.c_[x, np.full([np.shape(x)[0] , n_reach],np.nan)]
+	for i in range(len(dates_news)):
+		ind_price = ind_closest(dates_news[i],dates_prices)
+		for j in np.arange(n_reach,0,-1):
+			x_ret[i, -j] = data_label_method_cov(np.transpose(lreturns), dates_news[i],dates_prices)
+
+	return x_ret
 
 
 def produce_mu_cov(x, test_split, lreturns, dates_prices, dates_news, n_past, names, firm_ind_u,reg_method):
@@ -366,7 +392,7 @@ def produce_mu_cov(x, test_split, lreturns, dates_prices, dates_news, n_past, na
 				label_text = "Covariance"
 				l2_test = names[i] + " and " + names[j]
 			if past_obs_int:
-				x = append_past_obs_cov(x, dates_news, lreturns[:,i], dates_prices)
+				x = append_past_obs_cov(x, dates_news, lreturns[:,[i,j]], dates_prices)
 			[cov_p_ts[:,i,j], lossest, r2t, _] = reg_method(x, y, test_split, temp1, dates_prices, dates_news, n_past,i,bench_mark_cov, label_text, l2_test ,show_p,stables)
 			cov_p_ts[:,j,i] = cov_p_ts[:,i,j]
 			losses = losses + lossest
@@ -390,7 +416,9 @@ def tfidf_vector(n_gram, news_data, lreturns, dates_stocks, test_split):
 	corpus = []
 	temp_word = ""
 	x_dates = []
-	prev_d = np.datetime64(datetime.date(1, 1, 1))
+	#prev_d = np.datetime64(datetime.date(1, 1, 1))
+	prev_d = np.datetime64(news_data[0][0])
+	x_dates.append(prev_d)
 
 	for i in news_data:
 		cur_d = np.datetime64(i[0])
@@ -399,16 +427,19 @@ def tfidf_vector(n_gram, news_data, lreturns, dates_stocks, test_split):
 		if cur_d == prev_d:
 			prev_d = cur_d
 		else:
-			if prev_d != np.datetime64(datetime.date(1, 1, 1)):
+			try:
+				indt = list(dates_stocks).index(cur_d)
+				#if prev_d != np.datetime64(datetime.date(1, 1, 1)):
 				#documents.append(TaggedDocument(words,str(doc_c)))
 				#doc_c = doc_c + 1
 				corpus.append(str(temp_word))
 				temp_word = ""
-			x_dates.append(cur_d)
-			prev_d = cur_d
+				x_dates.append(cur_d)
+				prev_d = cur_d
+			except:
+				prev_d = cur_d
 		for hj in i[1]:
 			temp_word = temp_word + hj + " "
-			#words.append(hj)
 	corpus.append(str(temp_word))
 
 	
@@ -539,6 +570,7 @@ def estimate_ridge(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, i
 
 	ind_mask = np.invert(np.isnan(y_train))
 	ind_mask = np.reshape(ind_mask,[len(y_train),1])
+
 
 	clf = clf.fit(x_train[ind_mask[:,0],:], y_train[ind_mask[:,0]])
 	grid_results = clf.cv_results_
