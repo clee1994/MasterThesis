@@ -81,7 +81,7 @@ def create_documents(news,lreturns,dates_stocks,ylm):
 	except:
 		pass
 
-	print('] Done')
+	print('] Done', flush=True)
 
 	return documents, np.array(y), np.array(x_dates)
 
@@ -175,7 +175,7 @@ def calibrate_doc2vec(lreturns,dates,test_split,news_data):
 		x = gen_xy_daily(documents,fts,ws_def,mc_def, dm_def, False, dmm_def, dmc_def)
 		loss.append(val_cv_eval(x,y,test_split))
 		x_val.append(x)
-		print('doc2vec model built')
+		print('doc2vec model built', flush=True)
 	fts_opt = fts_space[np.argmax(loss)]
 	del loss, x_val 
 	gc.collect()
@@ -186,7 +186,7 @@ def calibrate_doc2vec(lreturns,dates,test_split,news_data):
 		x = gen_xy_daily(documents,fts_opt,ws,mc_def, dm_def, False, dmm_def, dmc_def)
 		loss.append(val_cv_eval(x,y,test_split))
 		x_val.append(x)
-		print('doc2vec model built')
+		print('doc2vec model built', flush=True)
 	ws_opt = ws_space[np.argmax(loss)]
 	del loss, x_val 
 	gc.collect()
@@ -197,7 +197,7 @@ def calibrate_doc2vec(lreturns,dates,test_split,news_data):
 		x = gen_xy_daily(documents,fts_opt,ws_opt,mc, dm_def, False, dmm_def, dmc_def)
 		loss.append(val_cv_eval(x,y,test_split))
 		x_val.append(x)
-		print('doc2vec model built')
+		print('doc2vec model built', flush=True)
 	mc_opt = mc_space[np.argmax(loss)]
 	del loss, x_val 
 	gc.collect()
@@ -208,7 +208,7 @@ def calibrate_doc2vec(lreturns,dates,test_split,news_data):
 		x = gen_xy_daily(documents,fts_opt,ws_opt,mc_opt, dm, False, dmm_def, dmc_def)
 		loss.append(val_cv_eval(x,y,test_split))
 		x_val.append(x)
-		print('doc2vec model built')
+		print('doc2vec model built', flush=True)
 	dm_opt = x_dm_space[np.argmax(loss)]
 	del loss, x_val 
 	gc.collect()
@@ -219,7 +219,7 @@ def calibrate_doc2vec(lreturns,dates,test_split,news_data):
 		x = gen_xy_daily(documents,fts_opt,ws_opt,mc_opt, dm_opt, False, dmm, dmc_def)
 		loss.append(val_cv_eval(x,y,test_split))
 		x_val.append(x)
-		print('doc2vec model built')
+		print('doc2vec model built', flush=True)
 	dmm_opt = x_dmm_space[np.argmax(loss)]
 	del loss, x_val 
 	gc.collect()
@@ -230,7 +230,7 @@ def calibrate_doc2vec(lreturns,dates,test_split,news_data):
 		x = gen_xy_daily(documents,fts_opt,ws_opt,mc_opt, dm_opt, False, dmm_opt, dmc)
 		loss.append(val_cv_eval(x,y,test_split))
 		x_val.append(x)
-		print('doc2vec model built')
+		print('doc2vec model built', flush=True)
 	dmc_opt = x_dcm_space[np.argmax(loss)]
 
 	parameters = 'Doc2Vec: features ' + str(fts_opt) + ', window ' + str(ws_opt) + ', min. count ' + str(mc_opt) + (', PV-DM, ' if dm_opt else ', PV-DBoW, ') + ('mean, ' if dm_opt else 'sum') + ('concatenation' if dm_opt else '')
@@ -310,6 +310,16 @@ def produce_y_cov(returns,dates_prices,dates_news):
 
 	return np.array(y).ravel()
 
+def append_past_obs_ret(x, dates_news, lreturns, dates_prices):
+	#append ten last days returns
+	import pdb; pdb.set_trace()  # breakpoint 9c1557a4 //
+
+
+def append_past_obs_cov(x, dates_news, lreturns, dates_prices):
+	#append ten last days cov...
+	import pdb; pdb.set_trace()  # breakpoint 99711e23 //
+
+
 def produce_mu_cov(x, test_split, lreturns, dates_prices, dates_news, n_past, names, firm_ind_u,reg_method):
 	import numpy as np
 	import datetime
@@ -323,6 +333,8 @@ def produce_mu_cov(x, test_split, lreturns, dates_prices, dates_news, n_past, na
 	for i in firm_ind_u:
 		temp1 = np.transpose(np.matrix( lreturns[:,i]))
 		y = produce_y_ret(temp1,dates_prices, dates_news)
+		if past_obs_int:
+			x = append_past_obs_ret(x, dates_news, lreturns[:,i], dates_prices)
 
 		if i == firm_ind_u[0]:
 			stables = True
@@ -332,7 +344,7 @@ def produce_mu_cov(x, test_split, lreturns, dates_prices, dates_news, n_past, na
 		mu_p_ts = np.concatenate([mu_p_ts,np.reshape(mu_p_ts_temp,(np.shape(mu_p_ts)[0],1))],axis=1)
 		r2_mat.append(r2t)
 		losses = losses + lossest
-		print(str(datetime.datetime.now())+': Successfully produced mu_p_ts for '+names[i])
+		print(str(datetime.datetime.now())+': Successfully produced mu_p_ts for '+names[i], flush=True)
 		if i == firm_ind_u[0]:
 			stables = False
 
@@ -353,11 +365,13 @@ def produce_mu_cov(x, test_split, lreturns, dates_prices, dates_news, n_past, na
 			else:
 				label_text = "Covariance"
 				l2_test = names[i] + " and " + names[j]
+			if past_obs_int:
+				x = append_past_obs_cov(x, dates_news, lreturns[:,i], dates_prices)
 			[cov_p_ts[:,i,j], lossest, r2t, _] = reg_method(x, y, test_split, temp1, dates_prices, dates_news, n_past,i,bench_mark_cov, label_text, l2_test ,show_p,stables)
 			cov_p_ts[:,j,i] = cov_p_ts[:,i,j]
 			losses = losses + lossest
 			r2_mat.append(r2t)
-			print(str(datetime.datetime.now())+': Successfully produced co_p_ts for '+names[firm_ind_u[i]]+' and '+names[firm_ind_u[j]])
+			print(str(datetime.datetime.now())+': Successfully produced co_p_ts for '+names[firm_ind_u[i]]+' and '+names[firm_ind_u[j]], flush=True)
 			if (i == j) and (i == 0):
 				stables = False
 			if (i == 0) and (j == 1):

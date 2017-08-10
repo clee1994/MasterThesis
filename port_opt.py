@@ -38,9 +38,9 @@ def cv_opt(mu, Sigma, e_mu, glambda, h):
 				break
 		risk = quad_form(w, Sigma)
 		if not is_pos_def(Sigma):
-			print('Here you got a serious problem')
+			print('Here you got a serious problem', flush=True)
 			print(Sigma)
-			np.empty((len(mu)))
+			rw = np.empty((len(mu)))
 			rw[:] = np.nan
 			rr = np.nan
 			rri = np.nan
