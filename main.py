@@ -69,7 +69,7 @@ def main_x_reg(x_method):
 	# 		del mu_p_ts, cov_p_ts, losses, r2m, parmeters_reg, r2,second_line, r3,third_line
 	# 		print(str(datetime.datetime.now())+': Successfully learned a vec-reg combination', flush=True)
 	# 		gc.collect()
-	del news_data, x_gram, x_tfidf
+	del x_gram, x_tfidf
 	gc.collect()
 	return dates_news, split_point
 
