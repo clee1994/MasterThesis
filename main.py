@@ -52,7 +52,7 @@ def main_x_reg(x_method):
 
 	#[x_gram, x_tfidf, dates_news] = pickle.load(open(path_output +"server_x_models"+str(x_method)+".p", "rb" ) )
 
-	# split_point = int(np.floor(np.shape(x_gram[0])[0]*(1-test_split)))
+	split_point = int(np.floor(np.shape(x_gram[0])[0]*(1-test_split)))
 	# gc.collect()
 
 	# #learning.estimate_xgboost, learning.estimate_keras, learning.estimate_linear, learning.estimate_SVR
