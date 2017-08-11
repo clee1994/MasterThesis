@@ -412,6 +412,7 @@ def tfidf_vector(n_gram, news_data, lreturns, dates_stocks, test_split):
 	from sklearn.feature_extraction.text import TfidfVectorizer
 	from sklearn.feature_extraction.text import CountVectorizer
 	import datetime
+	import gc
 
 	corpus = []
 	temp_word = ""
@@ -465,6 +466,9 @@ def tfidf_vector(n_gram, news_data, lreturns, dates_stocks, test_split):
 		lossT.append(val_cv_eval(x,y,test_split))
 		x_T.append(x)
 		parameter2.append('TFIDF: stopwords, cut-off=3, features='+str(i)+', '+str(n_gram)+'-gram')
+		del x,y
+		gc.collect()
+
 
 	return [x_C[np.argmax(lossC)], parameter1[np.argmax(lossC)]], [x_T[np.argmax(lossT)], parameter2[np.argmax(lossC)]], np.array(x_dates)
 
