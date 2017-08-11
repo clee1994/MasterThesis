@@ -103,7 +103,7 @@ firm_ind_u = pickle.load(open(path_output + "order.p", "rb" ) )
 #for i in range(4):
 #	[dates_news,split_point] = main_x_reg(i+1)
 #	gc.collect()
-[dates_news, split_point] = main_x_reg(2)
+[dates_news, split_point] = main_x_reg(4)
 
 # #benchmark, past obs.
 # pmu_p_ts = evaluation.mu_gen_past1(lreturns, dates_prices, dates_news[(split_point+1):], firm_ind_u[0:firms_used], n_past)
