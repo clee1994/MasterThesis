@@ -167,9 +167,9 @@ def calibrate_doc2vec(lreturns,dates,test_split,news_data):
 	dmc_def=0
 
 	#parameter space for gensim 
-	fts_space = np.linspace(150,900,5,dtype=int)
-	ws_space = np.linspace(9,25,4,dtype=int)
-	mc_space = np.linspace(0,27,4,dtype=int)
+	fts_space = np.linspace(350,850,4,dtype=int)
+	ws_space = np.linspace(9,25,3,dtype=int)
+	mc_space = np.linspace(0,27,3,dtype=int)
 	x_dm_space = [0,1]
 	x_dmm_space = [0,1]
 	x_dcm_space = [0,1]
