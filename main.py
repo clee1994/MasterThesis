@@ -27,7 +27,7 @@ test_split = 0.35
 complet = []
 
 #main function 
-def main_x_reg(x_method):
+def main_x_reg(x_method,tfidf,lreturns):
 	print(str(datetime.datetime.now())+': Start reading in news:', flush=True)
 	news_data = pickle.load(open(path_data + "Reuters.p", "rb" ) )
 	print(str(datetime.datetime.now())+': Successfully read all news', flush=True)
@@ -35,24 +35,27 @@ def main_x_reg(x_method):
 
 	if x_method == 4:
 		#doc2vec
-		[x_gram, dates_news] = learning.calibrate_doc2vec(np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)),dates_prices,test_split,news_data)
-		x_tfidf = []
+		[documents, y,dates_ret] = learning.create_documents(news_data,np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)), dates_prices,learning.data_label_method_val)
 		del news_data
+		print(str(datetime.datetime.now())+': Preprocessed news', flush=True)
+		[x_tfidf, dates_news] = learning.calibrate_doc2vec(documents, y,dates_ret,test_split)
 		print(str(datetime.datetime.now())+': Successfully doc2vec', flush=True)
 		gc.collect()
 	else:
 		#uni/bi/tri-grams count/tfidf
-		[x_gram, x_tfidf, dates_news] = learning.tfidf_vector(x_method, news_data, np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)), dates_prices,test_split)
+		[corpus,x_dates] = learning.create_corpus(x_method, news_data, np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)), dates_prices,test_split,tfidf)
 		del news_data
+		print(str(datetime.datetime.now())+': Preprocessed news', flush=True)
+		[x_tfidf, dates_news] = learning.tfidf_vector(x_method, corpus, np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)), dates_prices,test_split,tfidf,x_dates)
 		print(str(datetime.datetime.now())+': Successfully '+str(x_method)+'-gram', flush=True)
 		gc.collect()
 		
 
-	pickle.dump((x_gram, x_tfidf, dates_news), open( path_output+"x_models"+str(x_method)+".p", "wb" ) )
+	pickle.dump((x_tfidf, dates_news), open( path_output+ ('bow' if tfidf else 'tfidf') +"x_models"+str(x_method)+".p", "wb" ) )
 
 	#[x_gram, x_tfidf, dates_news] = pickle.load(open(path_output +"server_x_models"+str(x_method)+".p", "rb" ) )
 
-	split_point = int(np.floor(np.shape(x_gram[0])[0]*(1-test_split)))
+	split_point = int(np.floor(np.shape(x_tfidf[0])[0]*(1-test_split)))
 	# gc.collect()
 
 	# #learning.estimate_xgboost, learning.estimate_keras, learning.estimate_linear, learning.estimate_SVR
@@ -69,7 +72,7 @@ def main_x_reg(x_method):
 	# 		del mu_p_ts, cov_p_ts, losses, r2m, parmeters_reg, r2,second_line, r3,third_line
 	# 		print(str(datetime.datetime.now())+': Successfully learned a vec-reg combination', flush=True)
 	# 		gc.collect()
-	del x_gram, x_tfidf
+	del x_tfidf
 	gc.collect()
 	return dates_news, split_point
 
@@ -103,8 +106,20 @@ firm_ind_u = pickle.load(open(path_output + "order.p", "rb" ) )
 #for i in range(4):
 #	[dates_news,split_point] = main_x_reg(i+1)
 #	gc.collect()
-[dates_news, split_point] = main_x_reg(4)
-
+[dates_news, split_point] = main_x_reg(4, True, lreturns)
+gc.collect()
+[dates_news, split_point] = main_x_reg(3, False, lreturns)
+gc.collect()
+[dates_news, split_point] = main_x_reg(3, True, lreturns)
+gc.collect()
+[dates_news, split_point] = main_x_reg(2, False, lreturns)
+gc.collect()
+[dates_news, split_point] = main_x_reg(2, True, lreturns)
+gc.collect()
+[dates_news, split_point] = main_x_reg(1, False, lreturns)
+gc.collect()
+[dates_news, split_point] = main_x_reg(1, True, lreturns)
+gc.collect()
 # #benchmark, past obs.
 # pmu_p_ts = evaluation.mu_gen_past1(lreturns, dates_prices, dates_news[(split_point+1):], firm_ind_u[0:firms_used], n_past)
 # pcov_p_ts = evaluation.cov_gen_past(lreturns, dates_prices, dates_news[(split_point+1):], firm_ind_u[0:firms_used], n_past)

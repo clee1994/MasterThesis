@@ -154,7 +154,7 @@ def bench_mark_cov(lreturns,dates_stocks,n_past,len_o):
 	ret_val = np.array(ret_val).ravel()
 	return ret_val
 
-def calibrate_doc2vec(lreturns,dates,test_split,news_data):
+def calibrate_doc2vec(documents, y,dates_ret,test_split):
 	from sklearn import svm
 	import numpy as np
 	import gc
@@ -167,14 +167,14 @@ def calibrate_doc2vec(lreturns,dates,test_split,news_data):
 	dmc_def=0
 
 	#parameter space for gensim 
-	fts_space = np.linspace(350,850,4,dtype=int)
-	ws_space = np.linspace(9,25,3,dtype=int)
-	mc_space = np.linspace(0,27,3,dtype=int)
+	fts_space = np.linspace(350,850,6,dtype=int)
+	ws_space = np.linspace(9,25,4,dtype=int)
+	mc_space = np.linspace(0,27,4,dtype=int)
 	x_dm_space = [0,1]
 	x_dmm_space = [0,1]
 	x_dcm_space = [0,1]
 
-	[documents, y,dates_ret] = create_documents(news_data,lreturns,dates,data_label_method_val)
+	#[documents, y,dates_ret] = create_documents(news_data,lreturns,dates,data_label_method_val)
 
 	loss = []
 	x_val = []
@@ -228,17 +228,18 @@ def calibrate_doc2vec(lreturns,dates,test_split,news_data):
 		x_val.append(x)
 		print('doc2vec model built', flush=True)
 	dmm_opt = x_dmm_space[np.argmax(loss)]
-	del loss, x_val 
-	gc.collect()
+	#del loss, x_val 
+	#gc.collect()
 
-	loss = []
-	x_val = []
-	for dmc in x_dcm_space:
-		x = gen_xy_daily(documents,fts_opt,ws_opt,mc_opt, dm_opt, False, dmm_opt, dmc)
-		loss.append(val_cv_eval(x,y,test_split))
-		x_val.append(x)
-		print('doc2vec model built', flush=True)
-	dmc_opt = x_dcm_space[np.argmax(loss)]
+	#loss = []
+	#x_val = []
+	#for dmc in x_dcm_space:
+	#	x = gen_xy_daily(documents,fts_opt,ws_opt,mc_opt, dm_opt, False, dmm_opt, dmc)
+	#	loss.append(val_cv_eval(x,y,test_split))
+	#	x_val.append(x)
+	#	print('doc2vec model built', flush=True)
+	#dmc_opt = x_dcm_space[np.argmax(loss)]
+	dmc_opt = 0
 
 	parameters = 'Doc2Vec: features ' + str(fts_opt) + ', window ' + str(ws_opt) + ', min. count ' + str(mc_opt) + (', PV-DM, ' if dm_opt else ', PV-DBoW, ') + ('mean, ' if dm_opt else 'sum') + ('concatenation' if dm_opt else '')
 	return [np.matrix(x_val[np.argmax(loss)]),parameters], dates_ret
@@ -407,7 +408,7 @@ def produce_mu_cov(x, test_split, lreturns, dates_prices, dates_news, n_past, na
 
 
 #TFIDF and n-grams
-def tfidf_vector(n_gram, news_data, lreturns, dates_stocks, test_split):
+def create_corpus(n_gram, news_data, lreturns, dates_stocks, test_split,tfidf_bow):
 	import numpy as np
 	from sklearn.feature_extraction.text import TfidfVectorizer
 	from sklearn.feature_extraction.text import CountVectorizer
@@ -443,34 +444,78 @@ def tfidf_vector(n_gram, news_data, lreturns, dates_stocks, test_split):
 			temp_word = temp_word + hj + " "
 	corpus.append(str(temp_word))
 
+	return corpus, x_dates
+
+
+def tfidf_vector(n_gram, corpus, lreturns, dates_stocks, test_split,tfidf_bow,x_dates):
+	import numpy as np
+	from sklearn.feature_extraction.text import TfidfVectorizer
+	from sklearn.feature_extraction.text import CountVectorizer
+	import datetime
+	import gc
+
+	# corpus = []
+	# temp_word = ""
+	# x_dates = []
+	# #prev_d = np.datetime64(datetime.date(1, 1, 1))
+	# prev_d = np.datetime64(news_data[0][0])
+	# x_dates.append(prev_d)
+
+	# for i in news_data:
+	# 	cur_d = np.datetime64(i[0])
+
+	# 	#y
+	# 	if cur_d == prev_d:
+	# 		prev_d = cur_d
+	# 	else:
+	# 		try:
+	# 			indt = list(dates_stocks).index(cur_d)
+	# 			#if prev_d != np.datetime64(datetime.date(1, 1, 1)):
+	# 			#documents.append(TaggedDocument(words,str(doc_c)))
+	# 			#doc_c = doc_c + 1
+	# 			corpus.append(str(temp_word))
+	# 			temp_word = ""
+	# 			x_dates.append(cur_d)
+	# 			prev_d = cur_d
+	# 		except:
+	# 			prev_d = cur_d
+	# 	for hj in i[1]:
+	# 		temp_word = temp_word + hj + " "
+	# corpus.append(str(temp_word))
+
 	
 	fts_space = np.linspace(2000,7000,10,dtype=int)
 
-	lossC = []
-	lossT = []
-	x_C = []
-	x_T = []
-	parameter1 = []
-	parameter2 = []
-	for i in fts_space:
-		vectorizerCount = CountVectorizer(analyzer='word',ngram_range=(1,n_gram),stop_words='english',min_df=3,max_features=i)
-		x = vectorizerCount.fit_transform(corpus).toarray()
-		y = np.array([data_label_method_val(lreturns, cur_d, dates_stocks) for cur_d in x_dates ])
-		lossC.append(val_cv_eval(x,y,test_split))
-		x_C.append(x)
-		parameter1.append('BoW: stopwords, cut-off=3, features='+str(i)+', '+str(n_gram)+'-gram')
 
-		vectorizerTFIDF = TfidfVectorizer(analyzer='word',ngram_range=(1,n_gram),stop_words='english',min_df=3,max_features=i)
-		x = vectorizerTFIDF.fit_transform(corpus).toarray()
-		y = np.array([data_label_method_val(lreturns, cur_d,dates_stocks) for cur_d in x_dates ])
-		lossT.append(val_cv_eval(x,y,test_split))
-		x_T.append(x)
-		parameter2.append('TFIDF: stopwords, cut-off=3, features='+str(i)+', '+str(n_gram)+'-gram')
+	lossC = []
+	parameter1 = []
+	for i in fts_space:
+		if tfidf_bow:
+			vectorizerCount = CountVectorizer(analyzer='word',ngram_range=(1,n_gram),stop_words='english',min_df=3,max_features=i)
+			x = vectorizerCount.fit_transform(corpus).toarray()
+			y = np.array([data_label_method_val(lreturns, cur_d, dates_stocks) for cur_d in x_dates ])
+			lossC.append(val_cv_eval(x,y,test_split))
+			#x_C.append(x)
+			parameter1.append('BoW: stopwords, cut-off=3, features='+str(i)+', '+str(n_gram)+'-gram')
+
+		else:
+
+			vectorizerTFIDF = TfidfVectorizer(analyzer='word',ngram_range=(1,n_gram),stop_words='english',min_df=3,max_features=i)
+			x = vectorizerTFIDF.fit_transform(corpus).toarray()
+			y = np.array([data_label_method_val(lreturns, cur_d,dates_stocks) for cur_d in x_dates ])
+			lossC.append(val_cv_eval(x,y,test_split))
+			#x_T.append(x)
+			parameter1.append('TFIDF: stopwords, cut-off=3, features='+str(i)+', '+str(n_gram)+'-gram')
 		del x,y
 		gc.collect()
 
-
-	return [x_C[np.argmax(lossC)], parameter1[np.argmax(lossC)]], [x_T[np.argmax(lossT)], parameter2[np.argmax(lossC)]], np.array(x_dates)
+	if tfidf_bow:
+		vectorizerCount = CountVectorizer(analyzer='word',ngram_range=(1,n_gram),stop_words='english',min_df=3,max_features=fts_space[np.argmax(lossC)])
+		x = vectorizerCount.fit_transform(corpus).toarray()
+	else:
+		vectorizerCount = TfidfVectorizer(analyzer='word',ngram_range=(1,n_gram),stop_words='english',min_df=3,max_features=fts_space[np.argmax(lossC)])
+		x = vectorizerCount.fit_transform(corpus).toarray()
+	return [x, parameter1[np.argmax(lossC)]], np.array(x_dates)
 
 def val_cv_eval(x,y,split):
 	from sklearn.model_selection import cross_val_score
