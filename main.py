@@ -77,14 +77,14 @@ def main_x_reg(x_method,tfidf,lreturns):
 #	multiprocessing.set_start_method('forkserver')
 
 
-print(str(datetime.datetime.now())+': Start reading in news:', flush=True)
-news_data = pickle.load(open(path_data + "Reuters.p", "rb" ) )
-print(str(datetime.datetime.now())+': Successfully read all news', flush=True)
-gc.collect()
-# print(str(datetime.datetime.now())+': Start reading in SP500 data:', flush=True)
-# [_, dates_prices, names, lreturns] = pickle.load(open(path_data + "SP500.p", "rb" ) )
-# print(str(datetime.datetime.now())+': Successfully read all data', flush=True)
+# print(str(datetime.datetime.now())+': Start reading in news:', flush=True)
+# news_data = pickle.load(open(path_data + "Reuters.p", "rb" ) )
+# print(str(datetime.datetime.now())+': Successfully read all news', flush=True)
 # gc.collect()
+print(str(datetime.datetime.now())+': Start reading in SP500 data:', flush=True)
+[_, dates_prices, names, lreturns] = pickle.load(open(path_data + "SP500.p", "rb" ) )
+print(str(datetime.datetime.now())+': Successfully read all data', flush=True)
+gc.collect()
 
 
 #cherry picking -> repair 
