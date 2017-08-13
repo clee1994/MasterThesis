@@ -177,47 +177,47 @@ def calibrate_doc2vec(documents, y,dates_ret,test_split):
 	#[documents, y,dates_ret] = create_documents(news_data,lreturns,dates,data_label_method_val)
 
 	loss = []
-	x_val = []
+	#x_val = []
 	for fts in fts_space:
 		x = gen_xy_daily(documents,fts,ws_def,mc_def, dm_def, False, dmm_def, dmc_def)
 		loss.append(val_cv_eval(x,y,test_split))
-		x_val.append(x)
+		#x_val.append(x)
 		print('doc2vec model built', flush=True)
 	fts_opt = fts_space[np.argmax(loss)]
-	del loss, x_val 
+	del loss#, x_val 
 	gc.collect()
 
 	loss = []
-	x_val = []
+	#x_val = []
 	for ws in ws_space:
 		x = gen_xy_daily(documents,fts_opt,ws,mc_def, dm_def, False, dmm_def, dmc_def)
 		loss.append(val_cv_eval(x,y,test_split))
-		x_val.append(x)
+		#x_val.append(x)
 		print('doc2vec model built', flush=True)
 	ws_opt = ws_space[np.argmax(loss)]
-	del loss, x_val 
+	del loss#, x_val 
 	gc.collect()
 
 	loss = []
-	x_val = []
+	#x_val = []
 	for mc in mc_space:
 		x = gen_xy_daily(documents,fts_opt,ws_opt,mc, dm_def, False, dmm_def, dmc_def)
 		loss.append(val_cv_eval(x,y,test_split))
-		x_val.append(x)
+		#x_val.append(x)
 		print('doc2vec model built', flush=True)
 	mc_opt = mc_space[np.argmax(loss)]
-	del loss, x_val 
+	del loss#, x_val 
 	gc.collect()
 
 	loss = []
-	x_val = []
+	#x_val = []
 	for dm in x_dm_space:
 		x = gen_xy_daily(documents,fts_opt,ws_opt,mc_opt, dm, False, dmm_def, dmc_def)
 		loss.append(val_cv_eval(x,y,test_split))
-		x_val.append(x)
+		#x_val.append(x)
 		print('doc2vec model built', flush=True)
 	dm_opt = x_dm_space[np.argmax(loss)]
-	del loss, x_val 
+	del loss#, x_val 
 	gc.collect()
 
 	loss = []
