@@ -56,7 +56,7 @@ def main_x_reg(x_method,tfidf,lreturns):
 
 	[x_gram, dates_news] = pickle.load(open(path_output +"bowx_models4.p", "rb" ) )
 
-	split_point = int(np.floor(np.shape(x_tfidf[0])[0]*(1-test_split)))
+	split_point = int(np.floor(np.shape(x_gram[0])[0]*(1-test_split)))
 	# gc.collect()
 
 	#learning.estimate_xgboost, learning.estimate_keras, learning.estimate_linear, learning.estimate_SVR
