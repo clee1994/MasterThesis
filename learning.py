@@ -18,7 +18,7 @@ def data_label_method_cov(lreturns, cur_d,dates_stocks):
 	import numpy as np
 
 	#important
-	n = 4
+	n = n_cov
 
 	indt = ind_closest(cur_d, dates_stocks)
 	try:
@@ -159,14 +159,14 @@ def calibrate_doc2vec(documents, y,dates_ret,test_split):
 	import numpy as np
 	import gc
 
-	#default values
+	#default values -> set them to perfect values
 	ws_def = 8
 	mc_def = 10
 	dm_def = 1
 	dmm_def=0 
 	dmc_def=0
 
-	#parameter space for gensim 
+	#parameter space for gensim -> adjust it around perfect values
 	fts_space = np.linspace(350,850,6,dtype=int)
 	ws_space = np.linspace(9,25,4,dtype=int)
 	mc_space = np.linspace(0,27,4,dtype=int)
@@ -256,7 +256,7 @@ def sort_predictability(news_data,lreturns,dates,test_split,names):
 	from sklearn.model_selection import cross_val_score
 	from evaluation import make_pred_sort_table
 
-	#hard coded values... review -> definitly different
+	#set those to optimal -> todo 
 	[documents, y,_] = create_documents(news_data,lreturns,dates, data_label_method_val)
 	x = gen_xy_daily(documents,340,8,21,1)
 
@@ -296,7 +296,7 @@ def produce_y_cov(returns,dates_prices,dates_news):
 	import numpy as np
 	import datetime
 
-	n = 3
+	n = n_cov
 
 	dates_prices = dates_prices.astype(datetime.date)
 	dates_news = list(map(datetime.datetime.date, dates_news.astype(datetime.date)))
@@ -323,7 +323,7 @@ def append_past_obs_ret(x, dates_news, lreturns, dates_prices):
 	
 	import numpy as np
 
-	n_reach = 20
+	n_reach = n_past
 	x_ret = np.c_[x, np.full([np.shape(x)[0] , n_reach],np.nan)]
 	for i in range(len(dates_news)):
 		ind_price = ind_closest(dates_news[i],dates_prices)
@@ -337,7 +337,7 @@ def append_past_obs_cov(x, dates_news, lreturns, dates_prices):
 	#append ten last days cov...
 	import numpy as np
 
-	n_reach = 20
+	n_reach = n_past
 	x_ret = np.c_[x, np.full([np.shape(x)[0] , n_reach],np.nan)]
 	for i in range(len(dates_news)):
 		ind_price = ind_closest(dates_news[i],dates_prices)
@@ -483,7 +483,8 @@ def tfidf_vector(n_gram, corpus, lreturns, dates_stocks, test_split,tfidf_bow,x_
 	# 		temp_word = temp_word + hj + " "
 	# corpus.append(str(temp_word))
 
-	
+
+	#adjusted around good quality	
 	fts_space = np.linspace(2000,7000,10,dtype=int)
 
 
@@ -604,6 +605,7 @@ def estimate_ridge(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, i
 
 	bench_y = benchm_f(lreturns,dates,n_past, x_dates[np.shape(x_dates)[0]-np.shape(y_test)[0]:np.shape(x_dates)[0]])
 
+	#adjust!
 	#1. model selection with cross validation and grid search
 	#alpha_range1 = np.geomspace(0.1,80, 12)
 	alpha_range1 = [0.1       ,   0.18361885,   0.33715883,   0.61908719,
@@ -679,6 +681,7 @@ def estimate_SVR(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, ind
 
 	bench_y = benchm_f(lreturns,dates,n_past, x_dates[np.shape(x_dates)[0]-np.shape(y_test)[0]:np.shape(x_dates)[0]])
 
+	#adjust
 	#c_range = np.geomspace(0.1,100, 12)
 	c_range = [	0.1       ,    0.18738174,    0.35111917,    0.65793322,
 				1.23284674,    2.3101297 ,    4.32876128,    8.11130831,
@@ -746,6 +749,7 @@ def estimate_xgboost(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past,
 	ind_mask = np.reshape(ind_mask,[len(y_train),1])
 
 	xgb_model = xgb.XGBRegressor()
+	#adjust
 	max_depth_range = np.array(np.linspace(5,100,5),dtype=int)
 	n_est_range = np.array(np.linspace(50,500,5),dtype=int)
 	clf = GridSearchCV(xgb_model,{'max_depth': max_depth_range,'n_estimators': n_est_range},n_jobs=number_jobs)
