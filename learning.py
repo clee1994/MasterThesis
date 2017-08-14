@@ -539,6 +539,7 @@ def estimate_linear(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, 
 	import numpy as np
 	from evaluation import plot_pred_true_b#, learning_curve_plots
 	import datetime
+	from sklearn.utils import shuffle
 
 
 	#get x and y
@@ -547,6 +548,8 @@ def estimate_linear(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, 
 	except:
 		pass
 
+	#shuffle data
+	x_cal, y_cal = shuffle(x_cal, y_cal, random_state=0)
 	x_train, y_train, x_test, y_test = train_test_split(x_cal, y_cal, test_split)
 
 
@@ -584,6 +587,7 @@ def estimate_ridge(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, i
 	from sklearn.model_selection import GridSearchCV
 	from sklearn.metrics import mean_squared_error
 	from sklearn.metrics import r2_score
+	from sklearn.utils import shuffle
 	import numpy as np
 	from evaluation import plot_pred_true_b#, learning_curve_plots
 	import datetime
@@ -595,6 +599,7 @@ def estimate_ridge(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, i
 	except:
 		pass
 
+	x_cal, y_cal = shuffle(x_cal, y_cal, random_state=0)
 	x_train, y_train, x_test, y_test = train_test_split(x_cal, y_cal, test_split)
 
 	bench_y = benchm_f(lreturns,dates,n_past, x_dates[np.shape(x_dates)[0]-np.shape(y_test)[0]:np.shape(x_dates)[0]])
@@ -657,6 +662,7 @@ def estimate_SVR(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, ind
 	from sklearn.model_selection import GridSearchCV
 	from sklearn.metrics import mean_squared_error
 	from sklearn.metrics import r2_score
+	from sklearn.utils import shuffle
 	import numpy as np
 	from evaluation import plot_pred_true_b#, learning_curve_plots
 	import datetime
@@ -668,6 +674,7 @@ def estimate_SVR(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, ind
 	except:
 		pass
 
+	x_cal, y_cal = shuffle(x_cal, y_cal, random_state=0)
 	x_train, y_train, x_test, y_test = train_test_split(x_cal, y_cal, test_split)
 
 	bench_y = benchm_f(lreturns,dates,n_past, x_dates[np.shape(x_dates)[0]-np.shape(y_test)[0]:np.shape(x_dates)[0]])
@@ -720,6 +727,7 @@ def estimate_xgboost(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past,
 	import numpy as np
 	from sklearn.metrics import mean_squared_error
 	from sklearn.metrics import r2_score
+	from sklearn.utils import shuffle
 	from evaluation import plot_pred_true_b#, learning_curve_plots
 	import datetime
 
@@ -729,6 +737,7 @@ def estimate_xgboost(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past,
 	except:
 		pass
 
+	x_cal, y_cal = shuffle(x_cal, y_cal, random_state=0)
 	x_train, y_train, x_test, y_test = train_test_split(x_cal, y_cal, test_split)
 
 	bench_y = benchm_f(lreturns,dates,n_past, x_dates[np.shape(x_dates)[0]-np.shape(y_test)[0]:np.shape(x_dates)[0]])
@@ -772,6 +781,7 @@ def estimate_keras(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, i
 	import numpy as np
 	from sklearn.metrics import mean_squared_error
 	from sklearn.metrics import r2_score
+	from sklearn.utils import shuffle
 	from evaluation import plot_pred_true_b#, learning_curve_plots
 	import datetime
 
@@ -783,6 +793,7 @@ def estimate_keras(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, i
 		pass
 
 
+	x_cal, y_cal = shuffle(x_cal, y_cal, random_state=0)
 	ind_mask = np.invert(np.isnan(y_cal))
 	ind_mask = np.reshape(ind_mask,[len(y_cal),1])
 

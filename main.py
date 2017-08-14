@@ -21,7 +21,7 @@ past_obs_int = True
 learning.past_obs_int = past_obs_int
 
 firms_used = 20
-n_past = 80
+n_past = 60
 test_split = 0.35
 
 complet = []
@@ -39,7 +39,7 @@ def main_x_reg(x_method,tfidf,lreturns):
 	# 	del news_data
 	# 	gc.collect()
 	# 	print(str(datetime.datetime.now())+': Preprocessed news', flush=True)
-	# 	[x_tfidf, dates_news] = learning.calibrate_doc2vec(documents, y,dates_ret,test_split)
+	# 	[x_gram, dates_news] = learning.calibrate_doc2vec(documents, y,dates_ret,test_split)
 	# 	print(str(datetime.datetime.now())+': Successfully doc2vec', flush=True)
 	# 	gc.collect()
 	# else:
@@ -47,12 +47,12 @@ def main_x_reg(x_method,tfidf,lreturns):
 	# 	[corpus,x_dates] = learning.create_corpus(x_method, news_data, np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)), dates_prices,test_split,tfidf)
 	# 	del news_data
 	# 	print(str(datetime.datetime.now())+': Preprocessed news', flush=True)
-	# 	[x_tfidf, dates_news] = learning.tfidf_vector(x_method, corpus, np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)), dates_prices,test_split,tfidf,x_dates)
+	# 	[x_gram, dates_news] = learning.tfidf_vector(x_method, corpus, np.reshape(lreturns[:,firm_ind_u[0]], (np.shape(lreturns)[0],1)), dates_prices,test_split,tfidf,x_dates)
 	# 	print(str(datetime.datetime.now())+': Successfully '+str(x_method)+'-gram', flush=True)
 	# 	gc.collect()
 		
 
-	# pickle.dump((x_tfidf, dates_news), open( path_output+ ('bow' if tfidf else 'tfidf') +"x_models"+str(x_method)+".p", "wb" ) )
+	# pickle.dump((x_gram, dates_news), open( path_output+ ('bow' if tfidf else 'tfidf') +"x_models"+str(x_method)+".p", "wb" ) )
 
 	[x_gram, dates_news] = pickle.load(open(path_output +"bowx_models4.p", "rb" ) )
 
@@ -77,10 +77,10 @@ def main_x_reg(x_method,tfidf,lreturns):
 #	multiprocessing.set_start_method('forkserver')
 
 
-print(str(datetime.datetime.now())+': Start reading in news:', flush=True)
-news_data = pickle.load(open(path_data + "Reuters.p", "rb" ) )
-print(str(datetime.datetime.now())+': Successfully read all news', flush=True)
-gc.collect()
+# print(str(datetime.datetime.now())+': Start reading in news:', flush=True)
+# news_data = pickle.load(open(path_data + "Reuters.p", "rb" ) )
+# print(str(datetime.datetime.now())+': Successfully read all news', flush=True)
+# gc.collect()
 print(str(datetime.datetime.now())+': Start reading in SP500 data:', flush=True)
 [_, dates_prices, names, lreturns] = pickle.load(open(path_data + "SP500.p", "rb" ) )
 print(str(datetime.datetime.now())+': Successfully read all data', flush=True)
@@ -88,11 +88,11 @@ gc.collect()
 
 
 #cherry picking -> repair 
-firm_ind_u = learning.sort_predictability(news_data,lreturns,dates_prices,test_split,names)#[0:firms_used]
-print(str(datetime.datetime.now())+': Successfully sorted')
-pickle.dump((firm_ind_u), open( path_output + "order.p", "wb" ) )
-del news_data
-#firm_ind_u = pickle.load(open(path_output + "order.p", "rb" ) )
+#firm_ind_u = learning.sort_predictability(news_data,lreturns,dates_prices,test_split,names)#[0:firms_used]
+#print(str(datetime.datetime.now())+': Successfully sorted')
+#pickle.dump((firm_ind_u), open( path_output + "order.p", "wb" ) )
+#del news_data
+firm_ind_u = pickle.load(open(path_output + "order.p", "rb" ) )
 firm_ind_u = firm_ind_u[0:firms_used]
 #gc.collect()
 
@@ -102,10 +102,10 @@ firm_ind_u = firm_ind_u[0:firms_used]
 #for i in range(4):
 #	[dates_news,split_point] = main_x_reg(i+1)
 #	gc.collect()
-#[dates_news, split_point] = main_x_reg(4, True, lreturns)
-#gc.collect()
+[dates_news, split_point] = main_x_reg(4, True, lreturns)
+gc.collect()
 #[dates_news, split_point] = main_x_reg(3, False, lreturns)
-#gc.collect()
+# gc.collect()
 #[dates_news, split_point] = main_x_reg(3, True, lreturns)
 #gc.collect()
 #[dates_news, split_point] = main_x_reg(2, False, lreturns)
@@ -116,19 +116,21 @@ firm_ind_u = firm_ind_u[0:firms_used]
 #gc.collect()
 #[dates_news, split_point] = main_x_reg(1, True, lreturns)
 #gc.collect()
+
+
 #benchmark, past obs.
-#pmu_p_ts = evaluation.mu_gen_past1(lreturns, dates_prices, dates_news[(split_point+1):], firm_ind_u[0:firms_used], n_past)
-#pcov_p_ts = evaluation.cov_gen_past(lreturns, dates_prices, dates_news[(split_point+1):], firm_ind_u[0:firms_used], n_past)
-#[r1,first_line] = evaluation.evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,pmu_p_ts,pcov_p_ts,firm_ind_u,dates_prices,None, None, -1)
-#[r2,second_line] = evaluation.evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,pmu_p_ts,pcov_p_ts,firm_ind_u,dates_prices,None, 0.5, -1)
-#complet.append([r1,first_line,r2, second_line, np.nan, np.nan, ' ','Past observations'] )
+pmu_p_ts = evaluation.mu_gen_past1(lreturns, dates_prices, dates_news[(split_point+1):], firm_ind_u[0:firms_used], n_past)
+pcov_p_ts = evaluation.cov_gen_past(lreturns, dates_prices, dates_news[(split_point+1):], firm_ind_u[0:firms_used], n_past)
+[r1,first_line] = evaluation.evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,pmu_p_ts,pcov_p_ts,firm_ind_u,dates_prices,None, None, -1)
+[r2,second_line] = evaluation.evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,pmu_p_ts,pcov_p_ts,firm_ind_u,dates_prices,None, 0.5, -1)
+complet.append([r1,first_line,r2, second_line, np.nan, np.nan, ' ','Past observations'] )
 
-#[r4,sp500] = evaluation.pure_SP(dates_news[(split_point+1):],path_data)
-#gc.collect()
-#evaluation.final_table(complet,np.array(r4),r1,sp500)
+[r4,sp500] = evaluation.pure_SP(dates_news[(split_point+1):],path_data)
+gc.collect()
+# evaluation.final_table(complet,np.array(r4),r1,sp500)
 
-#gc.collect()
-#pickle.dump((complet,r4,r1,sp500), open( path_output + "final.p", "wb" ) )
+# gc.collect()
+pickle.dump((complet,r4,r1,sp500), open( path_output + "final.p", "wb" ) )
 
 
 
