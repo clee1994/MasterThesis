@@ -257,17 +257,19 @@ def sort_predictability(news_data,lreturns,dates,test_split,names):
 	from evaluation import make_pred_sort_table
 
 	#set those to optimal -> todo 
-	[documents, y,_] = create_documents(news_data,lreturns,dates, data_label_method_val)
+	[documents, y, dates_x] = create_documents(news_data,lreturns,dates, data_label_method_val)
 	x = gen_xy_daily(documents,340,8,21,1)
+
 
 	loss_ar_svm = []
 
 	for i in range(np.shape(y)[1]):
+		x_temp = append_past_obs_ret(x, dates_x, lreturns[:,i], dates)
 		clf = LinearRegression(n_jobs=number_jobs)
 		ind_mask = np.invert(np.isnan(y[:,i]))
 
 		if np.sum(ind_mask) > 0:
-			scores = cross_val_score(clf, x[ind_mask,:], y[ind_mask,i], cv=5, scoring='neg_mean_squared_error',n_jobs=number_jobs)
+			scores = cross_val_score(clf, x_temp[ind_mask,:], y[ind_mask,i], cv=5, scoring='neg_mean_squared_error',n_jobs=number_jobs)
 			loss_ar_svm.append(scores.mean())
 		else:
 			loss_ar_svm.append(-np.inf)
@@ -362,9 +364,8 @@ def produce_mu_cov(x, test_split, lreturns, dates_prices, dates_news, n_past, na
 		y = produce_y_ret(temp1,dates_prices, dates_news)
 		if past_obs_int:
 			x = append_past_obs_ret(x, dates_news, lreturns[:,i], dates_prices)
-
 		if i == firm_ind_u[0]:
-			stables = True
+			#stables = True
 			[mu_p_ts_temp, lossest, r2t, parameters_reg] = reg_method(x, y, test_split, temp1, dates_prices, dates_news, n_past,i,bench_mark_mu, "Mean",names[i],show_p,stables)
 		else:
 			[mu_p_ts_temp, lossest, r2t, _] = reg_method(x, y, test_split, temp1, dates_prices, dates_news, n_past,i,bench_mark_mu, "Mean",names[i],show_p,stables)
@@ -372,18 +373,18 @@ def produce_mu_cov(x, test_split, lreturns, dates_prices, dates_news, n_past, na
 		r2_mat.append(r2t)
 		losses = losses + lossest
 		print(str(datetime.datetime.now())+': Successfully produced mu_p_ts for '+names[i], flush=True)
-		if i == firm_ind_u[0]:
-			stables = False
+		# if i == firm_ind_u[0]:
+		# 	stables = False
 
 
 	# get improved cov estimates
 	cov_p_ts = np.zeros([int(np.ceil(np.shape(x)[0]*test_split)),len(firm_ind_u),len(firm_ind_u)])
 	for i in range(len(firm_ind_u)):
 		for j in range(i+1):
-			if (i == j) and (i == 0):
-				stables = True
-			if (i == 0) and (j == 1):
-				stables = True
+			# if (i == j) and (i == 0):
+			# 	stables = True
+			# if (i == 0) and (j == 1):
+			# 	stables = True
 			temp1 = np.transpose(np.matrix( lreturns[:,[i,j]]))
 			y = produce_y_cov(temp1,dates_prices, dates_news)
 			if i == j:
@@ -399,10 +400,10 @@ def produce_mu_cov(x, test_split, lreturns, dates_prices, dates_news, n_past, na
 			losses = losses + lossest
 			r2_mat.append(r2t)
 			print(str(datetime.datetime.now())+': Successfully produced co_p_ts for '+names[firm_ind_u[i]]+' and '+names[firm_ind_u[j]], flush=True)
-			if (i == j) and (i == 0):
-				stables = False
-			if (i == 0) and (j == 1):
-				stables = False
+			# if (i == j) and (i == 0):
+			# 	stables = False
+			# if (i == 0) and (j == 1):
+			# 	stables = False
 
 	return mu_p_ts, cov_p_ts, losses, np.nanmean(r2_mat), parameters_reg
 
@@ -412,6 +413,7 @@ def create_corpus(n_gram, news_data, lreturns, dates_stocks, test_split,tfidf_bo
 	import numpy as np
 	from sklearn.feature_extraction.text import TfidfVectorizer
 	from sklearn.feature_extraction.text import CountVectorizer
+	from stemming.porter2 import stem
 	import datetime
 	import gc
 
@@ -441,7 +443,7 @@ def create_corpus(n_gram, news_data, lreturns, dates_stocks, test_split,tfidf_bo
 			except:
 				prev_d = cur_d
 		for hj in i[1]:
-			temp_word = temp_word + hj + " "
+			temp_word = temp_word + stem(hj) + " "
 	corpus.append(str(temp_word))
 
 	return corpus, x_dates
