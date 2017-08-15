@@ -120,7 +120,6 @@ firm_ind_u = firm_ind_u[0:firms_used]
 [x_gram, dates_news] = pickle.load(open(path_output +"bowx_models4.p", "rb" ) )
 split_point = int(np.floor(np.shape(x_gram[0])[0]*(1-test_split)))
 
-import pdb; pdb.set_trace()  # breakpoint e53f648e //
 
 
 #benchmark, past obs.
