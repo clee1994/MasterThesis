@@ -192,7 +192,7 @@ def pure_SP(x_dates, path):
 	lreturns = np.diff(np.log(prices),n=1, axis=0)
 
 	ret = []
-	for i in range(len(x_dates)):
+	for i in range(len(x_dates)-1):
 		temp = x_dates[i].tolist()
 		cur_d = np.datetime64(datetime.date(temp.year, temp.month, temp.day))
 		try:
