@@ -117,6 +117,12 @@ firm_ind_u = firm_ind_u[0:firms_used]
 #gc.collect()
 
 
+[x_gram, dates_news] = pickle.load(open(path_output +"bowx_models4.p", "rb" ) )
+split_point = int(np.floor(np.shape(x_gram[0])[0]*(1-test_split)))
+
+import pdb; pdb.set_trace()  # breakpoint e53f648e //
+
+
 #benchmark, past obs.
 pmu_p_ts = evaluation.mu_gen_past1(lreturns, dates_prices, dates_news[(split_point+1):], firm_ind_u[0:firms_used], n_past)
 pcov_p_ts = evaluation.cov_gen_past(lreturns, dates_prices, dates_news[(split_point+1):], firm_ind_u[0:firms_used], n_past)
@@ -129,7 +135,6 @@ gc.collect()
 
 
 #regression
-[x_gram, dates_news] = pickle.load(open(path_output +"bowx_models4.p", "rb" ) )
 reg_x(x_gram,sp500,first_line, split_point)
 
 [x_gram, dates_news] = pickle.load(open(path_output +"bowx_models1.p", "rb" ) )
