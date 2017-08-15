@@ -111,10 +111,10 @@ firm_ind_u = firm_ind_u[0:firms_used]
 # gc.collect()
 # [dates_news, split_point] = create_x(2, True, lreturns)
 # gc.collect()
-[dates_news, split_point] = create_x(1, False, lreturns)
-gc.collect()
-[dates_news, split_point] = create_x(1, True, lreturns)
-gc.collect()
+#[dates_news, split_point] = create_x(1, False, lreturns)
+#gc.collect()
+#[dates_news, split_point] = create_x(1, True, lreturns)
+#gc.collect()
 
 
 #benchmark, past obs.
