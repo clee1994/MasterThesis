@@ -264,6 +264,7 @@ def sort_predictability(news_data,lreturns,dates,test_split,names):
 	loss_ar_svm = []
 
 	for i in range(np.shape(y)[1]):
+		print(str(i))
 		x_temp = append_past_obs_ret(x, dates_x, lreturns[:,i], dates)
 		clf = LinearRegression(n_jobs=number_jobs)
 		ind_mask = np.invert(np.isnan(y[:,i]))
