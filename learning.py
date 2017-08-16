@@ -534,8 +534,8 @@ def val_cv_eval(x,y,split):
 	from sklearn.linear_model import LinearRegression 
 	import numpy as np
 
-	#ind_mask = np.invert(np.isnan(y)).ravel()
-	ind_mask = create_ind_mask(x,y)
+	ind_mask = np.invert(np.isnan(y)).ravel()
+	#ind_mask = create_ind_mask(x,y)
 
 	clf = LinearRegression(n_jobs=number_jobs)
 	if np.sum(ind_mask) > 0:
@@ -572,8 +572,8 @@ def estimate_linear(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, 
 	#1. model selection with cross validation and grid search
 	model = LinearRegression(n_jobs=number_jobs)
 	
-	#ind_mask = np.invert(np.isnan(y_train))
-	ind_mask = create_ind_mask(x_train,y_train)
+	ind_mask = np.invert(np.isnan(y_train))
+	#ind_mask = create_ind_mask(x_train,y_train)
 	ind_mask = np.reshape(ind_mask,[len(y_train),1])
 
 	model = model.fit(x_train[ind_mask[:,0],:], y_train[ind_mask[:,0]])
@@ -637,8 +637,8 @@ def estimate_ridge(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, i
 	RR_model = KernelRidge(alpha=30)
 	clf = GridSearchCV(RR_model, RR_parameters,scoring='neg_mean_squared_error',n_jobs=number_jobs)
 
-	#ind_mask = np.invert(np.isnan(y_train))
-	ind_mask = create_ind_mask(x_train,y_train)
+	ind_mask = np.invert(np.isnan(y_train))
+	#ind_mask = create_ind_mask(x_train,y_train)
 	ind_mask = np.reshape(ind_mask,[len(y_train),1])
 
 
@@ -710,8 +710,8 @@ def estimate_SVR(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, ind
 	RR_model = SVR()
 	clf = GridSearchCV(RR_model, RR_parameters,scoring='neg_mean_squared_error',n_jobs=number_jobs)
 
-	#ind_mask = np.invert(np.isnan(y_train))
-	ind_mask = create_ind_mask(x_train,y_train)
+	ind_mask = np.invert(np.isnan(y_train))
+	#ind_mask = create_ind_mask(x_train,y_train)
 	ind_mask = np.reshape(ind_mask,[len(y_train),1])
 
 	clf = clf.fit(x_train[ind_mask[:,0],:], y_train[ind_mask[:,0]])
@@ -760,8 +760,8 @@ def estimate_xgboost(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past,
 
 	bench_y = benchm_f(lreturns,dates,n_past, x_dates[np.shape(x_dates)[0]-np.shape(y_test)[0]:np.shape(x_dates)[0]])
 
-	#ind_mask = np.invert(np.isnan(y_train))
-	ind_mask = create_ind_mask(x_train,y_train)
+	ind_mask = np.invert(np.isnan(y_train))
+	#ind_mask = create_ind_mask(x_train,y_train)
 	ind_mask = np.reshape(ind_mask,[len(y_train),1])
 
 	xgb_model = xgb.XGBRegressor()
@@ -814,8 +814,8 @@ def estimate_keras(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, i
 
 
 	x_cal, y_cal = shuffle(x_cal, y_cal, random_state=0)
-	#ind_mask = np.invert(np.isnan(y_cal))
-	ind_mask = create_ind_mask(x_train,y_train)
+	ind_mask = np.invert(np.isnan(y_cal))
+	#ind_mask = create_ind_mask(x_train,y_train)
 	ind_mask = np.reshape(ind_mask,[len(y_cal),1])
 
 	x_train, y_train, x_test, y_test = train_test_split(x_cal[ind_mask[:,0],:], y_cal[ind_mask[:,0]], test_split)
