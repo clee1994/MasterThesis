@@ -247,6 +247,8 @@ def calibrate_doc2vec(documents, y,dates_ret,test_split):
 
 		
 def create_ind_mask(x,y):
+	import numpy as np
+	
 	ind_mask = (np.isnan(y))
 	for i in range(n_past):
 		ind_mask = np.add(ind_mask, np.isnan(x[:,-(i+1)]))
