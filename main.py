@@ -21,7 +21,7 @@ past_obs_int = True
 learning.past_obs_int = past_obs_int
 
 firms_used = 10
-n_past = 60
+n_past = 50
 learning.n_past = n_past
 n_cov = 5
 learning.n_cov = n_cov

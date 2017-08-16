@@ -246,7 +246,12 @@ def calibrate_doc2vec(documents, y,dates_ret,test_split):
 
 
 		
-
+def create_ind_mask(x,y):
+	ind_mask = (np.isnan(y))
+	for i in range(n_past):
+		ind_mask = np.add(ind_mask, np.isnan(x[:,-(i+1)]))
+	ind_mask = np.sign(ind_mask)
+	return np.invert(ind_mask)
 
 
 def sort_predictability(news_data,lreturns,dates,test_split,names):
@@ -267,7 +272,8 @@ def sort_predictability(news_data,lreturns,dates,test_split,names):
 		print(str(i))
 		x_temp = append_past_obs_ret(x, dates_x, lreturns[:,i], dates)
 		clf = LinearRegression(n_jobs=number_jobs)
-		ind_mask = np.invert(np.isnan(y[:,i]))
+		#ind_mask = np.invert(np.isnan(y[:,i]))
+		ind_mask = create_ind_mask(x_temp,y[:,i])
 
 		if np.sum(ind_mask) > 0:
 			import pdb; pdb.set_trace()  # breakpoint c953f8ec //
