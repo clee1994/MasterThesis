@@ -270,6 +270,7 @@ def sort_predictability(news_data,lreturns,dates,test_split,names):
 		ind_mask = np.invert(np.isnan(y[:,i]))
 
 		if np.sum(ind_mask) > 0:
+			import pdb; pdb.set_trace()  # breakpoint c953f8ec //
 			scores = cross_val_score(clf, x_temp[ind_mask,:], y[ind_mask,i], cv=5, scoring='neg_mean_squared_error',n_jobs=number_jobs)
 			loss_ar_svm.append(scores.mean())
 		else:
