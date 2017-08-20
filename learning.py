@@ -110,11 +110,15 @@ def gen_xy_daily(documents,features,window,mcount,dm_opt, tables=False, dmm=0, d
 	x = []
 	model = Doc2Vec(dm = dm_opt, size=features, window=window, min_count=mcount, workers=4, dbow_words=1,dm_mean=dmm,dm_concat=dmc)
 
+	print('doc2vec model set up', flush=True)
 	model.build_vocab(documents)
+	print('built vocab', flush=True)
 	model.train(documents,total_examples=model.corpus_count, epochs=3)
+	print('trained', flush=True)
 
 	for i in documents:
 		x.append(model.infer_vector(i[0]))
+	print('infered vectors', flush=True)
 
 	#evaluation
 	if tables:
@@ -270,16 +274,16 @@ def sort_predictability(news_data,lreturns,dates,test_split,names):
 	from evaluation import make_pred_sort_table
 
 	#set those to optimal -> todo
-	print('test1')
+	print('test1', flush=True)
 	[documents, y, dates_x] = create_documents(news_data,lreturns,dates, data_label_method_val)
-	print('test2')
+	print('test2', flush=True)
 	x = gen_xy_daily(documents,350,14,0,1)
-	print('test3')
+	print('test3', flush=True)
 
 	loss_ar_svm = []
 
 	for i in range(np.shape(y)[1]):
-		print(str(i))
+		print(str(i), flush=True)
 		x_temp = append_past_obs_ret(x, dates_x, lreturns[:,i], dates)
 		clf = LinearRegression(n_jobs=number_jobs)
 		#ind_mask = np.invert(np.isnan(y[:,i]))
