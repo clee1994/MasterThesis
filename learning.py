@@ -263,11 +263,12 @@ def sort_predictability(news_data,lreturns,dates,test_split,names):
 	from sklearn.model_selection import cross_val_score
 	from evaluation import make_pred_sort_table
 
-	#set those to optimal -> todo 
+	#set those to optimal -> todo
+	print('test1')
 	[documents, y, dates_x] = create_documents(news_data,lreturns,dates, data_label_method_val)
-	print('test')
+	print('test2')
 	x = gen_xy_daily(documents,350,14,0,1)
-	print('test')
+	print('test3')
 
 	loss_ar_svm = []
 
