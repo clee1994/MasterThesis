@@ -89,7 +89,6 @@ def create_documents(news,lreturns,dates_stocks,ylm):
 		pass
 
 	print('] Done', flush=True)
-	import pdb; pdb.set_trace()  # breakpoint 111ce945 //
 
 	y_ret =  np.array(y)
 	print('cr_test1')
