@@ -89,8 +89,12 @@ def create_documents(news,lreturns,dates_stocks,ylm):
 		pass
 
 	print('] Done', flush=True)
+	y_ret =  np.array(y)
+	print('cr_test1')
+	x_d_ret  = np.array(x_dates)
+	print('cr_test1')
 
-	return documents, np.array(y), np.array(x_dates)
+	return documents, y_ret, x_d_ret
 
 
 
