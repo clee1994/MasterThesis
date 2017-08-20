@@ -265,8 +265,9 @@ def sort_predictability(news_data,lreturns,dates,test_split,names):
 
 	#set those to optimal -> todo 
 	[documents, y, dates_x] = create_documents(news_data,lreturns,dates, data_label_method_val)
+	print('test')
 	x = gen_xy_daily(documents,350,14,0,1)
-
+	print('test')
 
 	loss_ar_svm = []
 
