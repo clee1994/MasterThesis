@@ -134,16 +134,16 @@ gc.collect()
 
 
 #regression
-reg_x(x_gram,sp500,first_line, split_point,r1,r4)
+#reg_x(x_gram,sp500,first_line, split_point,r1,r4)
 
-[x_gram, dates_news] = pickle.load(open(path_output +"bowx_models1.p", "rb" ) )
-reg_x(x_gram,sp500,first_line, split_point,r1,r4) 
+#[x_gram, dates_news] = pickle.load(open(path_output +"bowx_models1.p", "rb" ) )
+#reg_x(x_gram,sp500,first_line, split_point,r1,r4) 
 
-[x_gram, dates_news] = pickle.load(open(path_output +"bowx_models2.p", "rb" ) )
-reg_x(x_gram,sp500,first_line, split_point,r1,r4)
+#[x_gram, dates_news] = pickle.load(open(path_output +"bowx_models2.p", "rb" ) )
+#reg_x(x_gram,sp500,first_line, split_point,r1,r4)
 
-[x_gram, dates_news] = pickle.load(open(path_output +"bowx_models3.p", "rb" ) )
-reg_x(x_gram,sp500,first_line, split_point,r1,r4)
+#[x_gram, dates_news] = pickle.load(open(path_output +"bowx_models3.p", "rb" ) )
+#reg_x(x_gram,sp500,first_line, split_point,r1,r4)
 
 [x_gram, dates_news] = pickle.load(open(path_output +"tfidfx_models1.p", "rb" ) )
 reg_x(x_gram,sp500,first_line, split_point,r1,r4)
