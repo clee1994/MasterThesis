@@ -76,10 +76,10 @@ def reg_x(x_gram,l1,l2,split_point,r1,r4):
 
 
 
-print(str(datetime.datetime.now())+': Start reading in news:', flush=True)
-news_data = pickle.load(open(path_data + "Reuters.p", "rb" ) )
-print(str(datetime.datetime.now())+': Successfully read all news', flush=True)
-gc.collect()
+# print(str(datetime.datetime.now())+': Start reading in news:', flush=True)
+# news_data = pickle.load(open(path_data + "Reuters.p", "rb" ) )
+# print(str(datetime.datetime.now())+': Successfully read all news', flush=True)
+# gc.collect()
 print(str(datetime.datetime.now())+': Start reading in SP500 data:', flush=True)
 [_, dates_prices, names, lreturns] = pickle.load(open(path_data + "SP500.p", "rb" ) )
 print(str(datetime.datetime.now())+': Successfully read all data', flush=True)
@@ -87,12 +87,12 @@ gc.collect()
 
 
 #cherry picking -> repair 
-firm_ind_u = learning.sort_predictability(news_data,lreturns,dates_prices,test_split,names)#[0:firms_used]
-print(str(datetime.datetime.now())+': Successfully sorted')
-pickle.dump((firm_ind_u), open( path_output + "order.p", "wb" ) )
-del news_data
-gc.collect()
-#firm_ind_u = pickle.load(open(path_output + "order.p", "rb" ) )
+# firm_ind_u = learning.sort_predictability(news_data,lreturns,dates_prices,test_split,names)#[0:firms_used]
+# print(str(datetime.datetime.now())+': Successfully sorted')
+# pickle.dump((firm_ind_u), open( path_output + "order.p", "wb" ) )
+# del news_data
+# gc.collect()
+firm_ind_u = pickle.load(open(path_output + "order.p", "rb" ) )
 firm_ind_u = firm_ind_u[0:firms_used]
 
 #random -> validation, maybe multiple times?
@@ -101,8 +101,8 @@ firm_ind_u = firm_ind_u[0:firms_used]
 
 
 #create x
-[dates_news, split_point] = create_x(4, True, lreturns)
-gc.collect()
+# [dates_news, split_point] = create_x(4, True, lreturns)
+# gc.collect()
 # [dates_news, split_point] = create_x(3, False, lreturns)
 # gc.collect()
 # [dates_news, split_point] = create_x(3, True, lreturns)
@@ -134,7 +134,7 @@ gc.collect()
 
 
 #regression
-reg_x(x_gram,sp500,first_line, split_point)
+reg_x(x_gram,sp500,first_line, split_point,r1,r4)
 
 [x_gram, dates_news] = pickle.load(open(path_output +"bowx_models1.p", "rb" ) )
 reg_x(x_gram,sp500,first_line, split_point,r1,r4) 
@@ -160,6 +160,6 @@ reg_x(x_gram,sp500,first_line, split_point,r1,r4)
 # gc.collect()
 pickle.dump((complet,r4,r1,sp500), open( path_output + "final.p", "wb" ) )
 
-
+#398
 
 
