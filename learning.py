@@ -259,7 +259,7 @@ def create_ind_mask(x,y):
 	import numpy as np
 
 	ind_mask = (np.isnan(y))
-	for i in range(n_past):
+	for i in range(n_past_add):
 		ind_mask = np.add(ind_mask, np.isnan(x[:,-(i+1)]))
 	#ind_mask = np.sign(ind_mask)
 	return np.invert(ind_mask)
@@ -345,7 +345,7 @@ def append_past_obs_ret(x, dates_news, lreturns, dates_prices):
 	
 	import numpy as np
 
-	n_reach = n_past
+	n_reach = n_past_add
 	x_ret = np.c_[x, np.full([np.shape(x)[0] , n_reach],np.nan)]
 	for i in range(len(dates_news)):
 		ind_price = ind_closest(dates_news[i],dates_prices)
@@ -359,7 +359,7 @@ def append_past_obs_cov(x, dates_news, lreturns, dates_prices):
 	#append ten last days cov...
 	import numpy as np
 
-	n_reach = n_past
+	n_reach = n_past_add
 	x_ret = np.c_[x, np.full([np.shape(x)[0] , n_reach],np.nan)]
 	for i in range(len(dates_news)):
 		ind_price = ind_closest(dates_news[i],dates_prices)
@@ -632,23 +632,22 @@ def estimate_ridge(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, i
 	#adjust!
 	#1. model selection with cross validation and grid search
 	#alpha_range1 = np.geomspace(0.1,80, 12)
-	#alpha_range1 = [0.1       ,   0.18361885,   0.33715883,   0.61908719,
-	#				1.13676079,   2.08730714,   3.83268943,   7.0375404 ,
-	#				12.922251  ,  23.72768914,  43.56851077,  80.]
-	alpha_range1 = [0.001     ,  0.00187382,  0.00351119,  0.00657933,  0.01232847,
-					0.0231013 ,  0.04328761,  0.08111308,  0.15199111,  0.28480359,
-					0.53366992,  1.        ]
+	alpha_range1 = [0.1       ,   0.18361885,   0.33715883,   0.61908719,
+					1.13676079,   2.08730714,   3.83268943,   4.12234, 7.8945, 10.1942]
+	#alpha_range1 = [0.001     ,  0.00187382,  0.00351119,  0.00657933,  0.01232847,
+	#				0.0231013 ,  0.04328761,  0.08111308,  0.15199111,  0.28480359,
+	#				0.53366992,  1.        ]
 	#alpha_range = np.geomspace(1e-8,40, 12)
 	#gamma_range = np.geomspace(1e-2,12,10)
 	#gamma_range = [ 1.00000000e-02,   2.19852420e-02,   4.83350864e-02,
 	#					1.06265857e-01,   2.33628058e-01,   5.13636937e-01,
 	#				1.12924323e+00,   2.48266857e+00,   5.45820693e+00,
 	#				1.20000000e+01]
-	gamma_range = [ 0.001     ,  0.02311111,  0.04522222,  0.06733333,  0.08944444,
-					0.11155556,  0.13366667,  0.15577778,  0.17788889,  0.2       ]
+	gamma_range = [ 0.0088, 0.0095, 0.01, 0.015, 0.02311111,  0.04522222,  0.06733333,  0.08944444,
+					0.11155556,  0.13366667,  0.15577778,  0.17788889,  0.2]
 	#http://scikit-learn.org/stable/modules/classes.html#module-sklearn.metrics.pairwise -> kernels
-	RR_parameters = [{'kernel': ['rbf'], 'gamma': gamma_range, 'alpha': alpha_range1},
-					{'kernel': ['linear'], 'alpha': alpha_range1}]
+	RR_parameters = [{'kernel': ['rbf'], 'gamma': gamma_range, 'alpha': alpha_range1}]
+	#				{'kernel': ['linear'], 'alpha': alpha_range1}]
 
 	RR_model = KernelRidge(alpha=30)
 	clf = GridSearchCV(RR_model, RR_parameters,scoring='neg_mean_squared_error',n_jobs=number_jobs)
@@ -713,13 +712,12 @@ def estimate_SVR(x_cal, y_cal, test_split, lreturns, dates, x_dates, n_past, ind
 
 	#adjust
 	#c_range = np.geomspace(0.1e-3,0.2, 12)
-	#c_range = [	0.1       ,    0.18738174,    0.35111917,    0.65793322,
-	#			1.23284674,    2.3101297 ,    4.32876128,    8.11130831,
-	#			15.19911083,   28.48035868,   53.36699231,  100.        ]
-	c_range = [ 1.00000000e-04,   1.99569255e-04,   3.98278875e-04,
-				7.94842184e-04,   1.58626062e-03,   3.16568851e-03,
-				6.31774097e-03,   1.26082686e-02,   2.51622277e-02,
-				5.02160703e-02,   1.00215837e-01,   2.00000000e-01]
+	c_range = [	0.089, 0.097,  0.1,    0.18738174,    0.35111917,    0.65793322,
+				1.23284674,    2.3101297]
+	#c_range = [ 1.00000000e-04,   1.99569255e-04,   3.98278875e-04,
+	#			7.94842184e-04,   1.58626062e-03,   3.16568851e-03,
+	#			6.31774097e-03,   1.26082686e-02,   2.51622277e-02,
+	#			5.02160703e-02,   1.00215837e-01,   2.00000000e-01]
 	#epsilon_range = np.geomspace(1e-2,12,10)
 	#epsilon_range = [	1.00000000e-02,   2.19852420e-02,   4.83350864e-02,
 	#					1.06265857e-01,   2.33628058e-01,   5.13636937e-01,

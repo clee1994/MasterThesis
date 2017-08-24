@@ -21,8 +21,10 @@ past_obs_int = True
 learning.past_obs_int = past_obs_int
 
 firms_used = 10
-n_past = 90
+n_past = 60
+n_past_add = 20
 learning.n_past = n_past
+learning.n_past_add = n_past_add
 n_cov = 5
 learning.n_cov = n_cov
 test_split = 0.40
@@ -134,7 +136,7 @@ gc.collect()
 
 
 #regression
-#reg_x(x_gram,sp500,first_line, split_point,r1,r4)
+reg_x(x_gram,sp500,first_line, split_point,r1,r4)
 
 #[x_gram, dates_news] = pickle.load(open(path_output +"bowx_models1.p", "rb" ) )
 #reg_x(x_gram,sp500,first_line, split_point,r1,r4) 
@@ -145,14 +147,14 @@ gc.collect()
 #[x_gram, dates_news] = pickle.load(open(path_output +"bowx_models3.p", "rb" ) )
 #reg_x(x_gram,sp500,first_line, split_point,r1,r4)
 
-[x_gram, dates_news] = pickle.load(open(path_output +"tfidfx_models1.p", "rb" ) )
-reg_x(x_gram,sp500,first_line, split_point,r1,r4)
+#[x_gram, dates_news] = pickle.load(open(path_output +"tfidfx_models1.p", "rb" ) )
+#reg_x(x_gram,sp500,first_line, split_point,r1,r4)
 
-[x_gram, dates_news] = pickle.load(open(path_output +"tfidfx_models2.p", "rb" ) )
-reg_x(x_gram,sp500,first_line, split_point,r1,r4)
+#[x_gram, dates_news] = pickle.load(open(path_output +"tfidfx_models2.p", "rb" ) )
+#reg_x(x_gram,sp500,first_line, split_point,r1,r4)
 
-[x_gram, dates_news] = pickle.load(open(path_output +"tfidfx_models3.p", "rb" ) )
-reg_x(x_gram,sp500,first_line, split_point,r1,r4)
+#[x_gram, dates_news] = pickle.load(open(path_output +"tfidfx_models3.p", "rb" ) )
+#reg_x(x_gram,sp500,first_line, split_point,r1,r4)
 
 
 # evaluation.final_table(complet,np.array(r4),r1,sp500)

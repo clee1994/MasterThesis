@@ -10,3 +10,4 @@ Output/tables/*
 pickle_data/
 temp2.py
 word2vec_models.py
+trash.py
