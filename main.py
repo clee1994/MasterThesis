@@ -17,7 +17,7 @@ number_jobs = 1
 learning.number_jobs = number_jobs
 evaluation.number_jobs = number_jobs
 
-past_obs_int = True
+past_obs_int = False
 learning.past_obs_int = past_obs_int
 
 firms_used = 10
