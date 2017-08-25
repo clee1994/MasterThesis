@@ -9,7 +9,8 @@ def ret2prices(ret_series,base_value):
 		#probably cheating but... we pray that there wont be any nan
 		if np.isnan(ret_series[i]):
 			prices[i+1] = prices[i]
-		prices[i+1] = prices[i] * np.exp(ret_series[i])
+		else:
+			prices[i+1] = prices[i] * np.exp(ret_series[i])
 
 	return prices
 
