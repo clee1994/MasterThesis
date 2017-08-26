@@ -22,7 +22,7 @@ learning.past_obs_int = past_obs_int
 
 firms_used = 10
 n_past = 120
-n_past_add = 20
+n_past_add = 50
 learning.n_past = n_past
 learning.n_past_add = n_past_add
 n_cov = 5
@@ -131,7 +131,7 @@ pcov_p_ts = evaluation.cov_gen_past(lreturns, dates_prices, dates_news[(split_po
 [r2,second_line] = evaluation.evaluate_portfolio(names[firm_ind_u],dates_news[(split_point+1):],lreturns,pmu_p_ts,pcov_p_ts,firm_ind_u,dates_prices,None, 0.5, -1)
 complet.append([r1,first_line,r2, second_line, np.nan, np.nan, ' ','Past observations'] )
 
-[r4,sp500] = evaluation.pure_SP(dates_news[(split_point+1):],path_data)
+[r4,sp500] = evaluation.pure_SP(dates_news[(split_point):],path_data)
 gc.collect()
 
 

@@ -211,23 +211,35 @@ def final_table(complet, r4,r1,sp500):
 
 	#build final table
 	f = open(path_output+'tables/final_table.tex', 'w')
-	f.write('\\begin{tabular}{ r r r r r r r r r r r r}\n')
-	f.write('Vectorization & Regression Model & $\sum$ MSE & $R^2$ & Portfolio & Mean & Variance & Beta & Alpha & Sharpe Ratio & Treynor Ratio & V@R 95 \%  \\\\ \n ')
-	f.write('\hline \n')
+	f.write('\\begin{longtable}{ p{4cm} p{4cm} r r r r r r r r r r}\n')
+	f.write('\\toprule \n Vectorization & Regression Model & $\sum$ MSE & $R^2$ & Portfolio & Mean & Variance & Beta & Alpha & Sharpe Ratio & Treynor Ratio & V@R 95 \%  \\\\ \n ')
+	f.write('\\midrule\n')
 
 
 	order = np.argsort(np.array(complet)[:,4])
-	[mu, sigma, beta, alpha, sharpe, treynor, var95] = port_measures(r4, r1)
-	f.write('\\textit{Past observations} & ' + ' & ' +' & ' + ' & ' + '\\textit{min. var.}' + ' & '+"{:.4f}".format(mu)+' & '+"{:.4f}".format(sigma)+' & '+"{:.4f}".format(beta)+' & '+ "{:.4f}".format(alpha) +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\ \n ')
+	#[mu, sigma, beta, alpha, sharpe, treynor, var95] = port_measures(r4, r1)
+	#f.write('\\textit{Past observations} & ' + ' & ' +' & ' + ' & ' + '\\textit{min. var.}' + ' & '+"{:.4f}".format(mu)+' & '+"{:.4f}".format(sigma)+' & '+"{:.4f}".format(beta)+' & '+ "{:.4f}".format(alpha) +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\ \n ')
 			
-	for i in order:
+	[mu, sigma, beta, alpha, sharpe, treynor, var95] = port_measures(r4, complet[order[0]][0].astype(float))
+	f.write('\\multicolumn{2}{c}{\\textit{Past observations} }&  &  & ' + 'min. var.' + ' & '+"{:.4f}".format(mu)+' & '+"{:.4f}".format(sigma)+' & '+"{:.4f}".format(beta)+' & '+ "{:.4f}".format(alpha) +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\ \n ')
+	[mu, sigma, beta, alpha, sharpe, treynor, var95] = port_measures(r4, complet[order[0]][2].astype(float))
+	f.write(' & ' + ' & ' +' & ' + ' & ' + 'min. var. l1' + ' & '+"{:.4f}".format(mu)+' & '+"{:.4f}".format(sigma)+' & '+"{:.4f}".format(beta)+' & '+ "{:.4f}".format(alpha) +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\  \n')
+
+
+	for i in order[1:]:
 		[mu, sigma, beta, alpha, sharpe, treynor, var95] = port_measures(r4, complet[i][0].astype(float))
-		f.write(complet[i][6] +' & '+ complet[i][7] + ' & '+ "${:.4e}".format(complet[i][4]).split('e')[0] + '\\times 10^{'+"{:.4e}".format(complet[i][4]).split('e')[1]+'}$' +' & '+ "{:.4f}".format(complet[i][5]) + ' & ' + 'min. var.' + ' & '+"{:.4f}".format(mu)+' & '+"{:.4f}".format(sigma)+' & '+"{:.4f}".format(beta)+' & '+ "{:.4f}".format(alpha) +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\ \n ')
+		try:
+			mse_string = "${:.4e}".format(complet[i][4]).split('e')[0] + '\\times 10^{'+"{:.4e}".format(complet[i][4]).split('e')[1]+'}$'
+		except:
+			mse_string = ''
+		f.write('\\midrule[0.01pt] \n \multirow{2}{4cm}{' + complet[i][6] +'} &  \multirow{2}{4cm}{'+ complet[i][7] + '} &  \multirow{2}{*}{'+ mse_string +'} &  \multirow{2}{*}{'+ "{:.4f}".format(complet[i][5]) + '} & ' + 'min. var.' + ' & '+"{:.4f}".format(mu)+' & '+"{:.4f}".format(sigma)+' & '+"{:.4f}".format(beta)+' & '+ "{:.4f}".format(alpha) +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\ \n ')
 		[mu, sigma, beta, alpha, sharpe, treynor, var95] = port_measures(r4, complet[i][2].astype(float))
-		f.write(' & ' + ' & ' +' & ' + ' & ' + 'min. var. l1' + ' & '+"{:.4f}".format(mu)+' & '+"{:.4f}".format(sigma)+' & '+"{:.4f}".format(beta)+' & '+ "{:.4f}".format(alpha) +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\ \n ')
+		f.write(' & ' + ' & ' +' & ' + ' & ' + 'min. var. l1' + ' & '+"{:.4f}".format(mu)+' & '+"{:.4f}".format(sigma)+' & '+"{:.4f}".format(beta)+' & '+ "{:.4f}".format(alpha) +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\[0.6cm] \n')
 
+	f.write('\\bottomrule \n')
+	f.write(' \\caption{Results overview, the portfolio measures are monthly averages over the whole test set} \\label{tab:sometab} \n')
 
-	f.write('\\end{tabular}')
+	f.write('\\end{longtable}\n')
 	f.close() 
 
 	final_plots_s([r1,complet[order[0]][0],complet[order[0]][2],r4],[r'past obs.',r'doc2vec',r'doc2vec, l1',r'SP500'])
@@ -237,18 +249,36 @@ def final_table(complet, r4,r1,sp500):
 def port_measures(rbase, ret):
 	import numpy as np
 
+
+	interv = 1
+
+	#make weekly
+	reshaped_rbase = np.pad(rbase, (0,int(np.ceil(np.shape(rbase)[0]/interv))*interv-np.shape(rbase)[0]), 'constant', constant_values=(0, 0))
+	reshaped_rbase = reshaped_rbase.reshape((int(np.shape(reshaped_rbase)[0]/interv),interv))
+	rbase = np.sum(reshaped_rbase,axis=1)
+
+	reshaped_ret = np.pad(ret, (0,int(np.ceil(np.shape(ret)[0]/interv))*interv-np.shape(ret)[0]), 'constant', constant_values=(0, 0))
+	reshaped_ret = reshaped_ret.reshape((int(np.shape(reshaped_ret)[0]/interv),interv))
+	ret = np.sum(reshaped_ret,axis=1)
+
+
 	m_mu = np.nanmean(rbase)
 	m_sigma = np.nanvar(rbase)
-	r_f = 0.00004 #assuming some risk free rate
+	r_f = 0.00004*interv #assuming some risk free rate
 	mu = np.nanmean(ret) 
 	sigma = np.nanvar(ret)
-	nan_mask = ret != np.nan
+	nan_mask = np.invert(np.isnan(ret))
 	beta = np.cov(ret[nan_mask],rbase[nan_mask])[0,1]/np.nanvar(rbase)
 	alpha = mu - r_f - beta*(m_mu - r_f)
 	sharpe = (mu-r_f)/sigma
 	treynor = (mu-r_f)/beta
 	var95 = np.percentile(ret, 5)
+
+
+	
+	
 	return mu, sigma, beta, alpha, sharpe, treynor, var95
+
 
 def doc2vec_tables(model,documents):
 	import datetime
