@@ -160,7 +160,7 @@ reg_x(x_gram,sp500,first_line, split_point,r1,r4)
 # evaluation.final_table(complet,np.array(r4),r1,sp500)
 
 # gc.collect()
-pickle.dump((complet,r4,r1,sp500), open( path_output + "final.p", "wb" ) )
+pickle.dump((complet,r4,r1,sp500), open( path_output +str(datetime.datetime.now())+  "final.p", "wb" ) )
 
 #398
 
