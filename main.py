@@ -167,6 +167,4 @@ reg_x(x_gram,sp500,first_line, split_point,r1,r4)
 # gc.collect()
 pickle.dump((complet,r4,r1,sp500), open( path_output +str(datetime.datetime.now())+  "final.p", "wb" ) )
 
-# The username is: em00234329 and the password is: 214vxl131 to connect to Sophos for the updates (the sixth character of the password is a lower case L).
-
 
