@@ -118,7 +118,7 @@ firm_ind_u = firm_ind_u[0:firms_used]
 #[dates_news, split_point] = create_x(1, True, lreturns)
 #gc.collect()
 
-
+#chanage name to pv dm
 [x_gram, dates_news] = pickle.load(open(path_output +"bowx_models4.p", "rb" ) )
 split_point = int(np.floor(np.shape(x_gram[0])[0]*(1-test_split)))
 
@@ -136,6 +136,11 @@ gc.collect()
 
 
 #regression
+#reg_x(x_gram,sp500,first_line, split_point,r1,r4)
+
+#change name to pv bdow
+[x_gram, dates_news] = pickle.load(open(path_output +"dbow_doc2vec.p", "rb" ) )
+#split_point = int(np.floor(np.shape(x_gram[0])[0]*(1-test_split)))
 reg_x(x_gram,sp500,first_line, split_point,r1,r4)
 
 #[x_gram, dates_news] = pickle.load(open(path_output +"bowx_models1.p", "rb" ) )
