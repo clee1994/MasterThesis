@@ -22,7 +22,7 @@ learning.past_obs_int = past_obs_int
 
 firms_used = 10
 n_past = 120
-n_past_add = 50
+n_past_add = 20
 learning.n_past = n_past
 learning.n_past_add = n_past_add
 n_cov = 5
@@ -167,6 +167,6 @@ reg_x(x_gram,sp500,first_line, split_point,r1,r4)
 # gc.collect()
 pickle.dump((complet,r4,r1,sp500), open( path_output +str(datetime.datetime.now())+  "final.p", "wb" ) )
 
-#398
+# The username is: em00234329 and the password is: 214vxl131 to connect to Sophos for the updates (the sixth character of the password is a lower case L).
 
 
