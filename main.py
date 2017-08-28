@@ -143,6 +143,10 @@ gc.collect()
 #split_point = int(np.floor(np.shape(x_gram[0])[0]*(1-test_split)))
 reg_x(x_gram,sp500,first_line, split_point,r1,r4)
 
+[x_gram, dates_news] = pickle.load(open(path_output +"dm_doc2vec.p", "rb" ) )
+#split_point = int(np.floor(np.shape(x_gram[0])[0]*(1-test_split)))
+reg_x(x_gram,sp500,first_line, split_point,r1,r4)
+
 #[x_gram, dates_news] = pickle.load(open(path_output +"bowx_models1.p", "rb" ) )
 #reg_x(x_gram,sp500,first_line, split_point,r1,r4) 
 
