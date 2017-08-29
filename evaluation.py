@@ -212,7 +212,7 @@ def final_table(complet, r4,r1,sp500):
 	#build final table
 	f = open(path_output+'tables/final_table.tex', 'w')
 	f.write('\\begin{longtable}{ p{3.8cm} p{3.5cm} r r r r r r r r r r}\n')
-	f.write('\\toprule \n Vectorization & Regression Model & $\sum$ MSE & $R^2$ & Portfolio & Mean & Variance & Beta & Alpha & Sharpe Ratio & Treynor Ratio & V@R 95 \%  \\\\ \n ')
+	f.write('\\toprule \n Vectorization & Regression Model & $\sum$ MSE & $R^2$ & Portfolio & Mean & Variance & Beta & Alpha & Sharpe Ratio & V@R 95 \%  \\\\ \n ') #& Treynor Ratio
 	f.write('\\midrule\n')
 
 
@@ -224,12 +224,12 @@ def final_table(complet, r4,r1,sp500):
 	mu_string = "${:.4e}".format(mu).split('e')[0] + '\\times 10^{'+"{:.4e}".format(mu).split('e')[1]+'}$'
 	sigma_string = "${:.4e}".format(sigma).split('e')[0] + '\\times 10^{'+"{:.4e}".format(sigma).split('e')[1]+'}$'
 	alpha_string = "${:.4e}".format(alpha).split('e')[0] + '\\times 10^{'+"{:.4e}".format(alpha).split('e')[1]+'}$'
-	f.write('\\multicolumn{2}{c}{\\textit{Past observations} }&  &  & ' + 'min. var.' + ' & '+mu_string+' & '+sigma_string+' & '+"{:.4f}".format(beta)+' & '+ alpha_string +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\ \n ')
+	f.write('\\multicolumn{2}{c}{\\textit{Past observations} }&  &  & ' + 'min. var.' + ' & '+mu_string+' & '+sigma_string+' & '+"{:.4f}".format(beta)+' & '+ alpha_string +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(var95)+'  \\\\ \n ')#' & '+"{:.4f}".format(treynor)+
 	[mu, sigma, beta, alpha, sharpe, treynor, var95] = port_measures(r4, complet[order[0]][2].astype(float))
 	mu_string = "${:.4e}".format(mu).split('e')[0] + '\\times 10^{'+"{:.4e}".format(mu).split('e')[1]+'}$'
 	sigma_string = "${:.4e}".format(sigma).split('e')[0] + '\\times 10^{'+"{:.4e}".format(sigma).split('e')[1]+'}$'
 	alpha_string = "${:.4e}".format(alpha).split('e')[0] + '\\times 10^{'+"{:.4e}".format(alpha).split('e')[1]+'}$'
-	f.write(' & ' + ' & ' +' & ' + ' & ' + 'min. var. l1' + ' & '+mu_string+' & '+sigma_string+' & '+"{:.4f}".format(beta)+' & '+ alpha_string +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\  \n')
+	f.write(' & ' + ' & ' +' & ' + ' & ' + 'min. var. l1' + ' & '+mu_string+' & '+sigma_string+' & '+"{:.4f}".format(beta)+' & '+ alpha_string +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(var95)+'  \\\\  \n') #' & '+"{:.4f}".format(treynor)+
 
 
 	for i in order[1:]:
@@ -241,15 +241,15 @@ def final_table(complet, r4,r1,sp500):
 		mu_string = "${:.4e}".format(mu).split('e')[0] + '\\times 10^{'+"{:.4e}".format(mu).split('e')[1]+'}$'
 		sigma_string = "${:.4e}".format(sigma).split('e')[0] + '\\times 10^{'+"{:.4e}".format(sigma).split('e')[1]+'}$'
 		alpha_string = "${:.4e}".format(alpha).split('e')[0] + '\\times 10^{'+"{:.4e}".format(alpha).split('e')[1]+'}$'
-		f.write('\\midrule[0.01pt] \n \multirow{2}{4cm}{' + complet[i][6] +'} &  \multirow{2}{4cm}{'+ complet[i][7] + '} &  \multirow{2}{*}{'+ mse_string +'} &  \multirow{2}{*}{'+ "{:.4f}".format(complet[i][5]) + '} & ' + 'min. var.' + ' & '+mu_string+' & '+sigma_string+' & '+"{:.4f}".format(beta)+' & '+ alpha_string +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\ \n ')
+		f.write('\\midrule[0.01pt] \n \multirow{2}{4cm}{' + complet[i][6] +'} &  \multirow{2}{4cm}{'+ complet[i][7] + '} &  \multirow{2}{*}{'+ mse_string +'} &  \multirow{2}{*}{'+ "{:.4f}".format(complet[i][5]) + '} & ' + 'min. var.' + ' & '+mu_string+' & '+sigma_string+' & '+"{:.4f}".format(beta)+' & '+ alpha_string +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(var95)+'  \\\\ \n ') #' & '+"{:.4f}".format(treynor)+
 		[mu, sigma, beta, alpha, sharpe, treynor, var95] = port_measures(r4, complet[i][2].astype(float))
 		mu_string = "${:.4e}".format(mu).split('e')[0] + '\\times 10^{'+"{:.4e}".format(mu).split('e')[1]+'}$'
 		sigma_string = "${:.4e}".format(sigma).split('e')[0] + '\\times 10^{'+"{:.4e}".format(sigma).split('e')[1]+'}$'
 		alpha_string = "${:.4e}".format(alpha).split('e')[0] + '\\times 10^{'+"{:.4e}".format(alpha).split('e')[1]+'}$'
-		f.write(' & ' + ' & ' +' & ' + ' & ' + 'min. var. l1' + ' & '+mu_string+' & '+sigma_string+' & '+"{:.4f}".format(beta)+' & '+ alpha_string +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(treynor)+' & '+"{:.4f}".format(var95)+'  \\\\[0.6cm] \n')
+		f.write(' & ' + ' & ' +' & ' + ' & ' + 'min. var. l1' + ' & '+mu_string+' & '+sigma_string+' & '+"{:.4f}".format(beta)+' & '+ alpha_string +' & '+"{:.4f}".format(sharpe)+' & '+"{:.4f}".format(var95)+'  \\\\[0.6cm] \n') #' & '+"{:.4f}".format(treynor)+
 
 	f.write('\\bottomrule \n')
-	f.write(' \\caption{Results overview, the portfolio measures are monthly averages over the whole test set} \\label{tab:sometab} \n')
+	f.write(' \\caption{Results overview. Note: BoW 1-gram with Ridge Regression and BoW 3-gram with Ridge Regression failed to produce a sufficient number of usable covariance matrices and thus were omitted in the table. The $\sum$ MSE is the sum over all MSEs generated during the prediction phase. Meanwhile, the $R^2$ is the average of all produced $R^2$s. The portfolio measures are on a daily basis.} \\label{tab:main_results} \n')
 
 	f.write('\\end{longtable}\n')
 	f.close() 

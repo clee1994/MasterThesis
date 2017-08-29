@@ -385,7 +385,7 @@ def produce_mu_cov(x, test_split, lreturns, dates_prices, dates_news, n_past, na
 		if past_obs_int:
 			x = append_past_obs_ret(x, dates_news, lreturns[:,i], dates_prices)
 		if i == firm_ind_u[0]:
-			#stables = True
+			stables = True
 			[mu_p_ts_temp, lossest, r2t, parameters_reg] = reg_method(x, y, test_split, temp1, dates_prices, dates_news, n_past,i,bench_mark_mu, "Mean",names[i],show_p,stables)
 		else:
 			[mu_p_ts_temp, lossest, r2t, _] = reg_method(x, y, test_split, temp1, dates_prices, dates_news, n_past,i,bench_mark_mu, "Mean",names[i],show_p,stables)
@@ -393,18 +393,18 @@ def produce_mu_cov(x, test_split, lreturns, dates_prices, dates_news, n_past, na
 		r2_mat.append(r2t)
 		losses = losses + lossest
 		print(str(datetime.datetime.now())+': Successfully produced mu_p_ts for '+names[i], flush=True)
-		# if i == firm_ind_u[0]:
-		# 	stables = False
+		if i == firm_ind_u[0]:
+			stables = False
 
 
 	# get improved cov estimates
 	cov_p_ts = np.zeros([int(np.ceil(np.shape(x)[0]*test_split)),len(firm_ind_u),len(firm_ind_u)])
 	for i in range(len(firm_ind_u)):
 		for j in range(i+1):
-			# if (i == j) and (i == 0):
-			# 	stables = True
-			# if (i == 0) and (j == 1):
-			# 	stables = True
+			if (i == j) and (i == 0):
+				stables = True
+			if (i == 0) and (j == 1):
+				stables = True
 			temp1 = np.transpose(np.matrix( lreturns[:,[i,j]]))
 			y = produce_y_cov(temp1,dates_prices, dates_news)
 			if i == j:
@@ -420,10 +420,10 @@ def produce_mu_cov(x, test_split, lreturns, dates_prices, dates_news, n_past, na
 			losses = losses + lossest
 			r2_mat.append(r2t)
 			print(str(datetime.datetime.now())+': Successfully produced co_p_ts for '+names[firm_ind_u[i]]+' and '+names[firm_ind_u[j]], flush=True)
-			# if (i == j) and (i == 0):
-			# 	stables = False
-			# if (i == 0) and (j == 1):
-			# 	stables = False
+			if (i == j) and (i == 0):
+				stables = False
+			if (i == 0) and (j == 1):
+				stables = False
 
 	return mu_p_ts, cov_p_ts, losses, np.nanmean(r2_mat), parameters_reg
 

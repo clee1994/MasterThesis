@@ -20,7 +20,7 @@ evaluation.number_jobs = number_jobs
 past_obs_int = True
 learning.past_obs_int = past_obs_int
 
-firms_used = 10
+firms_used = 2
 n_past = 120
 n_past_add = 20
 learning.n_past = n_past
@@ -139,11 +139,11 @@ gc.collect()
 #reg_x(x_gram,sp500,first_line, split_point,r1,r4)
 
 #change name to pv bdow
-[x_gram, dates_news] = pickle.load(open(path_output +"dbow_doc2vec.p", "rb" ) )
+#[x_gram, dates_news] = pickle.load(open(path_output +"dbow_doc2vec.p", "rb" ))
 #split_point = int(np.floor(np.shape(x_gram[0])[0]*(1-test_split)))
-reg_x(x_gram,sp500,first_line, split_point,r1,r4)
+#reg_x(x_gram,sp500,first_line, split_point,r1,r4)
 
-[x_gram, dates_news] = pickle.load(open(path_output +"dm_doc2vec.p", "rb" ) )
+[x_gram, dates_news] = pickle.load(open(path_output +"dm_doc2vec.p", "rb" ))
 #split_point = int(np.floor(np.shape(x_gram[0])[0]*(1-test_split)))
 reg_x(x_gram,sp500,first_line, split_point,r1,r4)
 
