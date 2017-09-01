@@ -261,10 +261,8 @@ def final_table(complet, r4,r1,sp500):
 def port_measures(rbase, ret):
 	import numpy as np
 
+	interv = 1 # 1: daily, 5: weekly, 20: monthly, 250: yearly
 
-	interv = 1
-
-	#make weekly
 	reshaped_rbase = np.pad(rbase, (0,int(np.ceil(np.shape(rbase)[0]/interv))*interv-np.shape(rbase)[0]), 'constant', constant_values=(0, 0))
 	reshaped_rbase = reshaped_rbase.reshape((int(np.shape(reshaped_rbase)[0]/interv),interv))
 	rbase = np.sum(reshaped_rbase,axis=1)
@@ -287,8 +285,6 @@ def port_measures(rbase, ret):
 	var95 = np.percentile(ret[nan_mask], 5)
 
 
-	
-	
 	return mu, sigma, beta, alpha, sharpe, treynor, var95
 
 
